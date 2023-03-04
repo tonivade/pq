@@ -16,7 +16,6 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
@@ -131,7 +130,7 @@ public class pq implements Callable<Integer> {
       } else {
         System.out.println(ident + "},");
       }
-    } else if (value instanceof Utf8) {
+    } else if (value instanceof CharSequence) {
       if (last) {
         System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
       } else {
