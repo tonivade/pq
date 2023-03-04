@@ -1,0 +1,27 @@
+{
+  "resources":{
+  "includes":[
+    {
+      "pattern":"\\QMETA-INF/services/org.apache.hadoop.fs.FileSystem\\E"
+    }, 
+    {
+      "pattern":"\\Qcore-default.xml\\E"
+    }, 
+    {
+      "pattern":"\\Qmapred-default.xml\\E"
+    }, 
+    {
+      "pattern":"\\Qorg/xerial/snappy/VERSION\\E"
+    }, 
+    {
+      "pattern":"\\Qorg/xerial/snappy/native/Linux/x86_64/libsnappyjava.so\\E"
+    }, 
+    {
+      "pattern":"\\Qyarn-default.xml\\E"
+    }
+  ]},
+  "bundles":[{
+      "name":"sun.security.util.Resources",
+      "classNames":["sun.security.util.Resources"]
+    }]
+}

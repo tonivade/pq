@@ -1,0 +1,105 @@
+plugins {
+  id 'java-library'
+  id 'application'
+  id 'de.undercouch.download' version '5.3.0'
+  id 'org.mikeneck.graalvm-native-image' version '1.4.1'
+  id 'com.github.ben-manes.versions' version '0.45.0'
+}
+
+archivesBaseName = 'pq'
+version = '0.1.0-SNAPSHOT'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  maven {
+    url = 'https://oss.sonatype.org/content/repositories/snapshots'
+  }
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
+test {
+  useJUnitPlatform()
+}
+
+javadoc.options {
+  addStringOption('-release', '17')
+}
+
+compileJava {
+  options.compilerArgs << '-Xlint:unchecked'
+  options.compilerArgs << '-Xlint:rawtypes'
+  options.compilerArgs << '--enable-preview'
+  options.release = 17
+}
+
+compileTestJava {
+  options.compilerArgs << '-Xlint:unchecked'
+  options.compilerArgs << '-Xlint:rawtypes'
+  options.compilerArgs << '--enable-preview'
+  options.release = 17
+}
+
+dependencies {
+  implementation 'org.apache.parquet:parquet-avro:1.12.3'
+  implementation 'org.apache.hadoop:hadoop-client:3.3.2'
+  runtimeOnly 'ch.qos.logback:logback-classic:1.2.11'
+
+  testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+  testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.9.2'
+  testImplementation 'org.mockito:mockito-core:5.1.1'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.1.1'
+  testImplementation 'org.assertj:assertj-core:3.24.2'
+}
+
+application {
+  mainClass = 'pq'
+}
+
+task fatJar(type: Jar) {
+  manifest {
+    attributes "Main-Class": "pq"
+  }
+  archiveClassifier = "all"
+  duplicatesStrategy = "warn"
+  from {
+    configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+  with jar
+}
+
+task downloadGraalvm(type: Download) {
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.0.0-dev-20230303_0222/graalvm-ce-java17-linux-amd64-dev.tar.gz"
+  dest new java.io.File(buildDir, "graalvm.tar.gz")
+  onlyIfModified true
+}
+
+task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
+  workingDir "$buildDir"
+  commandLine 'tar', 'zxvf', 'graalvm.tar.gz'
+}
+
+nativeImage {
+  graalVmHome = "${buildDir}/graalvm-ce-java17-23.0.0-dev"
+  mainClass = "pq"
+  executableName = "pq"
+  arguments(
+          '--verbose',
+          '--report-unsupported-elements-at-runtime',
+          '--no-fallback',
+          '--enable-preview',
+          '--allow-incomplete-classpath',
+          '--initialize-at-build-time=ch.qos.logback',
+          '--initialize-at-run-time=com.oracle.truffle.js.scriptengine.GraalJSEngineFactory',
+          '-H:IncludeResources=logback.xml',
+          '-H:ReflectionConfigurationFiles=src/native-image/reflect-config.json',
+          '-H:JNIConfigurationFiles=src/native-image/jni-config.json',
+          '-H:ResourceConfigurationFiles=src/native-image/resource-config.json'
+  )
+}
