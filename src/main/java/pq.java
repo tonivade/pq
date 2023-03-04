@@ -10,6 +10,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.Callable;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
@@ -19,22 +20,34 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 
-public class pq {
+@Command(name = "pq", description = "parquet query tool")
+public class pq implements Callable<Integer> {
+
+  public enum CMD { count, schema, parse }
+
+  @Parameters(paramLabel = "COMMAND", description = "command to execute", index = "0")
+  private CMD cmd;
+
+  @Parameters(paramLabel = "FILE", description = "file name", index = "1")
+  private File file;
 
   public static void main(String[] args) {
-    if (args[0].equals("--parse")) {
-      parse(new File(args[1]));
-    } else if (args[0].equals("--schema")) {
-      schema(new File(args[1]));
-    } else if (args[0].equals("--count")) {
-      count(new File(args[1]));
-    } else {
-      System.out.println("ERROR: invalid option " + args[0]);
-      System.out.println("--parse <file> : parse and print the content of the file");
-      System.out.println("--schema <file> : print parquet file schema");
-      System.out.println("--count <file> : print number of elements");
+    var exitCode = new CommandLine(new pq()).execute(args);
+    System.exit(exitCode);
+  }
+
+  @Override
+  public Integer call() throws Exception {
+    switch (cmd) {
+      case count -> count(file);
+      case schema -> schema(file);
+      case parse -> parse(file);
     }
+    return 0;
   }
 
   private static void parse(File file) {
