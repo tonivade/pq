@@ -16,6 +16,7 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
@@ -24,6 +25,7 @@ import org.apache.parquet.hadoop.util.HadoopInputFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ITypeConverter;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "pq", description = "parquet query tool")
@@ -37,7 +39,6 @@ public class pq implements Callable<Integer> {
     public Action convert(String value) {
       return Action.valueOf(value.toUpperCase());
     }
-
   }
 
   @Parameters(paramLabel = "ACTION", description = "action to execute: count, schema or parse", index = "0", converter = ActionConverter.class)
@@ -45,6 +46,9 @@ public class pq implements Callable<Integer> {
 
   @Parameters(paramLabel = "FILE", description = "parquet file", index = "1")
   private File file;
+
+  @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT", defaultValue = "0")
+  private int limit;
 
   public static void main(String[] args) {
     var exitCode = new CommandLine(new pq()).execute(args);
@@ -61,11 +65,15 @@ public class pq implements Callable<Integer> {
     return 0;
   }
 
-  private static void parse(File file) {
+  private void parse(File file) {
     try (var reader = createParquetReader(file.toPath())) {
+      int i = 0;
       var nextRecord = reader.read();
       while (nextRecord != null) {
-        print("", null, nextRecord);
+        if (limit != 0 && ++i > limit) {
+          break;
+        }
+        print("", null, nextRecord, true);
         nextRecord = reader.read();
       }
     } catch (IOException e) {
@@ -73,7 +81,7 @@ public class pq implements Callable<Integer> {
     }
   }
 
-  private static void schema(File file) {
+  private void schema(File file) {
     try (var reader = createParquetReader(file.toPath())) {
       var schema = reader.read().getSchema();
       System.out.println(schema);
@@ -82,7 +90,7 @@ public class pq implements Callable<Integer> {
     }
   }
 
-  private static void count(File file) {
+  private void count(File file) {
     int i = 0;
     try (var reader = createParquetReader(file.toPath())) {
       var nextRecord = reader.read();
@@ -96,27 +104,45 @@ public class pq implements Callable<Integer> {
     System.out.println(i);
   }
 
-  private static void print(String ident, Field field, Object value) {
+  private static void print(String ident, Field field, Object value, boolean last) {
     if (value instanceof GenericArray<?> array) {
-      System.out.println(ident + field.name() + " [");
+      System.out.println(ident + "\"" + field.name() + "\": [");
+      int i = 0;
       for (var element : array) {
-        print(ident + "    ", null, element);
+        print(ident + "    ", null, element, array.size() == ++i);
       }
-      System.out.println(ident + "]");
+      if (last) {
+        System.out.println(ident + "]");
+      } else {
+        System.out.println(ident + "],");
+      }
     } else if (value instanceof GenericRecord record) {
       if (field != null) {
-        System.out.println(ident + field.name() + " {");
+        System.out.println(ident + "\"" + field.name() + "\": {");
       } else {
         System.out.println(ident + "{");
       }
+      int i = 0;
       for (var f: record.getSchema().getFields()) {
-        print(ident + "    ", f, record.get(f.pos()));
+        print(ident + "    ", f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
       }
-      System.out.println(ident + "}");
-    } else if (value != null) {
-      System.out.println(ident + value.getClass().getSimpleName() + ":" + field.name() + "=" + value);
+      if (last) {
+        System.out.println(ident + "}");
+      } else {
+        System.out.println(ident + "},");
+      }
+    } else if (value instanceof Utf8) {
+      if (last) {
+        System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
+      } else {
+        System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\",");
+      }
     } else {
-      System.out.println(ident + field.name() + "=" + value);
+      if (last) {
+        System.out.println(ident + "\"" + field.name() + "\": " + value);
+      } else {
+        System.out.println(ident + "\"" + field.name() + "\": " + value + ",");
+      }
     }
   }
 
