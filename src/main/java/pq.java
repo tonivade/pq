@@ -3,6 +3,10 @@
 //DEPS org.apache.parquet:parquet-avro:1.12.3
 //DEPS org.apache.hadoop:hadoop-client:3.3.2
 
+/*
+ * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
