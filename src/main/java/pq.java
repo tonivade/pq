@@ -2,6 +2,7 @@
 
 //DEPS org.apache.parquet:parquet-avro:1.12.3
 //DEPS org.apache.hadoop:hadoop-client:3.3.2
+//DEPS info.picocli:picocli:4.7.1
 
 /*
  * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
@@ -22,17 +23,27 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.ITypeConverter;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "pq", description = "parquet query tool")
 public class pq implements Callable<Integer> {
 
-  public enum CMD { count, schema, parse }
+  public enum Action { COUNT, SCHEMA, PARSE }
 
-  @Parameters(paramLabel = "COMMAND", description = "command to execute", index = "0")
-  private CMD cmd;
+  public static final class ActionConverter implements ITypeConverter<Action> {
 
-  @Parameters(paramLabel = "FILE", description = "file name", index = "1")
+    @Override
+    public Action convert(String value) {
+      return Action.valueOf(value.toUpperCase());
+    }
+
+  }
+
+  @Parameters(paramLabel = "ACTION", description = "action to execute: count, schema or parse", index = "0", converter = ActionConverter.class)
+  private Action action;
+
+  @Parameters(paramLabel = "FILE", description = "parquet file", index = "1")
   private File file;
 
   public static void main(String[] args) {
@@ -41,11 +52,11 @@ public class pq implements Callable<Integer> {
   }
 
   @Override
-  public Integer call() throws Exception {
-    switch (cmd) {
-      case count -> count(file);
-      case schema -> schema(file);
-      case parse -> parse(file);
+  public Integer call() {
+    switch (action) {
+      case COUNT -> count(file);
+      case SCHEMA -> schema(file);
+      case PARSE -> parse(file);
     }
     return 0;
   }

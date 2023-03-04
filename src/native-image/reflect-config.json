@@ -57,9 +57,6 @@
   "name":"com.sun.security.auth.UnixPrincipal"
 },
 {
-  "name":"groovy.lang.Closure"
-},
-{
   "name":"java.io.FilePermission"
 },
 {
