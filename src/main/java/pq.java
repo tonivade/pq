@@ -28,7 +28,7 @@ import picocli.CommandLine.HelpCommand;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "pq", description = "parquet query tool", 
+@Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
   subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ParseCommand.class, HelpCommand.class })
 public class pq {
 
