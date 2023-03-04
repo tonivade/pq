@@ -72,7 +72,7 @@ public class pq {
     System.out.println(i);
   }
 
-  static void print(String ident, Field field, Object value) {
+  private static void print(String ident, Field field, Object value) {
     if (value instanceof GenericArray<?> array) {
       System.out.println(ident + field.name() + " [");
       for (var element : array) {
