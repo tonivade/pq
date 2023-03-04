@@ -11,7 +11,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.concurrent.Callable;
+
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
@@ -21,86 +21,85 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.ITypeConverter;
+import picocli.CommandLine.HelpCommand;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "pq", description = "parquet query tool")
-public class pq implements Callable<Integer> {
+@Command(name = "pq", description = "parquet query tool", 
+  subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ParseCommand.class, HelpCommand.class })
+public class pq {
 
-  public enum Action { COUNT, SCHEMA, PARSE }
+  @Command(name = "count", description = "print total number of rows in parquet file")
+  public static class CountCommand implements Runnable {
 
-  public static final class ActionConverter implements ITypeConverter<Action> {
+    @Parameters(paramLabel = "FILE", description = "parquet file")
+    private File file;
 
     @Override
-    public Action convert(String value) {
-      return Action.valueOf(value.toUpperCase());
+    public void run() {
+      int i = 0;
+      try (var reader = createParquetReader(file.toPath())) {
+        var nextRecord = reader.read();
+        while (nextRecord != null) {
+          i++;
+          nextRecord = reader.read();
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+      System.out.println(i);
     }
   }
 
-  @Parameters(paramLabel = "ACTION", description = "action to execute: count, schema or parse", index = "0", converter = ActionConverter.class)
-  private Action action;
+  @Command(name = "schema", description = "print avro schema of parquet file")
+  public static class SchemaCommand implements Runnable {
 
-  @Parameters(paramLabel = "FILE", description = "parquet file", index = "1")
-  private File file;
+    @Parameters(paramLabel = "FILE", description = "parquet file")
+    private File file;
 
-  @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT")
-  private int limit;
+    @Override
+    public void run() {
+      try (var reader = createParquetReader(file.toPath())) {
+        var schema = reader.read().getSchema();
+        System.out.println(schema);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+
+  @Command(name = "parse", description = "print content of parquet file in json format")
+  public static class ParseCommand implements Runnable {
+
+    @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT")
+    private int limit;
+
+    @Parameters(paramLabel = "FILE", description = "parquet file")
+    private File file;
+
+    @Override
+    public void run() {
+      try (var reader = createParquetReader(file.toPath())) {
+        int i = 0;
+        var nextRecord = reader.read();
+        while (nextRecord != null) {
+          if (limit != 0 && ++i > limit) {
+            break;
+          }
+          print("", null, nextRecord, true);
+          nextRecord = reader.read();
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
 
   public static void main(String[] args) {
-    var exitCode = new CommandLine(new pq()).execute(args);
-    System.exit(exitCode);
-  }
-
-  @Override
-  public Integer call() {
-    switch (action) {
-      case COUNT -> count(file);
-      case SCHEMA -> schema(file);
-      case PARSE -> parse(file);
-    }
-    return 0;
-  }
-
-  private void parse(File file) {
-    try (var reader = createParquetReader(file.toPath())) {
-      int i = 0;
-      var nextRecord = reader.read();
-      while (nextRecord != null) {
-        if (limit != 0 && ++i > limit) {
-          break;
-        }
-        print("", null, nextRecord, true);
-        nextRecord = reader.read();
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  private void schema(File file) {
-    try (var reader = createParquetReader(file.toPath())) {
-      var schema = reader.read().getSchema();
-      System.out.println(schema);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  private void count(File file) {
-    int i = 0;
-    try (var reader = createParquetReader(file.toPath())) {
-      var nextRecord = reader.read();
-      while (nextRecord != null) {
-        i++;
-        nextRecord = reader.read();
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    System.out.println(i);
+    System.exit(new CommandLine(new pq()).execute(args));
   }
 
   private static void print(String ident, Field field, Object value, boolean last) {

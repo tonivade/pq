@@ -274,13 +274,30 @@
   "methods":[{"name":"<init>","parameterTypes":["org.apache.hadoop.fs.FSDataInputStream"] }]
 },
 {
+  "name":"picocli.CommandLine$HelpCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
   "name":"pq",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true
 },
 {
-  "name":"pq$ActionConverter",
+  "name":"pq$CountCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"pq$ParseCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"pq$SchemaCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
 },
 {
   "name":"shaded.parquet.com.fasterxml.jackson.databind.ext.Java7SupportImpl",
