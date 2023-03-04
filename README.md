@@ -2,3 +2,27 @@ pq
 ===============
 
 Parquet query tool
+
+# Objetive
+
+Create a tool similar to jq but for parquet files.
+
+# Usage
+
+Print number of elements in file:
+
+```sh
+pq --count <file>
+```
+
+Print avro schema:
+
+```sh
+pq --schema <file>
+```
+
+Print file content:
+
+```sh
+pq --parse <file>
+```
