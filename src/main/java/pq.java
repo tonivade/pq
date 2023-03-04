@@ -46,7 +46,7 @@ public class pq implements Callable<Integer> {
   @Parameters(paramLabel = "FILE", description = "parquet file", index = "1")
   private File file;
 
-  @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT", defaultValue = "0")
+  @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT")
   private int limit;
 
   public static void main(String[] args) {
