@@ -279,6 +279,10 @@
   "queryAllDeclaredMethods":true
 },
 {
+  "name":"pq$ActionConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"shaded.parquet.com.fasterxml.jackson.databind.ext.Java7SupportImpl",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
