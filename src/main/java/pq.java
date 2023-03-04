@@ -105,43 +105,59 @@ public class pq implements Callable<Integer> {
 
   private static void print(String ident, Field field, Object value, boolean last) {
     if (value instanceof GenericArray<?> array) {
-      System.out.println(ident + "\"" + field.name() + "\": [");
-      int i = 0;
-      for (var element : array) {
-        print(ident + "    ", null, element, array.size() == ++i);
-      }
-      if (last) {
-        System.out.println(ident + "]");
-      } else {
-        System.out.println(ident + "],");
-      }
+      printArray(ident, field, array, last);
     } else if (value instanceof GenericRecord record) {
-      if (field != null) {
-        System.out.println(ident + "\"" + field.name() + "\": {");
-      } else {
-        System.out.println(ident + "{");
-      }
-      int i = 0;
-      for (var f: record.getSchema().getFields()) {
-        print(ident + "    ", f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
-      }
-      if (last) {
-        System.out.println(ident + "}");
-      } else {
-        System.out.println(ident + "},");
-      }
+      printRecord(ident, field, record, last);
     } else if (value instanceof CharSequence) {
-      if (last) {
-        System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
-      } else {
-        System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\",");
-      }
+      printString(ident, field, value, last);
     } else {
-      if (last) {
-        System.out.println(ident + "\"" + field.name() + "\": " + value);
-      } else {
-        System.out.println(ident + "\"" + field.name() + "\": " + value + ",");
-      }
+      printNotString(ident, field, value, last);
+    }
+  }
+
+  private static void printArray(String ident, Field field, GenericArray<?> array, boolean last) {
+    System.out.println(ident + "\"" + field.name() + "\": [");
+    int i = 0;
+    for (var element : array) {
+      print(ident + "    ", null, element, array.size() == ++i);
+    }
+    if (last) {
+      System.out.println(ident + "]");
+    } else {
+      System.out.println(ident + "],");
+    }
+  }
+
+  private static void printRecord(String ident, Field field, GenericRecord record, boolean last) {
+    if (field != null) {
+      System.out.println(ident + "\"" + field.name() + "\": {");
+    } else {
+      System.out.println(ident + "{");
+    }
+    int i = 0;
+    for (var f: record.getSchema().getFields()) {
+      print(ident + "    ", f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
+    }
+    if (last) {
+      System.out.println(ident + "}");
+    } else {
+      System.out.println(ident + "},");
+    }
+  }
+
+  private static void printString(String ident, Field field, Object value, boolean last) {
+    if (last) {
+      System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
+    } else {
+      System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\",");
+    }
+  }
+
+  private static void printNotString(String ident, Field field, Object value, boolean last) {
+    if (last) {
+      System.out.println(ident + "\"" + field.name() + "\": " + value);
+    } else {
+      System.out.println(ident + "\"" + field.name() + "\": " + value + ",");
     }
   }
 
