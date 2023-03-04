@@ -136,7 +136,6 @@ nativeImage {
           '--verbose',
           '--report-unsupported-elements-at-runtime',
           '--no-fallback',
-          '--enable-preview',
           '--allow-incomplete-classpath',
           '--initialize-at-build-time=ch.qos.logback',
           '--initialize-at-run-time=com.oracle.truffle.js.scriptengine.GraalJSEngineFactory',
