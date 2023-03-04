@@ -25,6 +25,10 @@ java {
 
 test {
   useJUnitPlatform()
+  
+  reports {
+    html.required = true
+  }
 }
 
 javadoc.options {
@@ -98,6 +102,7 @@ dependencies {
   testImplementation('org.mockito:mockito-core:5.1.1')
   testImplementation('org.mockito:mockito-junit-jupiter:5.1.1')
   testImplementation('org.assertj:assertj-core:3.24.2')
+  testImplementation('uk.org.webcompere:system-stubs-jupiter:2.0.2')
 }
 
 application {

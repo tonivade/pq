@@ -8,9 +8,12 @@
  * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
@@ -77,6 +80,20 @@ public class pq {
     @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT")
     private int limit;
 
+    @Option(names = "--get", description = "print just the element number X", paramLabel = "GET")
+    private int get;
+
+    // TODO
+    @Option(names = "--skip", description = "skip number of element", paramLabel = "SKIP")
+    private int skip;
+
+    // TODO
+    @Option(names = "--extract", description = "field list to extract from parquet file", paramLabel = "FIELDS")
+    private String filter;
+    
+    @Option(names = "--counter", description = "print counter")
+    private boolean counter;
+
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
@@ -86,15 +103,37 @@ public class pq {
         int i = 0;
         var nextRecord = reader.read();
         while (nextRecord != null) {
-          if (limit != 0 && ++i > limit) {
+          i++;
+          if (limit > 0 && i > limit) {
             break;
           }
-          print("", null, nextRecord, true);
+          String json = toJson(nextRecord);
+          if (get > 0) {
+            if (get == i) {
+              printLine(i, json);
+              break;
+            }
+          } else {
+            printLine(i, json);
+          }
           nextRecord = reader.read();
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
+    }
+
+    private void printLine(int i, String json) {
+      if (counter) {
+        System.out.println(i);
+      }
+      System.out.print(json);
+    }
+
+    private static String toJson(Object value) {
+      var out = new ByteArrayOutputStream();
+      print(new PrintStream(out), "", null, value, true);
+      return out.toString(StandardCharsets.UTF_8);
     }
   }
 
@@ -102,61 +141,61 @@ public class pq {
     System.exit(new CommandLine(new pq()).execute(args));
   }
 
-  private static void print(String ident, Field field, Object value, boolean last) {
+  private static void print(PrintStream out, String ident, Field field, Object value, boolean last) {
     if (value instanceof GenericArray<?> array) {
-      printArray(ident, field, array, last);
+      printArray(out, ident, field, array, last);
     } else if (value instanceof GenericRecord record) {
-      printRecord(ident, field, record, last);
+      printRecord(out, ident, field, record, last);
     } else if (value instanceof CharSequence) {
-      printString(ident, field, value, last);
+      printString(out, ident, field, value, last);
     } else {
-      printNotString(ident, field, value, last);
+      printNotString(out, ident, field, value, last);
     }
   }
 
-  private static void printArray(String ident, Field field, GenericArray<?> array, boolean last) {
-    System.out.println(ident + "\"" + field.name() + "\": [");
+  private static void printArray(PrintStream out, String ident, Field field, GenericArray<?> array, boolean last) {
+    out.println(ident + "\"" + field.name() + "\": [");
     int i = 0;
     for (var element : array) {
-      print(ident + "    ", null, element, array.size() == ++i);
+      print(out, ident + "    ", null, element, array.size() == ++i);
     }
     if (last) {
-      System.out.println(ident + "]");
+      out.println(ident + "]");
     } else {
-      System.out.println(ident + "],");
+      out.println(ident + "],");
     }
   }
 
-  private static void printRecord(String ident, Field field, GenericRecord record, boolean last) {
+  private static void printRecord(PrintStream out, String ident, Field field, GenericRecord record, boolean last) {
     if (field != null) {
-      System.out.println(ident + "\"" + field.name() + "\": {");
+      out.println(ident + "\"" + field.name() + "\": {");
     } else {
-      System.out.println(ident + "{");
+      out.println(ident + "{");
     }
     int i = 0;
     for (var f: record.getSchema().getFields()) {
-      print(ident + "    ", f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
+      print(out, ident + "    ", f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
     }
     if (last) {
-      System.out.println(ident + "}");
+      out.println(ident + "}");
     } else {
-      System.out.println(ident + "},");
-    }
-  }
-
-  private static void printString(String ident, Field field, Object value, boolean last) {
-    if (last) {
-      System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
-    } else {
-      System.out.println(ident + "\"" + field.name() + "\": \"" + value + "\",");
+      out.println(ident + "},");
     }
   }
 
-  private static void printNotString(String ident, Field field, Object value, boolean last) {
+  private static void printString(PrintStream out, String ident, Field field, Object value, boolean last) {
     if (last) {
-      System.out.println(ident + "\"" + field.name() + "\": " + value);
+      out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
     } else {
-      System.out.println(ident + "\"" + field.name() + "\": " + value + ",");
+      out.println(ident + "\"" + field.name() + "\": \"" + value + "\",");
+    }
+  }
+
+  private static void printNotString(PrintStream out, String ident, Field field, Object value, boolean last) {
+    if (last) {
+      out.println(ident + "\"" + field.name() + "\": " + value);
+    } else {
+      out.println(ident + "\"" + field.name() + "\": " + value + ",");
     }
   }
 
