@@ -9,12 +9,10 @@
  * Distributed under the terms of the MIT License
  */
 import static java.util.Objects.requireNonNull;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
@@ -91,7 +89,7 @@ public class pq {
       if (limit > 0) {
         stream(file).skip(skip).limit(limit).forEach(this::printLine);
       } else if (get > 0) {
-        stream(file).skip(skip).skip(get - 1).findFirst().ifPresent(this::printLine);
+        stream(file).skip(skip).skip(get - 1l).findFirst().ifPresent(this::printLine);
       } else {
         stream(file).skip(skip).forEach(this::printLine);
       }
@@ -101,76 +99,13 @@ public class pq {
       if (counter) {
         System.out.println("#" + tuple.counter());
       }
-      System.out.println(toJson(tuple.value()));
-    }
-
-    private String toJson(GenericRecord value) {
-      var out = new ByteArrayOutputStream();
-      print(new PrintStream(out), null, value, true);
-      return out.toString(StandardCharsets.UTF_8);
+      Json.write(System.out, tuple.value());
+      System.out.println();
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String... args) {
     System.exit(new CommandLine(new pq()).execute(args));
-  }
-
-  private static void print(PrintStream out, Field field, Object value, boolean last) {
-    if (value instanceof GenericArray<?> array) {
-      printArray(out, field, array, last);
-    } else if (value instanceof GenericRecord record) {
-      printRecord(out, field, record, last);
-    } else if (value instanceof CharSequence) {
-      printString(out, field, value, last);
-    } else {
-      printNotString(out, field, value, last);
-    }
-  }
-
-  private static void printArray(PrintStream out, Field field, GenericArray<?> array, boolean last) {
-    out.print("\"" + field.name() + "\":[");
-    int i = 0;
-    for (var element : array) {
-      print(out, null, element, array.size() == ++i);
-    }
-    if (last) {
-      out.print("]");
-    } else {
-      out.print("],");
-    }
-  }
-
-  private static void printRecord(PrintStream out, Field field, GenericRecord record, boolean last) {
-    if (field != null) {
-      out.print("\"" + field.name() + "\":{");
-    } else {
-      out.print("{");
-    }
-    int i = 0;
-    for (var f: record.getSchema().getFields()) {
-      print(out, f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
-    }
-    if (last) {
-      out.print("}");
-    } else {
-      out.print("},");
-    }
-  }
-
-  private static void printString(PrintStream out, Field field, Object value, boolean last) {
-    if (last) {
-      out.print("\"" + field.name() + "\":\"" + value + "\"");
-    } else {
-      out.print("\"" + field.name() + "\":\"" + value + "\",");
-    }
-  }
-
-  private static void printNotString(PrintStream out, Field field, Object value, boolean last) {
-    if (last) {
-      out.print("\"" + field.name() + "\":" + value);
-    } else {
-      out.print("\"" + field.name() + "\":" + value + ",");
-    }
   }
 
   private static Stream<Tuple> stream(File file) {
@@ -243,3 +178,62 @@ final class ParquetIterator implements Iterator<Tuple> {
 }
 
 record Tuple(int counter, GenericRecord value) {}
+
+final class Json {
+
+  static void write(PrintStream out, Object value) {
+    write(out, null, value, true);
+  }
+
+  static void write(PrintStream out, Field field, Object value, boolean last) {
+    if (value instanceof GenericArray<?> array) {
+      writeArray(out, field, array, last);
+    } else if (value instanceof GenericRecord record) {
+      writeRecord(out, field, record, last);
+    } else if (value instanceof CharSequence string) {
+      writeString(out, field, string, last);
+    } else {
+      writeNotString(out, field, value, last);
+    }
+  }
+
+  private static void writeArray(PrintStream out, Field field, GenericArray<?> array, boolean last) {
+    out.print("\"" + field.name() + "\":[");
+    int i = 0;
+    for (var element : array) {
+      write(out, null, element, array.size() == ++i);
+    }
+    out.print("]");
+    writeComma(out, last);
+  }
+
+  private static void writeRecord(PrintStream out, Field field, GenericRecord record, boolean last) {
+    if (field != null) {
+      out.print("\"" + field.name() + "\":{");
+    } else {
+      out.print("{");
+    }
+    int i = 0;
+    for (var f: record.getSchema().getFields()) {
+      write(out, f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
+    }
+    out.print("}");
+    writeComma(out, last);
+  }
+
+  private static void writeString(PrintStream out, Field field, CharSequence value, boolean last) {
+    out.print("\"" + field.name() + "\":\"" + value + "\"");
+    writeComma(out, last);
+  }
+
+  private static void writeNotString(PrintStream out, Field field, Object value, boolean last) {
+    out.print("\"" + field.name() + "\":" + value);
+    writeComma(out, last);
+  }
+
+  private static void writeComma(PrintStream out, boolean last) {
+    if (!last) {
+      out.print(",");
+    }
+  }
+}
