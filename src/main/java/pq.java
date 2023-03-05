@@ -8,13 +8,17 @@
  * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
+import static java.util.Objects.requireNonNull;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
@@ -24,7 +28,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
-
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -43,17 +46,8 @@ public class pq {
 
     @Override
     public void run() {
-      int i = 0;
-      try (var reader = createParquetReader(file.toPath())) {
-        var nextRecord = reader.read();
-        while (nextRecord != null) {
-          i++;
-          nextRecord = reader.read();
-        }
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-      System.out.println(i);
+      long count = stream(file).count();
+      System.out.println(count);
     }
   }
 
@@ -65,12 +59,8 @@ public class pq {
 
     @Override
     public void run() {
-      try (var reader = createParquetReader(file.toPath())) {
-        var schema = reader.read().getSchema();
-        System.out.println(schema);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      var schema = stream(file).findFirst().orElseThrow().value().getSchema();
+      System.out.println(schema);
     }
   }
 
@@ -83,14 +73,13 @@ public class pq {
     @Option(names = "--get", description = "print just the element number X", paramLabel = "GET")
     private int get;
 
-    // TODO
     @Option(names = "--skip", description = "skip number of element", paramLabel = "SKIP")
     private int skip;
 
     // TODO
     @Option(names = "--extract", description = "field list to extract from parquet file", paramLabel = "FIELDS")
     private String filter;
-    
+
     @Option(names = "--counter", description = "print counter")
     private boolean counter;
 
@@ -99,38 +88,23 @@ public class pq {
 
     @Override
     public void run() {
-      try (var reader = createParquetReader(file.toPath())) {
-        int i = 0;
-        var nextRecord = reader.read();
-        while (nextRecord != null) {
-          i++;
-          if (limit > 0 && i > limit) {
-            break;
-          }
-          String json = toJson(nextRecord);
-          if (get > 0) {
-            if (get == i) {
-              printLine(i, json);
-              break;
-            }
-          } else {
-            printLine(i, json);
-          }
-          nextRecord = reader.read();
-        }
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
+      if (limit > 0) {
+        stream(file).skip(skip).limit(limit).forEach(this::printLine);
+      } else if (get > 0) {
+        stream(file).skip(skip).skip(get - 1).findFirst().ifPresent(this::printLine);
+      } else {
+        stream(file).skip(skip).forEach(this::printLine);
       }
     }
 
-    private void printLine(int i, String json) {
+    private void printLine(Tuple tuple) {
       if (counter) {
-        System.out.println(i);
+        System.out.println(tuple.counter());
       }
-      System.out.print(json);
+      System.out.print(toJson(tuple.value()));
     }
 
-    private static String toJson(Object value) {
+    private String toJson(GenericRecord value) {
       var out = new ByteArrayOutputStream();
       print(new PrintStream(out), "", null, value, true);
       return out.toString(StandardCharsets.UTF_8);
@@ -199,6 +173,67 @@ public class pq {
     }
   }
 
+  private static Stream<Tuple> stream(File file) {
+    return StreamSupport.stream(new ParquetIterable(file).spliterator(), false);
+  }
+}
+
+final class ParquetIterable implements Iterable<Tuple> {
+
+  private final File file;
+
+  public ParquetIterable(File file) {
+    this.file = requireNonNull(file);
+  }
+
+  @Override
+  public Iterator<Tuple> iterator() {
+    try {
+      return new ParquetIterator(file);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+}
+
+final class ParquetIterator implements Iterator<Tuple> {
+
+  private final ParquetReader<GenericRecord> reader;
+
+  private int counter;
+  private GenericRecord current = null;
+
+  public ParquetIterator(File file) throws IOException {
+    this.reader = createParquetReader(file.toPath());
+  }
+
+  @Override
+  public boolean hasNext() {
+    return tryAdvance() != null;
+  }
+
+  @Override
+  public Tuple next() {
+    var result = tryAdvance();
+    if (result == null) {
+      throw new NoSuchElementException();
+    }
+    counter++;
+    current = null;
+    return new Tuple(counter, result);
+  }
+
+  private GenericRecord tryAdvance() {
+    try {
+      if (current == null) {
+        current = reader.read();
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return current;
+  }
+
   private static ParquetReader<GenericRecord> createParquetReader(java.nio.file.Path tmpPath) throws IOException {
     var inputFile = HadoopInputFile.fromPath(new Path(tmpPath.toUri()), new Configuration());
     return AvroParquetReader.<GenericRecord>builder(inputFile)
@@ -206,3 +241,5 @@ public class pq {
       .build();
   }
 }
+
+record Tuple(int counter, GenericRecord value) {}
