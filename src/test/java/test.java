@@ -47,20 +47,7 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        {
-            "id": 2,
-            "first_name": "Albert",
-            "last_name": "Freeman",
-            "email": "afreeman1@is.gd",
-            "gender": "Male",
-            "ip_address": "218.111.175.34",
-            "cc": "",
-            "country": "Canada",
-            "birthdate": "1/16/1968",
-            "salary": 150280.17,
-            "title": "Accountant IV",
-            "comments": ""
-        }
+        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 
@@ -70,21 +57,8 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        2
-        {
-            "id": 2,
-            "first_name": "Albert",
-            "last_name": "Freeman",
-            "email": "afreeman1@is.gd",
-            "gender": "Male",
-            "ip_address": "218.111.175.34",
-            "cc": "",
-            "country": "Canada",
-            "birthdate": "1/16/1968",
-            "salary": 150280.17,
-            "title": "Accountant IV",
-            "comments": ""
-        }
+        #2
+        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 
@@ -94,20 +68,7 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        {
-            "id": 1,
-            "first_name": "Amanda",
-            "last_name": "Jordan",
-            "email": "ajordan0@com.com",
-            "gender": "Female",
-            "ip_address": null,
-            "cc": "6759521864920116",
-            "country": "Indonesia",
-            "birthdate": "3/8/1971",
-            "salary": 49756.53,
-            "title": "Internal Auditor",
-            "comments": "1E+02"
-        }
+        {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
         """);
   }
 
@@ -117,21 +78,8 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        1
-        {
-            "id": 1,
-            "first_name": "Amanda",
-            "last_name": "Jordan",
-            "email": "ajordan0@com.com",
-            "gender": "Female",
-            "ip_address": null,
-            "cc": "6759521864920116",
-            "country": "Indonesia",
-            "birthdate": "3/8/1971",
-            "salary": 49756.53,
-            "title": "Internal Auditor",
-            "comments": "1E+02"
-        }
+        #1
+        {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
         """);
   }
 
@@ -141,20 +89,7 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        {
-            "id": 2,
-            "first_name": "Albert",
-            "last_name": "Freeman",
-            "email": "afreeman1@is.gd",
-            "gender": "Male",
-            "ip_address": "218.111.175.34",
-            "cc": "",
-            "country": "Canada",
-            "birthdate": "1/16/1968",
-            "salary": 150280.17,
-            "title": "Accountant IV",
-            "comments": ""
-        }
+        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 
@@ -164,21 +99,8 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        2
-        {
-            "id": 2,
-            "first_name": "Albert",
-            "last_name": "Freeman",
-            "email": "afreeman1@is.gd",
-            "gender": "Male",
-            "ip_address": "218.111.175.34",
-            "cc": "",
-            "country": "Canada",
-            "birthdate": "1/16/1968",
-            "salary": 150280.17,
-            "title": "Accountant IV",
-            "comments": ""
-        }
+        #2
+        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 
@@ -188,20 +110,7 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        {
-            "id": 2,
-            "first_name": "Albert",
-            "last_name": "Freeman",
-            "email": "afreeman1@is.gd",
-            "gender": "Male",
-            "ip_address": "218.111.175.34",
-            "cc": "",
-            "country": "Canada",
-            "birthdate": "1/16/1968",
-            "salary": 150280.17,
-            "title": "Accountant IV",
-            "comments": ""
-        }
+        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 
@@ -211,21 +120,8 @@ class test {
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        2
-        {
-            "id": 2,
-            "first_name": "Albert",
-            "last_name": "Freeman",
-            "email": "afreeman1@is.gd",
-            "gender": "Male",
-            "ip_address": "218.111.175.34",
-            "cc": "",
-            "country": "Canada",
-            "birthdate": "1/16/1968",
-            "salary": 150280.17,
-            "title": "Accountant IV",
-            "comments": ""
-        }
+        #2
+        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 

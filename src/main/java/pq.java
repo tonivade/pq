@@ -99,14 +99,14 @@ public class pq {
 
     private void printLine(Tuple tuple) {
       if (counter) {
-        System.out.println(tuple.counter());
+        System.out.println("#" + tuple.counter());
       }
-      System.out.print(toJson(tuple.value()));
+      System.out.println(toJson(tuple.value()));
     }
 
     private String toJson(GenericRecord value) {
       var out = new ByteArrayOutputStream();
-      print(new PrintStream(out), "", null, value, true);
+      print(new PrintStream(out), null, value, true);
       return out.toString(StandardCharsets.UTF_8);
     }
   }
@@ -115,61 +115,61 @@ public class pq {
     System.exit(new CommandLine(new pq()).execute(args));
   }
 
-  private static void print(PrintStream out, String ident, Field field, Object value, boolean last) {
+  private static void print(PrintStream out, Field field, Object value, boolean last) {
     if (value instanceof GenericArray<?> array) {
-      printArray(out, ident, field, array, last);
+      printArray(out, field, array, last);
     } else if (value instanceof GenericRecord record) {
-      printRecord(out, ident, field, record, last);
+      printRecord(out, field, record, last);
     } else if (value instanceof CharSequence) {
-      printString(out, ident, field, value, last);
+      printString(out, field, value, last);
     } else {
-      printNotString(out, ident, field, value, last);
+      printNotString(out, field, value, last);
     }
   }
 
-  private static void printArray(PrintStream out, String ident, Field field, GenericArray<?> array, boolean last) {
-    out.println(ident + "\"" + field.name() + "\": [");
+  private static void printArray(PrintStream out, Field field, GenericArray<?> array, boolean last) {
+    out.print("\"" + field.name() + "\":[");
     int i = 0;
     for (var element : array) {
-      print(out, ident + "    ", null, element, array.size() == ++i);
+      print(out, null, element, array.size() == ++i);
     }
     if (last) {
-      out.println(ident + "]");
+      out.print("]");
     } else {
-      out.println(ident + "],");
+      out.print("],");
     }
   }
 
-  private static void printRecord(PrintStream out, String ident, Field field, GenericRecord record, boolean last) {
+  private static void printRecord(PrintStream out, Field field, GenericRecord record, boolean last) {
     if (field != null) {
-      out.println(ident + "\"" + field.name() + "\": {");
+      out.print("\"" + field.name() + "\":{");
     } else {
-      out.println(ident + "{");
+      out.print("{");
     }
     int i = 0;
     for (var f: record.getSchema().getFields()) {
-      print(out, ident + "    ", f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
+      print(out, f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
     }
     if (last) {
-      out.println(ident + "}");
+      out.print("}");
     } else {
-      out.println(ident + "},");
-    }
-  }
-
-  private static void printString(PrintStream out, String ident, Field field, Object value, boolean last) {
-    if (last) {
-      out.println(ident + "\"" + field.name() + "\": \"" + value + "\"");
-    } else {
-      out.println(ident + "\"" + field.name() + "\": \"" + value + "\",");
+      out.print("},");
     }
   }
 
-  private static void printNotString(PrintStream out, String ident, Field field, Object value, boolean last) {
+  private static void printString(PrintStream out, Field field, Object value, boolean last) {
     if (last) {
-      out.println(ident + "\"" + field.name() + "\": " + value);
+      out.print("\"" + field.name() + "\":\"" + value + "\"");
     } else {
-      out.println(ident + "\"" + field.name() + "\": " + value + ",");
+      out.print("\"" + field.name() + "\":\"" + value + "\",");
+    }
+  }
+
+  private static void printNotString(PrintStream out, Field field, Object value, boolean last) {
+    if (last) {
+      out.print("\"" + field.name() + "\":" + value);
+    } else {
+      out.print("\"" + field.name() + "\":" + value + ",");
     }
   }
 
