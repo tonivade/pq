@@ -30,6 +30,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.ScopeType;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
   subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ParseCommand.class, HelpCommand.class })
@@ -103,6 +104,11 @@ public class pq {
       output.printObject(tuple.value());
       output.printSeparator();
     }
+  }
+
+  @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT)
+  void setVerbose(boolean verbose) {
+    System.setProperty("root-level", "DEBUG");
   }
 
   public static void main(String... args) {
