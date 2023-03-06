@@ -54,9 +54,6 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"com.sun.security.auth.UnixPrincipal"
-},
-{
   "name":"java.io.FilePermission"
 },
 {
@@ -66,9 +63,6 @@
 },
 {
   "name":"java.lang.RuntimePermission"
-},
-{
-  "name":"java.lang.String"
 },
 {
   "name":"java.net.NetPermission"
@@ -183,48 +177,10 @@
   "name":"javax.smartcardio.CardPermission"
 },
 {
-  "name":"org.apache.commons.logging.LogFactory"
-},
-{
-  "name":"org.apache.commons.logging.impl.Jdk14Logger",
-  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
-},
-{
-  "name":"org.apache.commons.logging.impl.Log4JLogger"
-},
-{
-  "name":"org.apache.commons.logging.impl.LogFactoryImpl",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"org.apache.commons.logging.impl.WeakHashtable",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"org.apache.hadoop.fs.ByteBufferReadable"
-},
-{
-  "name":"org.apache.hadoop.fs.LocalFileSystem",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
   "name":"org.apache.hadoop.mapred.JobConf"
 },
 {
   "name":"org.apache.hadoop.mapred.JobConfigurable"
-},
-{
-  "name":"org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"org.apache.hadoop.security.UserGroupInformation$HadoopLoginModule",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"org.apache.hadoop.security.UserGroupInformation$UgiMetrics",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true
 },
 {
   "name":"org.apache.hadoop.thirdparty.com.google.common.util.concurrent.AbstractFuture",
@@ -268,10 +224,6 @@
 {
   "name":"org.apache.parquet.hadoop.codec.SnappyCodec",
   "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"org.apache.parquet.hadoop.util.H2SeekableInputStream",
-  "methods":[{"name":"<init>","parameterTypes":["org.apache.hadoop.fs.FSDataInputStream"] }]
 },
 {
   "name":"picocli.CommandLine$HelpCommand",

@@ -1,5 +1,2 @@
 [
-  {
-    "interfaces":["org.apache.hadoop.metrics2.MetricsSystem$Callback"]
-  }
 ]

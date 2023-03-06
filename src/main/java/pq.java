@@ -1,7 +1,9 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS org.apache.parquet:parquet-avro:1.12.3
-//DEPS org.apache.hadoop:hadoop-client:3.3.2
+//DEPS com.jerolba:carpet-filestream:0.0.3
+//DEPS org.apache.hadoop:hadoop-common:3.3.4
+//DEPS org.apache.hadoop:hadoop-mapreduce-client-core:3.3.4
 //DEPS info.picocli:picocli:4.7.1
 
 /*
@@ -9,6 +11,7 @@
  * Distributed under the terms of the MIT License
  */
 import static java.util.Objects.requireNonNull;
+import com.jerolba.carpet.filestream.FileSystemInputFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -19,13 +22,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
-import org.apache.parquet.hadoop.util.HadoopInputFile;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -139,7 +138,7 @@ final class ParquetIterator implements Iterator<Tuple> {
   private GenericRecord current = null;
 
   public ParquetIterator(File file) throws IOException {
-    this.reader = createParquetReader(file.toPath());
+    this.reader = createParquetReader(file);
   }
 
   @Override
@@ -169,11 +168,8 @@ final class ParquetIterator implements Iterator<Tuple> {
     return current;
   }
 
-  private static ParquetReader<GenericRecord> createParquetReader(java.nio.file.Path tmpPath) throws IOException {
-    var inputFile = HadoopInputFile.fromPath(new Path(tmpPath.toUri()), new Configuration());
-    return AvroParquetReader.<GenericRecord>builder(inputFile)
-      .withDataModel(GenericData.get())
-      .build();
+  private static ParquetReader<GenericRecord> createParquetReader(File file) throws IOException {
+    return AvroParquetReader.genericRecordReader(new FileSystemInputFile(file));
   }
 }
 
