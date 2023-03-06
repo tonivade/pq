@@ -143,7 +143,7 @@ task downloadGraalvm(type: Download) {
 
 task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
   workingDir "$buildDir"
-  commandLine 'tar', 'zxvf', 'graalvm.tar.gz'
+  commandLine 'tar', '-xvf', 'graalvm.tar.gz'
 }
 
 nativeImage {
@@ -164,7 +164,18 @@ nativeImage {
   )
 }
 
+task downloadUpx(type: Download) {
+  src "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-amd64_linux.tar.xz"
+  dest new java.io.File(buildDir, "upx.tar.xz")
+  onlyIfModified true
+}
+
+task extractUpx(dependsOn: downloadUpx, type: Exec) {
+  workingDir "$buildDir"
+  commandLine 'tar', '-xvf', 'upx.tar.xz'
+}
+
 task compressExecutable(dependsOn: nativeImage, type: Exec) {
-  workingDir "$buildDir/native-image"
-  commandLine 'upx', '--best', 'pq'
+  workingDir "$buildDir/upx-4.0.2-amd64_linux"
+  commandLine './upx', '--best', '../native-image/pq'
 }

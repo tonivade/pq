@@ -31,7 +31,10 @@
 {
   "name":"ch.qos.logback.core.ConsoleAppender",
   "queryAllPublicMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"setTarget","parameterTypes":["java.lang.String"] }
+  ]
 },
 {
   "name":"ch.qos.logback.core.OutputStreamAppender",
@@ -228,8 +231,7 @@
 {
   "name":"picocli.CommandLine$HelpCommand",
   "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
+  "queryAllDeclaredMethods":true
 },
 {
   "name":"pq",
@@ -245,14 +247,12 @@
 {
   "name":"pq$ParseCommand",
   "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
+  "queryAllDeclaredMethods":true
 },
 {
   "name":"pq$SchemaCommand",
   "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
+  "queryAllDeclaredMethods":true
 },
 {
   "name":"shaded.parquet.com.fasterxml.jackson.databind.ext.Java7SupportImpl",
