@@ -163,3 +163,8 @@ nativeImage {
           '-H:ResourceConfigurationFiles=src/native-image/resource-config.json'
   )
 }
+
+task compressExecutable(dependsOn: nativeImage, type: Exec) {
+  workingDir "$buildDir/native-image"
+  commandLine 'upx', '--best', 'pq'
+}
