@@ -83,23 +83,25 @@ public class pq {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
+    private final Output output = new Output(System.out);
+
     @Override
     public void run() {
       if (limit > 0) {
-        stream(file).skip(skip).limit(limit).forEach(this::printLine);
+        stream(file).skip(skip).limit(limit).forEach(this::print);
       } else if (get > 0) {
-        stream(file).skip(skip).skip(get - 1l).findFirst().ifPresent(this::printLine);
+        stream(file).skip(skip).skip(get - 1l).findFirst().ifPresent(this::print);
       } else {
-        stream(file).skip(skip).forEach(this::printLine);
+        stream(file).skip(skip).forEach(this::print);
       }
     }
 
-    private void printLine(Tuple tuple) {
+    private void print(Tuple tuple) {
       if (counter) {
-        System.out.println("#" + tuple.counter());
+        output.printCounter(tuple.counter());
       }
-      Json.write(System.out, tuple.value());
-      System.out.println();
+      output.printObject(tuple.value());
+      output.printSeparator();
     }
   }
 
@@ -175,59 +177,79 @@ final class ParquetIterator implements Iterator<Tuple> {
 
 record Tuple(int counter, GenericRecord value) {}
 
-final class Json {
+final class Output {
 
-  static void write(PrintStream out, Object value) {
-    write(out, null, value, true);
+  final PrintStream out;
+
+  Output(PrintStream out) {
+    this.out = requireNonNull(out);
   }
 
-  static void write(PrintStream out, Field field, Object value, boolean last) {
+  void printCounter(int counter) {
+    out.println("#" + counter);
+  }
+
+  void printObject(GenericRecord value) {
+    print(null, value, true);
+  }
+
+  void printSeparator() {
+    out.println();
+  }
+
+  private void print(Field field, Object value, boolean last) {
     if (value instanceof GenericArray<?> array) {
-      writeArray(out, field, array, last);
+      printArray(field, array, last);
     } else if (value instanceof GenericRecord record) {
-      writeRecord(out, field, record, last);
+      printRecord(field, record, last);
     } else if (value instanceof CharSequence string) {
-      writeString(out, field, string, last);
+      printString(field, string, last);
     } else {
-      writeNotString(out, field, value, last);
+      printNotString(field, value, last);
     }
   }
 
-  private static void writeArray(PrintStream out, Field field, GenericArray<?> array, boolean last) {
-    out.print("\"" + field.name() + "\":[");
+  private void printArray(Field field, GenericArray<?> array, boolean last) {
+    printField(field);
+    out.print("[");
     int i = 0;
     for (var element : array) {
-      write(out, null, element, array.size() == ++i);
+      print(null, element, array.size() == ++i);
     }
     out.print("]");
-    writeComma(out, last);
+    printComma(last);
   }
 
-  private static void writeRecord(PrintStream out, Field field, GenericRecord record, boolean last) {
-    if (field != null) {
-      out.print("\"" + field.name() + "\":{");
-    } else {
-      out.print("{");
-    }
+  private void printRecord(Field field, GenericRecord record, boolean last) {
+    printField(field);
+    out.print("{");
     int i = 0;
     for (var f: record.getSchema().getFields()) {
-      write(out, f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
+      print(f, record.get(f.pos()), record.getSchema().getFields().size() == ++i);
     }
     out.print("}");
-    writeComma(out, last);
+    printComma(last);
   }
 
-  private static void writeString(PrintStream out, Field field, CharSequence value, boolean last) {
-    out.print("\"" + field.name() + "\":\"" + value + "\"");
-    writeComma(out, last);
+  private void printString(Field field, CharSequence value, boolean last) {
+    printField(field);
+    out.print("\"" + value + "\"");
+    printComma(last);
   }
 
-  private static void writeNotString(PrintStream out, Field field, Object value, boolean last) {
-    out.print("\"" + field.name() + "\":" + value);
-    writeComma(out, last);
+  private void printNotString(Field field, Object value, boolean last) {
+    printField(field);
+    out.print(value);
+    printComma(last);
   }
 
-  private static void writeComma(PrintStream out, boolean last) {
+  private void printField(Field field) {
+    if (field != null) {
+      out.print("\"" + field.name() + "\":");
+    }
+  }
+
+  private void printComma(boolean last) {
     if (!last) {
       out.print(",");
     }
