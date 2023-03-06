@@ -9,20 +9,20 @@ Create a tool similar to jq but for parquet files.
 
 # Usage
 
-Print number of elements in file:
+Print number of rows in file:
 
 ```sh
-pq --count <file>
+pq count <file>
 ```
 
 Print avro schema:
 
 ```sh
-pq --schema <file>
+pq schema <file>
 ```
 
 Print file content:
 
 ```sh
-pq --parse <file>
+pq parse <file>
 ```
