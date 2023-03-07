@@ -12,11 +12,13 @@
  * Distributed under the terms of the MIT License
  */
 import static java.util.Objects.requireNonNull;
+import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.lt;
+import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.of;
@@ -46,7 +48,6 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.io.api.Binary;
 import org.petitparser.context.Result;
 import org.petitparser.parser.Parser;
-import org.petitparser.parser.primitive.StringParser;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -339,10 +340,6 @@ final class FilterParser {
 
   static final Parser ID = letter().seq(word().or(of('_')).star()).flatten();
 
-  static final Parser TRUE = StringParser.of("true");
-  static final Parser FALSE = StringParser.of("false");
-  static final Parser NULL = StringParser.of("null");
-
   static final Parser NUMBER = of('-').optional().seq(digit().plus()).flatten()
     .map((String n) -> Integer.parseInt(n));
 
@@ -357,7 +354,14 @@ final class FilterParser {
       default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
     });
 
-  static final Parser PARSER = ID.seq(OPERATOR).seq(NUMBER.or(STRING))
+  static final Parser LOGIC = of('&').or(of('|')).flatten().trim()
+    .map((String o) -> switch (o) {
+      case "&" -> Logic.AND;
+      case "|" -> Logic.OR;
+      default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
+    });
+
+  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(NUMBER.or(STRING))
     .map((List<Object> result) -> {
       String column = (String) result.get(0);
       Operator operator = (Operator) result.get(1);
@@ -365,10 +369,22 @@ final class FilterParser {
       return translate(column, operator, value);
     });
 
+  static final Parser PARSER = EXPRESSION.seq(LOGIC.seq(EXPRESSION).star())
+    .map((List<Object> result) -> {
+      FilterPredicate first = (FilterPredicate) result.get(0);
+      List<List<Object>> second = (List<List<Object>>) result.get(1);
+      return translate(first, second);
+    });
+
   enum Operator {
     EQUAL,
     GREATER_THAN,
     LOWER_THAN
+  }
+
+  enum Logic {
+    AND,
+    OR
   }
 
   // FIXME: implement complete syntax
@@ -386,7 +402,6 @@ final class FilterParser {
         case EQUAL -> eq(intColumn(column), i);
         case GREATER_THAN -> gt(intColumn(column), i);
         case LOWER_THAN -> lt(intColumn(column), i);
-        default -> throw new IllegalArgumentException();
       };
     }
     if (value instanceof String s) {
@@ -396,5 +411,18 @@ final class FilterParser {
       };
     }
     throw new IllegalArgumentException();
+  }
+
+  private static FilterPredicate translate(FilterPredicate first, List<List<Object>> second) {
+    var result = first;
+    for (List<Object> current : second) {
+      Logic logic = (FilterParser.Logic) current.get(0);
+      FilterPredicate next = (FilterPredicate) current.get(1);
+      result = switch (logic) {
+        case AND -> and(result, next);
+        case OR -> or(result, next);
+      };
+    }
+    return result;
   }
 }

@@ -2,8 +2,16 @@
  * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
+import static org.apache.parquet.filter2.predicate.FilterApi.and;
+import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.eq;
+import static org.apache.parquet.filter2.predicate.FilterApi.gt;
+import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.lt;
+import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.apache.parquet.io.api.Binary;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -206,6 +214,40 @@ class test {
           {"id":838,"first_name":"Irene","last_name":"Meyer","email":"imeyern9@ed.gov","gender":"Female","ip_address":"58.245.119.96","cc":"6331103072856450497","country":"Ecuador","birthdate":"5/19/1963","salary":233719.55,"title":"GIS Technical Architect","comments":""}
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
+    }
+  }
+
+  @Nested
+  class parser {
+
+    static final String ID = "id";
+
+    final FilterParser parser = new FilterParser();
+
+    @Test
+    void filterIntColumn() {
+      assertThat(parser.parse("id = 1")).isEqualTo(eq(intColumn(ID), 1));
+      assertThat(parser.parse("id > 1")).isEqualTo(gt(intColumn(ID), 1));
+      assertThat(parser.parse("id < 1")).isEqualTo(lt(intColumn(ID), 1));
+    }
+
+    @Test
+    void filterStringColumn() {
+      assertThat(parser.parse("id = \"a\"")).isEqualTo(eq(binaryColumn(ID), Binary.fromString("a")));
+      assertThatThrownBy(() -> parser.parse("id > \"a\"")).isInstanceOf(IllegalArgumentException.class);
+      assertThatThrownBy(() -> parser.parse("id < \"a\"")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void filterTwoExpressions() {
+      assertThat(parser.parse("id > 2 & id < 10")).isEqualTo(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
+      assertThat(parser.parse("id > 2 | id < 10")).isEqualTo(or(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
+    }
+
+    @Test
+    void filterThreeExpressions() {
+      assertThat(parser.parse("id > 2 & id < 10 | id = 0"))
+        .isEqualTo(or(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)), eq(intColumn(ID), 0)));
     }
   }
 }
