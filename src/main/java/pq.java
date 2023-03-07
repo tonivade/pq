@@ -108,7 +108,7 @@ public class pq {
 
   @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT)
   void setVerbose(boolean verbose) {
-    System.setProperty("root-level", "DEBUG");
+    System.setProperty("root-level", verbose ? "DEBUG" : "ERROR");
   }
 
   public static void main(String... args) {
