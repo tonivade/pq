@@ -23,7 +23,9 @@ import java.util.stream.StreamSupport;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.avro.AvroParquetReader;
+import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -44,12 +46,15 @@ public class pq {
 
     @Override
     public void run() {
-      long count = stream(file).count();
-      System.out.println(count);
+      try (var reader = createFileReader(file)) {
+        System.out.println(reader.getRecordCount());
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
   }
 
-  @Command(name = "schema", description = "print avro schema of parquet file")
+  @Command(name = "schema", description = "print schema of parquet file")
   public static class SchemaCommand implements Runnable {
 
     @Parameters(paramLabel = "FILE", description = "parquet file")
@@ -57,21 +62,28 @@ public class pq {
 
     @Override
     public void run() {
-      var schema = stream(file).findFirst().orElseThrow().value().getSchema();
-      System.out.println(schema);
+      try (var reader = createFileReader(file)) {
+        var schema = reader.getFileMetaData().getSchema();
+        System.out.print(schema);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
   }
 
   @Command(name = "read", description = "print content of parquet file in json format")
   public static class ReadCommand implements Runnable {
 
-    @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT", defaultValue = "0")
-    private int limit;
+    @Option(names = "--head", description = "get the first N number of rows", paramLabel = "ROWS", defaultValue = "0")
+    private int head;
 
-    @Option(names = "--get", description = "print just the row with given index", paramLabel = "GET", defaultValue = "-1")
+    @Option(names = "--tail", description = "get the last N number of rows", paramLabel = "ROWS", defaultValue = "0")
+    private int tail;
+
+    @Option(names = "--get", description = "print just the row with given index", paramLabel = "ROW", defaultValue = "-1")
     private int get;
 
-    @Option(names = "--skip", description = "skip number of element", paramLabel = "SKIP", defaultValue = "0")
+    @Option(names = "--skip", description = "skip number of rows", paramLabel = "ROWS", defaultValue = "0")
     private int skip;
 
     // TODO
@@ -88,8 +100,8 @@ public class pq {
 
     @Override
     public void run() {
-      if (limit > 0) {
-        stream(file).skip(skip).limit(limit).forEach(this::print);
+      if (head > 0) {
+        stream(file).skip(skip).limit(head).forEach(this::print);
       } else if (get > -1) {
         stream(file).skip(skip).skip(get).findFirst().ifPresent(this::print);
       } else {
@@ -117,6 +129,10 @@ public class pq {
 
   private static Stream<Tuple> stream(File file) {
     return StreamSupport.stream(new ParquetIterable(file).spliterator(), false);
+  }
+
+  private static ParquetFileReader createFileReader(File file) throws IOException {
+    return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 }
 
