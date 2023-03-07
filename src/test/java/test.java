@@ -48,7 +48,7 @@ class test {
 
   @Test
   void get() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--get", "2", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(PARSE, "--get", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -58,11 +58,11 @@ class test {
 
   @Test
   void getWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--counter", "--get", "2", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--get", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        #2
+        #1
         {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
@@ -79,11 +79,11 @@ class test {
 
   @Test
   void limitWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--counter", "--limit", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--limit", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        #1
+        #0
         {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
         """);
   }
@@ -100,18 +100,18 @@ class test {
 
   @Test
   void skipAndLimitWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--counter", "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        #2
+        #1
         {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }
 
   @Test
   void skipAndGet() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--skip", "1", "--get", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(PARSE, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -121,11 +121,11 @@ class test {
 
   @Test
   void skipAndGetWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--counter", "--skip", "1", "--get", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
-        #2
+        #1
         {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
         """);
   }

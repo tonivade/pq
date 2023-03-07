@@ -65,21 +65,21 @@ public class pq {
   @Command(name = "parse", description = "print content of parquet file in json format")
   public static class ParseCommand implements Runnable {
 
-    @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT")
+    @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT", defaultValue = "0")
     private int limit;
 
-    @Option(names = "--get", description = "print just the element number X", paramLabel = "GET")
+    @Option(names = "--get", description = "print just the row with given index", paramLabel = "GET", defaultValue = "-1")
     private int get;
 
-    @Option(names = "--skip", description = "skip number of element", paramLabel = "SKIP")
+    @Option(names = "--skip", description = "skip number of element", paramLabel = "SKIP", defaultValue = "0")
     private int skip;
 
     // TODO
     @Option(names = "--extract", description = "field list to extract from parquet file", paramLabel = "FIELDS")
     private String filter;
 
-    @Option(names = "--counter", description = "print counter")
-    private boolean counter;
+    @Option(names = "--index", description = "print row index", defaultValue = "false")
+    private boolean index;
 
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
@@ -90,16 +90,16 @@ public class pq {
     public void run() {
       if (limit > 0) {
         stream(file).skip(skip).limit(limit).forEach(this::print);
-      } else if (get > 0) {
-        stream(file).skip(skip).skip(get - 1l).findFirst().ifPresent(this::print);
+      } else if (get > -1) {
+        stream(file).skip(skip).skip(get).findFirst().ifPresent(this::print);
       } else {
         stream(file).skip(skip).forEach(this::print);
       }
     }
 
     private void print(Tuple tuple) {
-      if (counter) {
-        output.printCounter(tuple.counter());
+      if (index) {
+        output.printIndex(tuple.index());
       }
       output.printObject(tuple.value());
       output.printSeparator();
@@ -142,7 +142,6 @@ final class ParquetIterator implements Iterator<Tuple> {
 
   private final ParquetReader<GenericRecord> reader;
 
-  private int counter;
   private GenericRecord current = null;
 
   public ParquetIterator(File file) throws IOException {
@@ -160,9 +159,8 @@ final class ParquetIterator implements Iterator<Tuple> {
     if (result == null) {
       throw new NoSuchElementException();
     }
-    counter++;
     current = null;
-    return new Tuple(counter, result);
+    return new Tuple(reader.getCurrentRowIndex(), result);
   }
 
   private GenericRecord tryAdvance() {
@@ -181,7 +179,7 @@ final class ParquetIterator implements Iterator<Tuple> {
   }
 }
 
-record Tuple(int counter, GenericRecord value) {}
+record Tuple(long index, GenericRecord value) {}
 
 final class Output {
 
@@ -191,8 +189,8 @@ final class Output {
     this.out = requireNonNull(out);
   }
 
-  void printCounter(int counter) {
-    out.println("#" + counter);
+  void printIndex(long index) {
+    out.println("#" + index);
   }
 
   void printObject(GenericRecord value) {
