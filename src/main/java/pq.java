@@ -48,6 +48,7 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.io.api.Binary;
 import org.petitparser.context.Result;
 import org.petitparser.parser.Parser;
+import org.petitparser.parser.primitive.CharacterParser;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -333,20 +334,27 @@ final class Output {
   }
 }
 
-/*
- * currently only supports one expresion of type "identifier" "=|>|<" "number|string"
- */
 final class FilterParser {
 
-  static final Parser ID = letter().seq(word().or(of('_')).star()).flatten();
+  private static final CharacterParser PIPE = of('|');
+  private static final CharacterParser AMPERSAND = of('&');
+  private static final CharacterParser LT = of('<');
+  private static final CharacterParser GT = of('>');
+  private static final CharacterParser EQ = of('=');
+  private static final CharacterParser QUOTE = of('"');
+  private static final CharacterParser MINUS = of('-');
+  private static final CharacterParser DOT = of('.');
+  private static final CharacterParser UNDERSCORE = of('_');
 
-  static final Parser NUMBER = of('-').optional().seq(digit().plus()).flatten()
+  static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
+
+  static final Parser NUMBER = MINUS.optional().seq(digit().plus()).flatten()
     .map((String n) -> Integer.parseInt(n));
 
-  static final Parser STRING = of('"').seq(word().plus()).seq(of('"')).flatten()
+  static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
     .map((String s) -> s.replace('"', ' ').trim());
 
-  static final Parser OPERATOR = of('=').or(of('>')).or(of('<')).flatten().trim()
+  static final Parser OPERATOR = EQ.or(GT).or(LT).flatten().trim()
     .map((String o) -> switch (o) {
       case "=" -> Operator.EQUAL;
       case ">" -> Operator.GREATER_THAN;
@@ -354,7 +362,7 @@ final class FilterParser {
       default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
     });
 
-  static final Parser LOGIC = of('&').or(of('|')).flatten().trim()
+  static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
     .map((String o) -> switch (o) {
       case "&" -> Logic.AND;
       case "|" -> Logic.OR;
@@ -373,7 +381,7 @@ final class FilterParser {
     .map((List<Object> result) -> {
       FilterPredicate first = (FilterPredicate) result.get(0);
       List<List<Object>> second = (List<List<Object>>) result.get(1);
-      return translate(first, second);
+      return reduce(first, second);
     });
 
   enum Operator {
@@ -413,7 +421,7 @@ final class FilterParser {
     throw new IllegalArgumentException();
   }
 
-  private static FilterPredicate translate(FilterPredicate first, List<List<Object>> second) {
+  private static FilterPredicate reduce(FilterPredicate first, List<List<Object>> second) {
     var result = first;
     for (List<Object> current : second) {
       Logic logic = (FilterParser.Logic) current.get(0);
