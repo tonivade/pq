@@ -8,18 +8,24 @@ import com.jerolba.carpet.filestream.FileSystemInputFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.avro.AvroParquetReader;
+import org.apache.parquet.avro.AvroReadSupport;
+import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetReader;
+import org.apache.parquet.schema.MessageType;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -107,7 +113,6 @@ public class Main {
     @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
     private String filter;
 
-    // TODO: implement a projection with only the columns selected here
     @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMNS", split = ",")
     private String[] select;
 
@@ -125,7 +130,7 @@ public class Main {
     public void run() {
       FilterPredicate predicate = parser.parse(filter);
       long size = size(predicate);
-      try (var reader = createParquetReader(file, predicate)) {
+      try (var reader = createParquetReader(file, predicate, schema())) {
         if (head > 0) {
           stream(size, reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
@@ -135,6 +140,19 @@ public class Main {
         } else {
           stream(size, reader).skip(skip).forEach(this::print);
         }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    private Schema schema() {
+      try (var reader = createFileReader(file, null)) {
+        MessageType schema = reader.getFileMetaData().getSchema();
+        if (select != null) {
+          Set<String> fields = Set.of(select);
+          schema = new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
+        }
+        return new AvroSchemaConverter().convert(schema);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -180,13 +198,20 @@ public class Main {
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 
-  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter) throws IOException {
+  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema schema) throws IOException {
+    var config = new Configuration();
+    AvroReadSupport.setAvroReadSchema(config, schema);
+    AvroReadSupport.setRequestedProjection(config, schema);
     if (filter != null) {
       return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
         .withDataModel(GenericData.get())
         .withFilter(FilterCompat.get(filter))
+        .withConf(config)
         .build();
     }
-    return AvroParquetReader.genericRecordReader(new FileSystemInputFile(file));
+      return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
+        .withDataModel(GenericData.get())
+        .withConf(config)
+        .build();
   }
 }

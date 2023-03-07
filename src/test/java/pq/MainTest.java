@@ -208,5 +208,17 @@ class MainTest {
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
     }
+
+    @Test
+    void select() {
+      assertThatThrownBy(() -> Main.main(READ, "--select", "id,email", "--head", "3", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":1,"email":"ajordan0@com.com"}
+          {"id":2,"email":"afreeman1@is.gd"}
+          {"id":3,"email":"emorgan2@altervista.org"}
+          """);
+    }
   }
 }
