@@ -35,7 +35,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ScopeType;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ReadCommand.class, HelpCommand.class })
+  subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ReadCommand.class, pq.MetadataCommand.class, HelpCommand.class })
 public class pq {
 
   @Command(name = "count", description = "print total number of rows in parquet file")
@@ -65,6 +65,24 @@ public class pq {
       try (var reader = createFileReader(file)) {
         var schema = reader.getFileMetaData().getSchema();
         System.out.print(schema);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+
+  @Command(name = "metadata", description = "print metadata of parquet file")
+  public static class MetadataCommand implements Runnable {
+
+    @Parameters(paramLabel = "FILE", description = "parquet file")
+    private File file;
+
+    @Override
+    public void run() {
+      try (var reader = createFileReader(file)) {
+        reader.getFileMetaData().getKeyValueMetaData()
+          .forEach((k, v) -> System.out.println("\"" + k + "\":" + v));
+        System.out.println("\"createdBy\":" + reader.getFileMetaData().getCreatedBy());
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -102,10 +120,20 @@ public class pq {
     public void run() {
       if (head > 0) {
         stream(file).skip(skip).limit(head).forEach(this::print);
+      } else if (tail > 0) {
+        stream(file).skip(count() - tail).forEach(this::print);
       } else if (get > -1) {
         stream(file).skip(skip).skip(get).findFirst().ifPresent(this::print);
       } else {
         stream(file).skip(skip).forEach(this::print);
+      }
+    }
+
+    private long count() {
+      try (var reader = createFileReader(file)) {
+        return reader.getRecordCount();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
     }
 
