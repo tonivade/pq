@@ -12,7 +12,6 @@
  * Distributed under the terms of the MIT License
  */
 import static java.util.Objects.requireNonNull;
-import static org.apache.parquet.filter2.compat.FilterCompat.get;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
@@ -40,11 +39,14 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.avro.AvroParquetReader;
+import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.io.api.Binary;
+import org.petitparser.context.Result;
 import org.petitparser.parser.Parser;
+import org.petitparser.parser.primitive.StringParser;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -62,10 +64,17 @@ public class pq {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
+    // FIXME: doesn't work count with filter
+    @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
+    private String filter;
+
+    private final FilterParser parser = new FilterParser();
+
     @Override
     public void run() {
-      try (var reader = createFileReader(file)) {
-        System.out.println(reader.getRecordCount());
+      FilterPredicate predicate = parser.parse(filter);
+      try (var reader = createFileReader(file, predicate)) {
+        System.out.println(reader.getFilteredRecordCount());
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -80,7 +89,7 @@ public class pq {
 
     @Override
     public void run() {
-      try (var reader = createFileReader(file)) {
+      try (var reader = createFileReader(file, null)) {
         var schema = reader.getFileMetaData().getSchema();
         System.out.print(schema);
       } catch (IOException e) {
@@ -97,7 +106,7 @@ public class pq {
 
     @Override
     public void run() {
-      try (var reader = createFileReader(file)) {
+      try (var reader = createFileReader(file, null)) {
         reader.getFileMetaData().getKeyValueMetaData()
           .forEach((k, v) -> System.out.println("\"" + k + "\":" + v));
         System.out.println("\"createdBy\":" + reader.getFileMetaData().getCreatedBy());
@@ -122,7 +131,6 @@ public class pq {
     @Option(names = "--skip", description = "skip number of rows", paramLabel = "ROWS", defaultValue = "0")
     private int skip;
 
-    // TODO
     @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
     private String filter;
 
@@ -138,8 +146,8 @@ public class pq {
 
     @Override
     public void run() {
-      long size = size();
       FilterPredicate predicate = parser.parse(filter);
+      long size = size(predicate);
       try (var reader = createParquetReader(file, predicate)) {
         if (head > 0) {
           stream(size, reader).skip(skip).limit(head).forEach(this::print);
@@ -155,9 +163,9 @@ public class pq {
       }
     }
 
-    private long size() {
-      try (var reader = createFileReader(file)) {
-        return reader.getRecordCount();
+    private long size(FilterPredicate predicate) {
+      try (var reader = createFileReader(file, predicate)) {
+        return reader.getFilteredRecordCount();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -187,7 +195,11 @@ public class pq {
     return StreamSupport.stream(spliterator, false);
   }
 
-  private static ParquetFileReader createFileReader(File file) throws IOException {
+  private static ParquetFileReader createFileReader(File file, FilterPredicate filter) throws IOException {
+    if (filter != null) {
+      return new ParquetFileReader(new FileSystemInputFile(file),
+        ParquetReadOptions.builder().withRecordFilter(FilterCompat.get(filter)).build());
+    }
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 
@@ -195,7 +207,7 @@ public class pq {
     if (filter != null) {
       return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
         .withDataModel(GenericData.get())
-        .withFilter(get(filter))
+        .withFilter(FilterCompat.get(filter))
         .build();
     }
     return AvroParquetReader.genericRecordReader(new FileSystemInputFile(file));
@@ -325,11 +337,18 @@ final class Output {
  */
 final class FilterParser {
 
-  static final Parser ID = letter().seq(letter().or(digit()).star()).flatten();
-  static final Parser NUMBER = digit().plus().flatten()
+  static final Parser ID = letter().seq(word().or(of('_')).star()).flatten();
+
+  static final Parser TRUE = StringParser.of("true");
+  static final Parser FALSE = StringParser.of("false");
+  static final Parser NULL = StringParser.of("null");
+
+  static final Parser NUMBER = of('-').optional().seq(digit().plus()).flatten()
     .map((String n) -> Integer.parseInt(n));
+
   static final Parser STRING = of('"').seq(word().plus()).seq(of('"')).flatten()
     .map((String s) -> s.replace('"', ' ').trim());
+
   static final Parser OPERATOR = of('=').or(of('>')).or(of('<')).flatten().trim()
     .map((String o) -> switch (o) {
       case "=" -> Operator.EQUAL;
@@ -337,7 +356,8 @@ final class FilterParser {
       case "<" -> Operator.LOWER_THAN;
       default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
     });
-  static final Parser PARSER = ID.seq(OPERATOR).seq(NUMBER)
+
+  static final Parser PARSER = ID.seq(OPERATOR).seq(NUMBER.or(STRING))
     .map((List<Object> result) -> {
       String column = (String) result.get(0);
       Operator operator = (Operator) result.get(1);
@@ -354,7 +374,8 @@ final class FilterParser {
   // FIXME: implement complete syntax
   FilterPredicate parse(String filter) {
     if (filter != null) {
-      return PARSER.parse(filter).get();
+      Result parse = PARSER.parse(filter);
+      return parse.get();
     }
     return null;
   }

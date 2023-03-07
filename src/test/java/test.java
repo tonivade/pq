@@ -4,6 +4,7 @@
  */
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,16 +31,6 @@ class test {
   SystemOut systemOut;
 
   @Test
-  void count() {
-    assertThatThrownBy(() -> pq.main(COUNT, EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
-
-    assertThat(systemOut.getText()).isEqualTo("""
-      1000
-      """);
-  }
-
-  @Test
   void schema() {
     assertThatThrownBy(() -> pq.main(SCHEMA, EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
@@ -60,6 +51,31 @@ class test {
         optional binary comments (STRING);
       }
       """);
+  }
+
+  @Nested
+  class count {
+
+    @Test
+    void countWithoutFilter() {
+      assertThatThrownBy(() -> pq.main(COUNT, EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+        1000
+        """);
+    }
+
+    @Test
+    @Disabled("not working yet")
+    void countWithFilter() {
+      assertThatThrownBy(() -> pq.main(COUNT, "--filter", "gender = \"Female\"", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+        482
+        """);
+    }
   }
 
   @Nested
@@ -171,11 +187,23 @@ class test {
     }
 
     @Test
-    void filter() {
+    void filterInt() {
       assertThatThrownBy(() -> pq.main(READ, "--filter", "id = 1000", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
+          {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
+          """);
+    }
+
+    @Test
+    void filterString() {
+      assertThatThrownBy(() -> pq.main(READ, "--filter", "last_name = \"Meyer\"", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":201,"first_name":"Brian","last_name":"Meyer","email":"bmeyer5k@t-online.de","gender":"Male","ip_address":"85.164.45.115","cc":"","country":"Uganda","birthdate":"7/4/1963","salary":252555.65,"title":"Senior Cost Accountant","comments":""}
+          {"id":838,"first_name":"Irene","last_name":"Meyer","email":"imeyern9@ed.gov","gender":"Female","ip_address":"58.245.119.96","cc":"6331103072856450497","country":"Ecuador","birthdate":"5/19/1963","salary":233719.55,"title":"GIS Technical Architect","comments":""}
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
     }
