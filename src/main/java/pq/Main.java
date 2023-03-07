@@ -66,11 +66,20 @@ public class Main {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
+    @Option(names = "--format", description = "schema format, parquet or avro", paramLabel = "FORMAT", defaultValue = "parquet")
+    private String format;
+
     @Override
     public void run() {
       try (var reader = createFileReader(file, null)) {
         var schema = reader.getFileMetaData().getSchema();
-        System.out.print(schema);
+        if (format.equals("parquet")) {
+          System.out.print(schema);
+        } else if (format.equals("avro")) {
+          System.out.println(new AvroSchemaConverter().convert(schema));
+        } else {
+          new IllegalArgumentException("invalid format: " + format);
+        }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }

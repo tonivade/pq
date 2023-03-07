@@ -31,27 +31,41 @@ class MainTest {
   @SystemStub
   SystemOut systemOut;
 
-  @Test
-  void schema() {
-    assertThatThrownBy(() -> Main.main(SCHEMA, EXAMPLE_PARQUET))
+  @Nested
+  class schema {
+
+    @Test
+    void parquet() {
+      assertThatThrownBy(() -> Main.main(SCHEMA, EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
-    assertThat(systemOut.getText()).isEqualTo("""
-      message spark_schema {
-        optional int32 id;
-        optional binary first_name (STRING);
-        optional binary last_name (STRING);
-        optional binary email (STRING);
-        optional binary gender (STRING);
-        optional binary ip_address (STRING);
-        optional binary cc (STRING);
-        optional binary country (STRING);
-        optional binary birthdate (STRING);
-        optional double salary;
-        optional binary title (STRING);
-        optional binary comments (STRING);
-      }
-      """);
+      assertThat(systemOut.getText()).isEqualTo("""
+        message spark_schema {
+          optional int32 id;
+          optional binary first_name (STRING);
+          optional binary last_name (STRING);
+          optional binary email (STRING);
+          optional binary gender (STRING);
+          optional binary ip_address (STRING);
+          optional binary cc (STRING);
+          optional binary country (STRING);
+          optional binary birthdate (STRING);
+          optional double salary;
+          optional binary title (STRING);
+          optional binary comments (STRING);
+        }
+        """);
+    }
+
+    @Test
+    void avro() {
+      assertThatThrownBy(() -> Main.main(SCHEMA, "--format", "avro", EXAMPLE_PARQUET))
+      .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+        {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null},{"name":"last_name","type":["null","string"],"default":null},{"name":"email","type":["null","string"],"default":null},{"name":"gender","type":["null","string"],"default":null},{"name":"ip_address","type":["null","string"],"default":null},{"name":"cc","type":["null","string"],"default":null},{"name":"country","type":["null","string"],"default":null},{"name":"birthdate","type":["null","string"],"default":null},{"name":"salary","type":["null","double"],"default":null},{"name":"title","type":["null","string"],"default":null},{"name":"comments","type":["null","string"],"default":null}]}
+        """);
+    }
   }
 
   @Nested
