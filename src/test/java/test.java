@@ -4,6 +4,7 @@
  */
 import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
@@ -229,6 +230,13 @@ class test {
       assertThat(parser.parse("id = 1")).isEqualTo(eq(intColumn(ID), 1));
       assertThat(parser.parse("id > 1")).isEqualTo(gt(intColumn(ID), 1));
       assertThat(parser.parse("id < 1")).isEqualTo(lt(intColumn(ID), 1));
+    }
+
+    @Test
+    void filterBooleanColumn() {
+      assertThat(parser.parse("id = true")).isEqualTo(eq(booleanColumn(ID), true));
+      assertThatThrownBy(() -> parser.parse("id > true")).isInstanceOf(IllegalArgumentException.class);
+      assertThatThrownBy(() -> parser.parse("id < false")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

@@ -14,6 +14,7 @@
 import static java.util.Objects.requireNonNull;
 import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
@@ -21,7 +22,6 @@ import static org.apache.parquet.filter2.predicate.FilterApi.lt;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
-import static org.petitparser.parser.primitive.CharacterParser.of;
 import static org.petitparser.parser.primitive.CharacterParser.word;
 import com.jerolba.carpet.filestream.FileSystemInputFile;
 import java.io.File;
@@ -49,6 +49,7 @@ import org.apache.parquet.io.api.Binary;
 import org.petitparser.context.Result;
 import org.petitparser.parser.Parser;
 import org.petitparser.parser.primitive.CharacterParser;
+import org.petitparser.parser.primitive.StringParser;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -336,17 +337,20 @@ final class Output {
 
 final class FilterParser {
 
-  private static final CharacterParser PIPE = of('|');
-  private static final CharacterParser AMPERSAND = of('&');
-  private static final CharacterParser LT = of('<');
-  private static final CharacterParser GT = of('>');
-  private static final CharacterParser EQ = of('=');
-  private static final CharacterParser QUOTE = of('"');
-  private static final CharacterParser MINUS = of('-');
-  private static final CharacterParser DOT = of('.');
-  private static final CharacterParser UNDERSCORE = of('_');
+  private static final CharacterParser PIPE = CharacterParser.of('|');
+  private static final CharacterParser AMPERSAND = CharacterParser.of('&');
+  private static final CharacterParser LT = CharacterParser.of('<');
+  private static final CharacterParser GT = CharacterParser.of('>');
+  private static final CharacterParser EQ = CharacterParser.of('=');
+  private static final CharacterParser QUOTE = CharacterParser.of('"');
+  private static final CharacterParser MINUS = CharacterParser.of('-');
+  private static final CharacterParser DOT = CharacterParser.of('.');
+  private static final CharacterParser UNDERSCORE = CharacterParser.of('_');
 
   static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
+
+  static final Parser BOOLEAN = StringParser.of("true").or(StringParser.of("false")).flatten()
+    .map((String n) -> Boolean.parseBoolean(n));
 
   static final Parser NUMBER = MINUS.optional().seq(digit().plus()).flatten()
     .map((String n) -> Integer.parseInt(n));
@@ -369,7 +373,7 @@ final class FilterParser {
       default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
     });
 
-  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(NUMBER.or(STRING))
+  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(NUMBER.or(STRING).or(BOOLEAN))
     .map((List<Object> result) -> {
       String column = (String) result.get(0);
       Operator operator = (Operator) result.get(1);
@@ -415,6 +419,12 @@ final class FilterParser {
     if (value instanceof String s) {
       return switch (operator) {
         case EQUAL -> eq(binaryColumn(column), Binary.fromString(s));
+        default -> throw new IllegalArgumentException("operator not supported: " + operator);
+      };
+    }
+    if (value instanceof Boolean b) {
+      return switch (operator) {
+        case EQUAL -> eq(booleanColumn(column), b);
         default -> throw new IllegalArgumentException("operator not supported: " + operator);
       };
     }
