@@ -5,18 +5,30 @@
 //DEPS org.apache.hadoop:hadoop-common:3.3.4
 //DEPS org.apache.hadoop:hadoop-mapreduce-client-core:3.3.4
 //DEPS info.picocli:picocli:4.7.1
+//DEPS com.github.petitparser:petitparser-core:2.3.1
 
 /*
  * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
 import static java.util.Objects.requireNonNull;
+import static org.apache.parquet.filter2.compat.FilterCompat.get;
+import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.eq;
+import static org.apache.parquet.filter2.predicate.FilterApi.gt;
+import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.lt;
+import static org.petitparser.parser.primitive.CharacterParser.digit;
+import static org.petitparser.parser.primitive.CharacterParser.letter;
+import static org.petitparser.parser.primitive.CharacterParser.of;
+import static org.petitparser.parser.primitive.CharacterParser.word;
 import com.jerolba.carpet.filestream.FileSystemInputFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -24,11 +36,15 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.avro.AvroParquetReader;
+import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetReader;
+import org.apache.parquet.io.api.Binary;
+import org.petitparser.parser.Parser;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -107,7 +123,7 @@ public class pq {
     private int skip;
 
     // TODO
-    @Option(names = "--extract", description = "field list to extract from parquet file", paramLabel = "FIELDS")
+    @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
     private String filter;
 
     @Option(names = "--index", description = "print row index", defaultValue = "false")
@@ -118,10 +134,13 @@ public class pq {
 
     private final Output output = new Output(System.out);
 
+    private final FilterParser parser = new FilterParser();
+
     @Override
     public void run() {
       long size = size();
-      try (var reader = createParquetReader(file)) {
+      FilterPredicate predicate = parser.parse(filter);
+      try (var reader = createParquetReader(file, predicate)) {
         if (head > 0) {
           stream(size, reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
@@ -172,7 +191,13 @@ public class pq {
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 
-  private static ParquetReader<GenericRecord> createParquetReader(File file) throws IOException {
+  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter) throws IOException {
+    if (filter != null) {
+      return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
+        .withDataModel(GenericData.get())
+        .withFilter(get(filter))
+        .build();
+    }
     return AvroParquetReader.genericRecordReader(new FileSystemInputFile(file));
   }
 }
@@ -292,5 +317,63 @@ final class Output {
     if (!last) {
       out.print(",");
     }
+  }
+}
+
+/*
+ * currently only supports one expresion of type "identifier" "=|>|<" "number|string"
+ */
+final class FilterParser {
+
+  static final Parser ID = letter().seq(letter().or(digit()).star()).flatten();
+  static final Parser NUMBER = digit().plus().flatten()
+    .map((String n) -> Integer.parseInt(n));
+  static final Parser STRING = of('"').seq(word().plus()).seq(of('"')).flatten()
+    .map((String s) -> s.replace('"', ' ').trim());
+  static final Parser OPERATOR = of('=').or(of('>')).or(of('<')).flatten().trim()
+    .map((String o) -> switch (o) {
+      case "=" -> Operator.EQUAL;
+      case ">" -> Operator.GREATER_THAN;
+      case "<" -> Operator.LOWER_THAN;
+      default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
+    });
+  static final Parser PARSER = ID.seq(OPERATOR).seq(NUMBER)
+    .map((List<Object> result) -> {
+      String column = (String) result.get(0);
+      Operator operator = (Operator) result.get(1);
+      Object value = result.get(2);
+      return translate(column, operator, value);
+    });
+
+  enum Operator {
+    EQUAL,
+    GREATER_THAN,
+    LOWER_THAN
+  }
+
+  // FIXME: implement complete syntax
+  FilterPredicate parse(String filter) {
+    if (filter != null) {
+      return PARSER.parse(filter).get();
+    }
+    return null;
+  }
+
+  private static FilterPredicate translate(String column, Operator operator, Object value) {
+    if (value instanceof Integer i) {
+      return switch (operator) {
+        case EQUAL -> eq(intColumn(column), i);
+        case GREATER_THAN -> gt(intColumn(column), i);
+        case LOWER_THAN -> lt(intColumn(column), i);
+        default -> throw new IllegalArgumentException();
+      };
+    }
+    if (value instanceof String s) {
+      return switch (operator) {
+        case EQUAL -> eq(binaryColumn(column), Binary.fromString(s));
+        default -> throw new IllegalArgumentException("operator not supported: " + operator);
+      };
+    }
+    throw new IllegalArgumentException();
   }
 }
