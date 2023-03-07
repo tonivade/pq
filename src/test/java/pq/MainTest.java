@@ -2,22 +2,14 @@
  * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
  * Distributed under the terms of the MIT License
  */
-import static org.apache.parquet.filter2.predicate.FilterApi.and;
-import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.eq;
-import static org.apache.parquet.filter2.predicate.FilterApi.gt;
-import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
-import static org.apache.parquet.filter2.predicate.FilterApi.lt;
-import static org.apache.parquet.filter2.predicate.FilterApi.or;
+package pq;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.apache.parquet.io.api.Binary;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.security.AbortExecutionException;
@@ -25,7 +17,7 @@ import uk.org.webcompere.systemstubs.security.SystemExit;
 import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 @ExtendWith(SystemStubsExtension.class)
-class test {
+class MainTest {
 
   private static final String READ = "read";
   private static final String SCHEMA = "schema";
@@ -41,7 +33,7 @@ class test {
 
   @Test
   void schema() {
-    assertThatThrownBy(() -> pq.main(SCHEMA, EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> Main.main(SCHEMA, EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -67,7 +59,7 @@ class test {
 
     @Test
     void countWithoutFilter() {
-      assertThatThrownBy(() -> pq.main(COUNT, EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(COUNT, EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -78,7 +70,7 @@ class test {
     @Test
     @Disabled("not working yet")
     void countWithFilter() {
-      assertThatThrownBy(() -> pq.main(COUNT, "--filter", "gender = \"Female\"", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(COUNT, "--filter", "gender = \"Female\"", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -92,7 +84,7 @@ class test {
 
     @Test
     void get() {
-      assertThatThrownBy(() -> pq.main(READ, "--get", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--get", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -102,7 +94,7 @@ class test {
 
     @Test
     void getWithIndex() {
-      assertThatThrownBy(() -> pq.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -113,7 +105,7 @@ class test {
 
     @Test
     void head() {
-      assertThatThrownBy(() -> pq.main(READ, "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -123,7 +115,7 @@ class test {
 
     @Test
     void headWithIndex() {
-      assertThatThrownBy(() -> pq.main(READ, "--index", "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--index", "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -134,7 +126,7 @@ class test {
 
     @Test
     void skipAndHead() {
-      assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -144,7 +136,7 @@ class test {
 
     @Test
     void skipAndHeadWithIndex() {
-      assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--index", "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -155,7 +147,7 @@ class test {
 
     @Test
     void skipAndGet() {
-      assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -165,7 +157,7 @@ class test {
 
     @Test
     void skipAndGetWithIndex() {
-      assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -176,7 +168,7 @@ class test {
 
     @Test
     void tail() {
-      assertThatThrownBy(() -> pq.main(READ, "--tail", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--tail", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -186,7 +178,7 @@ class test {
 
     @Test
     void tailWithIndex() {
-      assertThatThrownBy(() -> pq.main(READ, "--index", "--tail", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--index", "--tail", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -197,7 +189,7 @@ class test {
 
     @Test
     void filterInt() {
-      assertThatThrownBy(() -> pq.main(READ, "--filter", "id = 1000", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--filter", "id = 1000", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -207,7 +199,7 @@ class test {
 
     @Test
     void filterString() {
-      assertThatThrownBy(() -> pq.main(READ, "--filter", "last_name = \"Meyer\"", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> Main.main(READ, "--filter", "last_name = \"Meyer\"", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -215,47 +207,6 @@ class test {
           {"id":838,"first_name":"Irene","last_name":"Meyer","email":"imeyern9@ed.gov","gender":"Female","ip_address":"58.245.119.96","cc":"6331103072856450497","country":"Ecuador","birthdate":"5/19/1963","salary":233719.55,"title":"GIS Technical Architect","comments":""}
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
-    }
-  }
-
-  @Nested
-  class parser {
-
-    static final String ID = "id";
-
-    final FilterParser parser = new FilterParser();
-
-    @Test
-    void filterIntColumn() {
-      assertThat(parser.parse("id = 1")).isEqualTo(eq(intColumn(ID), 1));
-      assertThat(parser.parse("id > 1")).isEqualTo(gt(intColumn(ID), 1));
-      assertThat(parser.parse("id < 1")).isEqualTo(lt(intColumn(ID), 1));
-    }
-
-    @Test
-    void filterBooleanColumn() {
-      assertThat(parser.parse("id = true")).isEqualTo(eq(booleanColumn(ID), true));
-      assertThatThrownBy(() -> parser.parse("id > true")).isInstanceOf(IllegalArgumentException.class);
-      assertThatThrownBy(() -> parser.parse("id < false")).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void filterStringColumn() {
-      assertThat(parser.parse("id = \"a\"")).isEqualTo(eq(binaryColumn(ID), Binary.fromString("a")));
-      assertThatThrownBy(() -> parser.parse("id > \"a\"")).isInstanceOf(IllegalArgumentException.class);
-      assertThatThrownBy(() -> parser.parse("id < \"a\"")).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void filterTwoExpressions() {
-      assertThat(parser.parse("id > 2 & id < 10")).isEqualTo(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
-      assertThat(parser.parse("id > 2 | id < 10")).isEqualTo(or(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
-    }
-
-    @Test
-    void filterThreeExpressions() {
-      assertThat(parser.parse("id > 2 & id < 10 | id = 0"))
-        .isEqualTo(or(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)), eq(intColumn(ID), 0)));
     }
   }
 }
