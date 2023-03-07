@@ -150,12 +150,13 @@ public class Main {
         MessageType schema = reader.getFileMetaData().getSchema();
         if (select != null) {
           Set<String> fields = Set.of(select);
-          schema = new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
+          var projection = new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
+          return new AvroSchemaConverter().convert(projection);
         }
-        return new AvroSchemaConverter().convert(schema);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
+      return null;
     }
 
     private long size(FilterPredicate predicate) {
@@ -200,8 +201,10 @@ public class Main {
 
   private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema schema) throws IOException {
     var config = new Configuration();
-    AvroReadSupport.setAvroReadSchema(config, schema);
-    AvroReadSupport.setRequestedProjection(config, schema);
+    if (schema != null) {
+      AvroReadSupport.setAvroReadSchema(config, schema);
+      AvroReadSupport.setRequestedProjection(config, schema);
+    }
     if (filter != null) {
       return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
         .withDataModel(GenericData.get())
