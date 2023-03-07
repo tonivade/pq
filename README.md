@@ -24,5 +24,5 @@ pq schema <file>
 Print file content:
 
 ```sh
-pq parse <file>
+pq read <file>
 ```

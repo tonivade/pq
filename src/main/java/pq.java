@@ -33,7 +33,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ScopeType;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ParseCommand.class, HelpCommand.class })
+  subcommands = { pq.CountCommand.class, pq.SchemaCommand.class, pq.ReadCommand.class, HelpCommand.class })
 public class pq {
 
   @Command(name = "count", description = "print total number of rows in parquet file")
@@ -62,8 +62,8 @@ public class pq {
     }
   }
 
-  @Command(name = "parse", description = "print content of parquet file in json format")
-  public static class ParseCommand implements Runnable {
+  @Command(name = "read", description = "print content of parquet file in json format")
+  public static class ReadCommand implements Runnable {
 
     @Option(names = "--limit", description = "limit number of elements", paramLabel = "LIMIT", defaultValue = "0")
     private int limit;

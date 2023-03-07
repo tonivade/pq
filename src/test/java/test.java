@@ -16,7 +16,7 @@ import uk.org.webcompere.systemstubs.stream.SystemOut;
 @ExtendWith(SystemStubsExtension.class)
 class test {
 
-  private static final String PARSE = "parse";
+  private static final String READ = "read";
   private static final String SCHEMA = "schema";
   private static final String COUNT = "count";
 
@@ -48,7 +48,7 @@ class test {
 
   @Test
   void get() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--get", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--get", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -58,7 +58,7 @@ class test {
 
   @Test
   void getWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--get", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -69,7 +69,7 @@ class test {
 
   @Test
   void limit() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--limit", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--limit", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -79,7 +79,7 @@ class test {
 
   @Test
   void limitWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--limit", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--index", "--limit", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -90,7 +90,7 @@ class test {
 
   @Test
   void skipAndLimit() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -100,7 +100,7 @@ class test {
 
   @Test
   void skipAndLimitWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -111,7 +111,7 @@ class test {
 
   @Test
   void skipAndGet() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
@@ -121,7 +121,7 @@ class test {
 
   @Test
   void skipAndGetWithCounter() {
-    assertThatThrownBy(() -> pq.main(PARSE, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+    assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
     assertThat(systemOut.getText()).isEqualTo("""
