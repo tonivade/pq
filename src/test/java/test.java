@@ -4,6 +4,7 @@
  */
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -33,7 +34,9 @@ class test {
     assertThatThrownBy(() -> pq.main(COUNT, EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
-    assertThat(systemOut.getText()).isEqualTo("1000\n");
+    assertThat(systemOut.getText()).isEqualTo("""
+      1000
+      """);
   }
 
   @Test
@@ -46,87 +49,91 @@ class test {
       """);
   }
 
-  @Test
-  void get() {
-    assertThatThrownBy(() -> pq.main(READ, "--get", "1", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+  @Nested
+  class read {
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
-        """);
-  }
+    @Test
+    void get() {
+      assertThatThrownBy(() -> pq.main(READ, "--get", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void getWithCounter() {
-    assertThatThrownBy(() -> pq.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        #1
-        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
-        """);
-  }
+    @Test
+    void getWithCounter() {
+      assertThatThrownBy(() -> pq.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void limit() {
-    assertThatThrownBy(() -> pq.main(READ, "--limit", "1", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          #1
+          {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
-        """);
-  }
+    @Test
+    void limit() {
+      assertThatThrownBy(() -> pq.main(READ, "--limit", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void limitWithCounter() {
-    assertThatThrownBy(() -> pq.main(READ, "--index", "--limit", "1", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        #0
-        {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
-        """);
-  }
+    @Test
+    void limitWithCounter() {
+      assertThatThrownBy(() -> pq.main(READ, "--index", "--limit", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void skipAndLimit() {
-    assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          #0
+          {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
-        """);
-  }
+    @Test
+    void skipAndLimit() {
+      assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void skipAndLimitWithCounter() {
-    assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        #1
-        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
-        """);
-  }
+    @Test
+    void skipAndLimitWithCounter() {
+      assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--limit", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void skipAndGet() {
-    assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          #1
+          {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
-        """);
-  }
+    @Test
+    void skipAndGet() {
+      assertThatThrownBy(() -> pq.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
 
-  @Test
-  void skipAndGetWithCounter() {
-    assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
+          """);
+    }
 
-    assertThat(systemOut.getText()).isEqualTo("""
-        #1
-        {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
-        """);
+    @Test
+    void skipAndGetWithCounter() {
+      assertThatThrownBy(() -> pq.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          #1
+          {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
+          """);
+    }
   }
 }
