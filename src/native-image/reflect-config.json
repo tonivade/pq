@@ -237,7 +237,8 @@
 {
   "name":"pq",
   "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"setVerbose","parameterTypes":["boolean"] }]
 },
 {
   "name":"pq$CountCommand",
