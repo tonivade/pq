@@ -148,5 +148,26 @@ class test {
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
     }
+
+    @Test
+    void tail() {
+      assertThatThrownBy(() -> pq.main(READ, "--tail", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
+          """);
+    }
+
+    @Test
+    void tailWithIndex() {
+      assertThatThrownBy(() -> pq.main(READ, "--index", "--tail", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          #999
+          {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
+          """);
+    }
   }
 }

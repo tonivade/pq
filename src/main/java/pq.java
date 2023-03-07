@@ -18,6 +18,8 @@ import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.avro.Schema.Field;
@@ -118,18 +120,23 @@ public class pq {
 
     @Override
     public void run() {
-      if (head > 0) {
-        stream(file).skip(skip).limit(head).forEach(this::print);
-      } else if (tail > 0) {
-        stream(file).skip(count() - tail).forEach(this::print);
-      } else if (get > -1) {
-        stream(file).skip(skip).skip(get).findFirst().ifPresent(this::print);
-      } else {
-        stream(file).skip(skip).forEach(this::print);
+      long size = size();
+      try (var reader = createParquetReader(file)) {
+        if (head > 0) {
+          stream(size, reader).skip(skip).limit(head).forEach(this::print);
+        } else if (tail > 0) {
+          stream(size, reader).skip(size - tail).forEach(this::print);
+        } else if (get > -1) {
+          stream(size, reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
+        } else {
+          stream(size, reader).skip(skip).forEach(this::print);
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
     }
 
-    private long count() {
+    private long size() {
       try (var reader = createFileReader(file)) {
         return reader.getRecordCount();
       } catch (IOException e) {
@@ -155,30 +162,18 @@ public class pq {
     System.exit(new CommandLine(new pq()).execute(args));
   }
 
-  private static Stream<Tuple> stream(File file) {
-    return StreamSupport.stream(new ParquetIterable(file).spliterator(), false);
+  private static Stream<Tuple> stream(long size, ParquetReader<GenericRecord> reader) {
+    var spliterator = Spliterators.spliterator(new ParquetIterator(reader), size,
+      Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
+    return StreamSupport.stream(spliterator, false);
   }
 
   private static ParquetFileReader createFileReader(File file) throws IOException {
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
-}
 
-final class ParquetIterable implements Iterable<Tuple> {
-
-  private final File file;
-
-  public ParquetIterable(File file) {
-    this.file = requireNonNull(file);
-  }
-
-  @Override
-  public Iterator<Tuple> iterator() {
-    try {
-      return new ParquetIterator(file);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+  private static ParquetReader<GenericRecord> createParquetReader(File file) throws IOException {
+    return AvroParquetReader.genericRecordReader(new FileSystemInputFile(file));
   }
 }
 
@@ -188,8 +183,8 @@ final class ParquetIterator implements Iterator<Tuple> {
 
   private GenericRecord current = null;
 
-  public ParquetIterator(File file) throws IOException {
-    this.reader = createParquetReader(file);
+  public ParquetIterator(ParquetReader<GenericRecord> reader) {
+    this.reader = requireNonNull(reader);
   }
 
   @Override
@@ -216,10 +211,6 @@ final class ParquetIterator implements Iterator<Tuple> {
       throw new UncheckedIOException(e);
     }
     return current;
-  }
-
-  private static ParquetReader<GenericRecord> createParquetReader(File file) throws IOException {
-    return AvroParquetReader.genericRecordReader(new FileSystemInputFile(file));
   }
 }
 
