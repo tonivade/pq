@@ -120,12 +120,12 @@ dependencies {
 }
 
 application {
-  mainClass = 'pq.Main'
+  mainClass = 'pq.App'
 }
 
 task fatJar(type: Jar) {
   manifest {
-    attributes "Main-Class": "pq.Main"
+    attributes "Main-Class": "pq.App"
   }
   archiveClassifier = "all"
   duplicatesStrategy = "warn"
@@ -149,7 +149,7 @@ task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
 
 nativeImage {
   graalVmHome = "${buildDir}/graalvm-ce-java17-23.0.0-dev"
-  mainClass = "pq.Main"
+  mainClass = "pq.App"
   executableName = "pq"
   arguments(
           '--verbose',
