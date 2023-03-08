@@ -210,7 +210,6 @@ public class App {
   private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema projection) throws IOException {
     var config = new Configuration();
     if (projection != null) {
-//      AvroReadSupport.setAvroReadSchema(config, schema);
       AvroReadSupport.setRequestedProjection(config, projection);
     }
     if (filter != null) {
