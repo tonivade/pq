@@ -5,7 +5,9 @@
 package pq;
 
 import static java.util.Objects.requireNonNull;
+
 import java.io.PrintStream;
+
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericRecord;

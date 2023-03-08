@@ -6,10 +6,12 @@ package pq;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.security.AbortExecutionException;
@@ -64,6 +66,29 @@ class AppTest {
 
       assertThat(systemOut.getText()).isEqualTo("""
         {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null},{"name":"last_name","type":["null","string"],"default":null},{"name":"email","type":["null","string"],"default":null},{"name":"gender","type":["null","string"],"default":null},{"name":"ip_address","type":["null","string"],"default":null},{"name":"cc","type":["null","string"],"default":null},{"name":"country","type":["null","string"],"default":null},{"name":"birthdate","type":["null","string"],"default":null},{"name":"salary","type":["null","double"],"default":null},{"name":"title","type":["null","string"],"default":null},{"name":"comments","type":["null","string"],"default":null}]}
+        """);
+    }
+
+    @Test
+    void avroWithSelect() {
+      assertThatThrownBy(() -> App.main(SCHEMA, "--format", "avro", "--select", "id,first_name", EXAMPLE_PARQUET))
+      .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+        {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null}]}
+        """);
+    }
+
+    @Test
+    void parquetWithSelect() {
+      assertThatThrownBy(() -> App.main(SCHEMA, "--format", "parquet", "--select", "id,first_name", EXAMPLE_PARQUET))
+      .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+        message spark_schema {
+          optional int32 id;
+          optional binary first_name (STRING);
+        }
         """);
     }
   }

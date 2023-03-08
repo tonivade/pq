@@ -14,6 +14,7 @@ import static org.apache.parquet.filter2.predicate.FilterApi.lt;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.apache.parquet.io.api.Binary;
 import org.junit.jupiter.api.Test;
 

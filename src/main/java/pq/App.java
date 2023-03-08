@@ -4,28 +4,42 @@
  */
 package pq;
 
-import com.jerolba.carpet.filestream.FileSystemInputFile;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.avro.AvroParquetReader;
+import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.avro.AvroReadSupport;
 import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetReader;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
+
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonObject.Member;
+import com.eclipsesource.json.JsonValue;
+import com.jerolba.carpet.filestream.FileSystemInputFile;
+import com.jerolba.carpet.filestream.FileSystemOutputFile;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -34,7 +48,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ScopeType;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadCommand.class, App.MetadataCommand.class, HelpCommand.class })
+  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
 public class App {
 
   @Command(name = "count", description = "print total number of rows in parquet file")
@@ -69,10 +83,13 @@ public class App {
     @Option(names = "--format", description = "schema format, parquet or avro", paramLabel = "FORMAT", defaultValue = "parquet")
     private String format;
 
+    @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
+    private String[] select;
+
     @Override
     public void run() {
       try (var reader = createFileReader(file, null)) {
-        var schema = reader.getFileMetaData().getSchema();
+        var schema = projection(reader.getFileMetaData().getSchema());
         if (format.equals("parquet")) {
           System.out.print(schema);
         } else if (format.equals("avro")) {
@@ -83,6 +100,14 @@ public class App {
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
+    }
+
+    private MessageType projection(MessageType schema) {
+      if (select != null) {
+        Set<String> fields = Set.of(select);
+        return new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
+      }
+      return schema;
     }
   }
 
@@ -184,6 +209,77 @@ public class App {
     }
   }
 
+  @Command(name = "write", description = "create a parquet file from a jsonl stream and a avro schema")
+  public static class WriteCommand implements Runnable {
+
+    @Parameters(paramLabel = "FILE", description = "destination parquet file")
+    private File file;
+    
+    @Option(names = "--schema", description = "file with avro schema", paramLabel = "FILE")
+    private File schemaFile;
+
+    @Override
+    public void run() {
+      try {
+        var schema = new Schema.Parser().parse(schemaFile);
+        try (var output = createParquetWriter(file, schema)) {
+          try (var lines = new BufferedReader(new InputStreamReader(System.in)).lines()) {
+            lines.map(Json::parse).map(json -> toRecord(schema, json)).forEach(r -> write(output, r));
+          }
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    private void write(ParquetWriter<GenericRecord> output, GenericRecord record) {
+      try {
+        output.write(record);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    private GenericRecord toRecord(Schema schema, JsonValue json) {
+      if (json instanceof JsonObject object) {
+        var value = new GenericData.Record(schema);
+        for (Member member : object) {
+          Field field = schema.getField(member.getName());
+          value.put(member.getName(), convert(field.schema(), member.getValue()));
+        }
+        return value;
+      }
+      throw new IllegalStateException();
+    }
+
+    private Object convert(Schema schema, JsonValue json) {
+      if (json instanceof JsonObject object) {
+        var record = new GenericData.Record(schema);
+        for (Member member : object) {
+          Field field = schema.getField(member.getName());
+          record.put(member.getName(), convert(field.schema(), member.getValue()));
+        }
+        return record;
+      } else if (json instanceof JsonArray jsonArray) {
+        var array = new GenericData.Array<>(jsonArray.size(), schema.getElementType());
+        for (JsonValue value : jsonArray) {
+          array.add(convert(schema.getElementType(), value));
+        }
+        return array;
+      } else if (json.isString()) {
+        return json.asString();
+      } else if (json.isBoolean()) {
+        return json.asBoolean();
+      } else if (json.isNumber()) {
+        // XXX: support int, long, float, double
+        return json.asInt();
+      } else if (json.isNull()) {
+        return null;
+      }
+      throw new UnsupportedOperationException(json.toString());
+    }
+  }
+
   @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT)
   void setVerbose(boolean verbose) {
     System.setProperty("root-level", verbose ? "DEBUG" : "ERROR");
@@ -205,6 +301,13 @@ public class App {
         ParquetReadOptions.builder().withRecordFilter(FilterCompat.get(filter)).build());
     }
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
+  }
+
+  private static ParquetWriter<GenericRecord> createParquetWriter(File file, Schema schema) throws IOException {
+    return AvroParquetWriter.<GenericRecord>builder(new FileSystemOutputFile(file))
+        .withDataModel(GenericData.get())
+        .withSchema(schema)
+        .build();
   }
 
   private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema projection) throws IOException {

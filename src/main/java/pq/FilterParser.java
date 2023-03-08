@@ -15,7 +15,9 @@ import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
+
 import java.util.List;
+
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
 import org.petitparser.context.Result;
