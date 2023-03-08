@@ -116,13 +116,13 @@ public class App {
     @Option(names = "--get", description = "print just the row with given index", paramLabel = "ROW", defaultValue = "-1")
     private int get;
 
-    @Option(names = "--skip", description = "skip number of rows", paramLabel = "ROWS", defaultValue = "0")
+    @Option(names = "--skip", description = "skip a number N of rows", paramLabel = "ROWS", defaultValue = "0")
     private int skip;
 
     @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
     private String filter;
 
-    @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMNS", split = ",")
+    @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
     private String[] select;
 
     @Option(names = "--index", description = "print row index", defaultValue = "false")
