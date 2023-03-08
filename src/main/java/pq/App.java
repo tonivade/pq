@@ -34,8 +34,8 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ScopeType;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { Main.CountCommand.class, Main.SchemaCommand.class, Main.ReadCommand.class, Main.MetadataCommand.class, HelpCommand.class })
-public class Main {
+  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadCommand.class, App.MetadataCommand.class, HelpCommand.class })
+public class App {
 
   @Command(name = "count", description = "print total number of rows in parquet file")
   public static class CountCommand implements Runnable {
@@ -138,23 +138,22 @@ public class Main {
     @Override
     public void run() {
       FilterPredicate predicate = parser.parse(filter);
-      long size = size(predicate);
-      try (var reader = createParquetReader(file, predicate, schema())) {
+      try (var reader = createParquetReader(file, predicate, projection())) {
         if (head > 0) {
-          stream(size, reader).skip(skip).limit(head).forEach(this::print);
+          stream(size(predicate), reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
-          stream(size, reader).skip(size - tail).forEach(this::print);
+          stream(size(predicate), reader).skip(size(predicate) - tail).forEach(this::print);
         } else if (get > -1) {
-          stream(size, reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
+          stream(size(predicate), reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
         } else {
-          stream(size, reader).skip(skip).forEach(this::print);
+          stream(size(predicate), reader).skip(skip).forEach(this::print);
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
     }
 
-    private Schema schema() {
+    private Schema projection() {
       try (var reader = createFileReader(file, null)) {
         MessageType schema = reader.getFileMetaData().getSchema();
         if (select != null) {
@@ -191,7 +190,7 @@ public class Main {
   }
 
   public static void main(String... args) {
-    System.exit(new CommandLine(new Main()).execute(args));
+    System.exit(new CommandLine(new App()).execute(args));
   }
 
   private static Stream<Tuple> stream(long size, ParquetReader<GenericRecord> reader) {
@@ -208,11 +207,11 @@ public class Main {
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 
-  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema schema) throws IOException {
+  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema projection) throws IOException {
     var config = new Configuration();
-    if (schema != null) {
-      AvroReadSupport.setAvroReadSchema(config, schema);
-      AvroReadSupport.setRequestedProjection(config, schema);
+    if (projection != null) {
+//      AvroReadSupport.setAvroReadSchema(config, schema);
+      AvroReadSupport.setRequestedProjection(config, projection);
     }
     if (filter != null) {
       return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))

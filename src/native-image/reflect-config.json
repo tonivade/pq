@@ -235,31 +235,31 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"pq.Main",
+  "name":"pq.App",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "methods":[{"name":"setVerbose","parameterTypes":["boolean"] }]
 },
 {
-  "name":"pq.Main$CountCommand",
+  "name":"pq.App$CountCommand",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"pq.Main$MetadataCommand",
+  "name":"pq.App$MetadataCommand",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"pq.Main$ReadCommand",
+  "name":"pq.App$ReadCommand",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"pq.Main$SchemaCommand",
+  "name":"pq.App$SchemaCommand",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "methods":[{"name":"<init>","parameterTypes":[] }]

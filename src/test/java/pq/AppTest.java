@@ -17,7 +17,7 @@ import uk.org.webcompere.systemstubs.security.SystemExit;
 import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 @ExtendWith(SystemStubsExtension.class)
-class MainTest {
+class AppTest {
 
   private static final String READ = "read";
   private static final String SCHEMA = "schema";
@@ -36,7 +36,7 @@ class MainTest {
 
     @Test
     void parquet() {
-      assertThatThrownBy(() -> Main.main(SCHEMA, EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(SCHEMA, EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -59,7 +59,7 @@ class MainTest {
 
     @Test
     void avro() {
-      assertThatThrownBy(() -> Main.main(SCHEMA, "--format", "avro", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(SCHEMA, "--format", "avro", EXAMPLE_PARQUET))
       .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -73,7 +73,7 @@ class MainTest {
 
     @Test
     void countWithoutFilter() {
-      assertThatThrownBy(() -> Main.main(COUNT, EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(COUNT, EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -84,7 +84,7 @@ class MainTest {
     @Test
     @Disabled("not working yet")
     void countWithFilter() {
-      assertThatThrownBy(() -> Main.main(COUNT, "--filter", "gender = \"Female\"", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(COUNT, "--filter", "gender = \"Female\"", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -98,7 +98,7 @@ class MainTest {
 
     @Test
     void get() {
-      assertThatThrownBy(() -> Main.main(READ, "--get", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--get", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -108,7 +108,7 @@ class MainTest {
 
     @Test
     void getWithIndex() {
-      assertThatThrownBy(() -> Main.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -119,7 +119,7 @@ class MainTest {
 
     @Test
     void head() {
-      assertThatThrownBy(() -> Main.main(READ, "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -129,7 +129,7 @@ class MainTest {
 
     @Test
     void headWithIndex() {
-      assertThatThrownBy(() -> Main.main(READ, "--index", "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--index", "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -140,7 +140,7 @@ class MainTest {
 
     @Test
     void skipAndHead() {
-      assertThatThrownBy(() -> Main.main(READ, "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -150,7 +150,7 @@ class MainTest {
 
     @Test
     void skipAndHeadWithIndex() {
-      assertThatThrownBy(() -> Main.main(READ, "--index", "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--index", "--skip", "1", "--head", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -161,7 +161,7 @@ class MainTest {
 
     @Test
     void skipAndGet() {
-      assertThatThrownBy(() -> Main.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -171,7 +171,7 @@ class MainTest {
 
     @Test
     void skipAndGetWithIndex() {
-      assertThatThrownBy(() -> Main.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -182,7 +182,7 @@ class MainTest {
 
     @Test
     void tail() {
-      assertThatThrownBy(() -> Main.main(READ, "--tail", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--tail", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -192,7 +192,7 @@ class MainTest {
 
     @Test
     void tailWithIndex() {
-      assertThatThrownBy(() -> Main.main(READ, "--index", "--tail", "1", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--index", "--tail", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -203,7 +203,7 @@ class MainTest {
 
     @Test
     void filterInt() {
-      assertThatThrownBy(() -> Main.main(READ, "--filter", "id = 1000", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--filter", "id = 1000", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -213,7 +213,7 @@ class MainTest {
 
     @Test
     void filterString() {
-      assertThatThrownBy(() -> Main.main(READ, "--filter", "last_name = \"Meyer\"", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--filter", "last_name = \"Meyer\"", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -225,7 +225,7 @@ class MainTest {
 
     @Test
     void select() {
-      assertThatThrownBy(() -> Main.main(READ, "--select", "id,email", "--head", "3", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--select", "id,email", "--head", "3", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
