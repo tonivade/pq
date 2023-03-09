@@ -9,15 +9,17 @@ import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
+import static org.apache.parquet.filter2.predicate.FilterApi.gtEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.lt;
+import static org.apache.parquet.filter2.predicate.FilterApi.ltEq;
+import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
 
 import java.util.List;
-
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
 import org.petitparser.context.Result;
@@ -27,6 +29,7 @@ import org.petitparser.parser.primitive.StringParser;
 
 final class FilterParser {
 
+  private static final CharacterParser NOT = CharacterParser.of('!');
   private static final CharacterParser PIPE = CharacterParser.of('|');
   private static final CharacterParser AMPERSAND = CharacterParser.of('&');
   private static final CharacterParser LT = CharacterParser.of('<');
@@ -48,7 +51,7 @@ final class FilterParser {
   static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
     .<String, String>map(s -> s.replace('"', ' ').trim());
 
-  static final Parser OPERATOR = EQ.or(GT).or(LT).flatten().trim()
+  static final Parser OPERATOR = EQ.or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
     .<String, Operator>map(FilterParser::toOperator);
 
   static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
@@ -71,8 +74,11 @@ final class FilterParser {
 
   enum Operator {
     EQUAL,
+    NOT_EQUAL,
     GREATER_THAN,
-    LOWER_THAN
+    LOWER_THAN,
+    GREATER_THAN_EQUAL,
+    LOWER_THAN_EQUAL
   }
 
   enum Logic {
@@ -93,19 +99,24 @@ final class FilterParser {
     if (value instanceof Integer i) {
       return switch (operator) {
         case EQUAL -> eq(intColumn(column), i);
+        case NOT_EQUAL -> notEq(intColumn(column), i);
         case GREATER_THAN -> gt(intColumn(column), i);
         case LOWER_THAN -> lt(intColumn(column), i);
+        case GREATER_THAN_EQUAL -> gtEq(intColumn(column), i);
+        case LOWER_THAN_EQUAL -> ltEq(intColumn(column), i);
       };
     }
     if (value instanceof String s) {
       return switch (operator) {
         case EQUAL -> eq(binaryColumn(column), Binary.fromString(s));
+        case NOT_EQUAL -> notEq(binaryColumn(column), Binary.fromString(s));
         default -> throw new IllegalArgumentException("operator not supported: " + operator);
       };
     }
     if (value instanceof Boolean b) {
       return switch (operator) {
         case EQUAL -> eq(booleanColumn(column), b);
+        case NOT_EQUAL -> notEq(booleanColumn(column), b);
         default -> throw new IllegalArgumentException("operator not supported: " + operator);
       };
     }
@@ -128,8 +139,11 @@ final class FilterParser {
   private static FilterParser.Operator toOperator(String o) {
     return switch (o) {
       case "=" -> Operator.EQUAL;
+      case "!=" -> Operator.NOT_EQUAL;
       case ">" -> Operator.GREATER_THAN;
       case "<" -> Operator.LOWER_THAN;
+      case ">=" -> Operator.GREATER_THAN_EQUAL;
+      case "<=" -> Operator.LOWER_THAN_EQUAL;
       default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
     };
   }

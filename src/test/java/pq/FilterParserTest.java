@@ -9,12 +9,14 @@ import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
+import static org.apache.parquet.filter2.predicate.FilterApi.gtEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.lt;
+import static org.apache.parquet.filter2.predicate.FilterApi.ltEq;
+import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import org.apache.parquet.io.api.Binary;
 import org.junit.jupiter.api.Test;
 
@@ -29,20 +31,29 @@ class FilterParserTest {
     assertThat(parser.parse("id = 1")).isEqualTo(eq(intColumn(ID), 1));
     assertThat(parser.parse("id > 1")).isEqualTo(gt(intColumn(ID), 1));
     assertThat(parser.parse("id < 1")).isEqualTo(lt(intColumn(ID), 1));
+    assertThat(parser.parse("id != 1")).isEqualTo(notEq(intColumn(ID), 1));
+    assertThat(parser.parse("id >= 1")).isEqualTo(gtEq(intColumn(ID), 1));
+    assertThat(parser.parse("id <= 1")).isEqualTo(ltEq(intColumn(ID), 1));
   }
 
   @Test
   void filterBooleanColumn() {
     assertThat(parser.parse("id = true")).isEqualTo(eq(booleanColumn(ID), true));
+    assertThat(parser.parse("id != false")).isEqualTo(notEq(booleanColumn(ID), false));
     assertThatThrownBy(() -> parser.parse("id > true")).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id < false")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id >= true")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id <= false")).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void filterStringColumn() {
     assertThat(parser.parse("id = \"a\"")).isEqualTo(eq(binaryColumn(ID), Binary.fromString("a")));
+    assertThat(parser.parse("id != \"a\"")).isEqualTo(notEq(binaryColumn(ID), Binary.fromString("a")));
     assertThatThrownBy(() -> parser.parse("id > \"a\"")).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id < \"a\"")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id >= \"a\"")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id <= \"a\"")).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
