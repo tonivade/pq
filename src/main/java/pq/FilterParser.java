@@ -119,11 +119,12 @@ final class FilterParser {
     record Condition(String column, Operator operator, Object value) implements Expr {
       @Override
       public TypedExpr apply(MessageType schema) {
-        if (!schema.containsField(column)) {
+        String[] path = column.split("\\.");
+        if (!schema.containsPath(path)) {
           throw new IllegalArgumentException("field not exists: " + column);
         }
         
-        var columnDescription = schema.getColumnDescription(column.split("\\."));
+        var columnDescription = schema.getColumnDescription(path);
         
         return switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
           case INT32 -> new IntCondition(column, operator, asInt());
