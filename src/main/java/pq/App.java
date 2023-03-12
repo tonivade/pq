@@ -95,7 +95,7 @@ public class App {
         } else if (format.equals("avro")) {
           System.out.println(new AvroSchemaConverter().convert(schema));
         } else {
-          new IllegalArgumentException("invalid format: " + format);
+          throw new IllegalArgumentException("invalid format: " + format);
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
