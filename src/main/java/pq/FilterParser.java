@@ -224,10 +224,14 @@ final class FilterParser {
         @Override
         public FilterPredicate convert() {
           return switch (operator) {
-            case EQUAL -> eq(binaryColumn(column), Binary.fromString(value));
-            case NOT_EQUAL -> notEq(binaryColumn(column), Binary.fromString(value));
+            case EQUAL -> eq(binaryColumn(column), toBinary());
+            case NOT_EQUAL -> notEq(binaryColumn(column), toBinary());
             default -> throw new IllegalArgumentException();
           };
+        }
+
+        private Binary toBinary() {
+          return value != null ? Binary.fromString(value) : null;
         }
       }
 
