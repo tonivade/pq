@@ -47,27 +47,27 @@ final class FilterParser {
 
   private static final Parser NULL = StringParser.of("null");
 
-  static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
+  private static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
 
-  static final Parser BOOLEAN = TRUE.or(FALSE).flatten()
+  private static final Parser BOOLEAN = TRUE.or(FALSE).flatten()
     .<String, Boolean>map(Boolean::parseBoolean);
 
-  static final Parser INTEGER = MINUS.optional().seq(digit().plus()).flatten()
+  private static final Parser INTEGER = MINUS.optional().seq(digit().plus()).flatten()
     .<String, Integer>map(Integer::parseInt);
 
-  static final Parser DECIMAL = MINUS.optional().seq(digit().plus()).seq(DOT).seq(digit().star()).flatten()
+  private static final Parser DECIMAL = MINUS.optional().seq(digit().plus()).seq(DOT).seq(digit().star()).flatten()
     .<String, Float>map(Float::parseFloat);
 
-  static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
+  private static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
     .<String, String>map(s -> s.replace('"', ' ').trim());
 
-  static final Parser OPERATOR = EQ.or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
+  private static final Parser OPERATOR = EQ.or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
     .<String, Operator>map(FilterParser::toOperator);
 
-  static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
+  private static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
     .<String, Logic>map(FilterParser::toLogic);
 
-  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL))
+  private static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL))
     .<List<Object>, FilterPredicate>map(result -> {
       var column = (String) result.get(0);
       var operator = (Operator) result.get(1);
@@ -76,7 +76,7 @@ final class FilterParser {
     });
 
   @SuppressWarnings("unchecked")
-  static final Parser PARSER = EXPRESSION.seq(LOGIC.seq(EXPRESSION).star())
+  private static final Parser PARSER = EXPRESSION.seq(LOGIC.seq(EXPRESSION).star())
     .<List<Object>, FilterPredicate>map(result -> {
       var first = (FilterPredicate) result.get(0);
       var second = (List<List<Object>>) result.get(1);
