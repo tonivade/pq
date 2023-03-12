@@ -5,23 +5,44 @@
 package pq;
 
 import static org.apache.parquet.filter2.predicate.FilterApi.and;
-import static org.apache.parquet.filter2.predicate.FilterApi.*;
+import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.doubleColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
+import static org.apache.parquet.filter2.predicate.FilterApi.floatColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.gt;
+import static org.apache.parquet.filter2.predicate.FilterApi.gtEq;
+import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.longColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.lt;
+import static org.apache.parquet.filter2.predicate.FilterApi.ltEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
+
 import java.util.List;
+
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
+import org.apache.parquet.schema.MessageType;
 import org.petitparser.context.Result;
 import org.petitparser.parser.Parser;
 import org.petitparser.parser.primitive.CharacterParser;
 import org.petitparser.parser.primitive.StringParser;
+
 import pq.FilterParser.Expr.Condition;
 import pq.FilterParser.Expr.Expression;
+import pq.FilterParser.Expr.NullExpr;
+import pq.FilterParser.TypedExpr.NullTypedExpr;
+import pq.FilterParser.TypedExpr.TypedCondition.BooleanCondition;
+import pq.FilterParser.TypedExpr.TypedCondition.DoubleCondition;
+import pq.FilterParser.TypedExpr.TypedCondition.FloatCondition;
+import pq.FilterParser.TypedExpr.TypedCondition.IntCondition;
+import pq.FilterParser.TypedExpr.TypedCondition.LongCondition;
+import pq.FilterParser.TypedExpr.TypedCondition.StringCondition;
+import pq.FilterParser.TypedExpr.TypedExpression;
 
 final class FilterParser {
 
@@ -47,10 +68,10 @@ final class FilterParser {
     .<String, Boolean>map(Boolean::parseBoolean);
 
   private static final Parser INTEGER = MINUS.optional().seq(digit().plus()).flatten()
-    .<String, Integer>map(Integer::parseInt);
+    .<String, Long>map(Long::parseLong);
 
   private static final Parser DECIMAL = MINUS.optional().seq(digit().plus()).seq(DOT).seq(digit().star()).flatten()
-    .<String, Float>map(Float::parseFloat);
+    .<String, Double>map(Double::parseDouble);
 
   private static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
     .<String, String>map(s -> s.replace('"', ' ').trim());
@@ -92,65 +113,159 @@ final class FilterParser {
   }
 
   sealed interface Expr {
+    
+    TypedExpr apply(MessageType schema);
 
-    record Condition(String column, Operator operator, Object value) implements Expr {}
+    record Condition(String column, Operator operator, Object value) implements Expr {
+      @Override
+      public TypedExpr apply(MessageType schema) {
+        if (!schema.containsField(column)) {
+          throw new IllegalArgumentException("field not exists: " + column);
+        }
+        
+        var columnDescription = schema.getColumnDescription(new String[] { column });
+        
+        return switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
+          case INT32 -> new IntCondition(column, operator, ((Long) value).intValue());
+          case INT64 -> new LongCondition(column, operator, (Long) value);
+          case FLOAT -> new FloatCondition(column, operator, ((Double) value).floatValue());
+          case DOUBLE -> new DoubleCondition(column, operator, ((Double) value));
+          case BOOLEAN -> new BooleanCondition(column, operator, (Boolean) value);
+          case BINARY -> new StringCondition(column, operator, (String) value);
+          default -> throw new IllegalArgumentException();
+        };
+      }
+    }
 
-    record Expression(Expr left, Logic operator, Expr right) implements Expr {}
-
+    record Expression(Expr left, Logic operator, Expr right) implements Expr {
+      @Override
+      public TypedExpr apply(MessageType schema) {
+        return new TypedExpression(left.apply(schema), operator, right.apply(schema));
+      }
+    }
+    
+    record NullExpr() implements Expr {
+      @Override
+      public TypedExpr apply(MessageType schema) {
+        return new NullTypedExpr();
+      }
+    }
   }
 
-  FilterPredicate parse(String filter) {
+  sealed interface TypedExpr {
+    
+    FilterPredicate convert();
+
+    sealed interface TypedCondition<T> extends TypedExpr {
+      
+      String column();
+      Operator operator();
+      T value();
+
+      record IntCondition(String column, Operator operator, Integer value) implements TypedCondition<Integer> {
+        @Override
+        public FilterPredicate convert() {
+          return switch (operator) {
+            case EQUAL -> eq(intColumn(column), value);
+            case NOT_EQUAL -> notEq(intColumn(column), value);
+            case GREATER_THAN -> gt(intColumn(column), value);
+            case LOWER_THAN -> lt(intColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(intColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(intColumn(column), value);
+          };
+        }
+      }
+
+      record LongCondition(String column, Operator operator, Long value) implements TypedCondition<Long> {
+        @Override
+        public FilterPredicate convert() {
+          return switch (operator) {
+            case EQUAL -> eq(longColumn(column), value);
+            case NOT_EQUAL -> notEq(longColumn(column), value);
+            case GREATER_THAN -> gt(longColumn(column), value);
+            case LOWER_THAN -> lt(longColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(longColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(longColumn(column), value);
+          };
+        }
+      }
+
+      record StringCondition(String column, Operator operator, String value) implements TypedCondition<String> {
+        @Override
+        public FilterPredicate convert() {
+          return switch (operator) {
+            case EQUAL -> eq(binaryColumn(column), Binary.fromString(value));
+            case NOT_EQUAL -> notEq(binaryColumn(column), Binary.fromString(value));
+            default -> throw new IllegalArgumentException();
+          };
+        }
+      }
+
+      record FloatCondition(String column, Operator operator, Float value) implements TypedCondition<Float> {
+        @Override
+        public FilterPredicate convert() {
+          return switch (operator) {
+            case EQUAL -> eq(floatColumn(column), value);
+            case NOT_EQUAL -> notEq(floatColumn(column), value);
+            case GREATER_THAN -> gt(floatColumn(column), value);
+            case LOWER_THAN -> lt(floatColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(floatColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(floatColumn(column), value);
+          };
+        }
+      }
+
+      record DoubleCondition(String column, Operator operator, Double value) implements TypedCondition<Double> {
+        @Override
+        public FilterPredicate convert() {
+          return switch (operator) {
+            case EQUAL -> eq(doubleColumn(column), value);
+            case NOT_EQUAL -> notEq(doubleColumn(column), value);
+            case GREATER_THAN -> gt(doubleColumn(column), value);
+            case LOWER_THAN -> lt(doubleColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(doubleColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(doubleColumn(column), value);
+          };
+        }
+      }
+
+      record BooleanCondition(String column, Operator operator, Boolean value) implements TypedCondition<Boolean> {
+        @Override
+        public FilterPredicate convert() {
+          return switch (operator) {
+            case EQUAL -> eq(booleanColumn(column), value);
+            case NOT_EQUAL -> notEq(booleanColumn(column), value);
+            default -> throw new IllegalArgumentException();
+          };
+        }
+      }
+    }
+
+    record TypedExpression(TypedExpr left, Logic operator, TypedExpr right) implements TypedExpr {
+      
+      @Override
+      public FilterPredicate convert() {
+        return switch (operator) {
+          case AND -> and(left.convert(), right.convert());
+          case OR -> or(left.convert(), right.convert());
+        };
+      }
+    }
+    
+    record NullTypedExpr() implements TypedExpr {
+      @Override
+      public FilterPredicate convert() {
+        return null;
+      }
+    }
+  }
+
+  Expr parse(String filter) {
     if (filter != null) {
       Result parse = PARSER.parse(filter);
-      return convert(parse.get());
+      return parse.get();
     }
-    return null;
-  }
-
-  private FilterPredicate convert(Expr expr) {
-    if (expr instanceof Condition c) {
-      if (c.value() instanceof Integer i) {
-        return switch (c.operator()) {
-          case EQUAL -> eq(intColumn(c.column()), i);
-          case NOT_EQUAL -> notEq(intColumn(c.column()), i);
-          case GREATER_THAN -> gt(intColumn(c.column()), i);
-          case LOWER_THAN -> lt(intColumn(c.column()), i);
-          case GREATER_THAN_EQUAL -> gtEq(intColumn(c.column()), i);
-          case LOWER_THAN_EQUAL -> ltEq(intColumn(c.column()), i);
-        };
-      }
-      if (c.value() instanceof Float f) {
-        return switch (c.operator()) {
-          case EQUAL -> eq(floatColumn(c.column()), f);
-          case NOT_EQUAL -> notEq(floatColumn(c.column()), f);
-          case GREATER_THAN -> gt(floatColumn(c.column()), f);
-          case LOWER_THAN -> lt(floatColumn(c.column()), f);
-          case GREATER_THAN_EQUAL -> gtEq(floatColumn(c.column()), f);
-          case LOWER_THAN_EQUAL -> ltEq(floatColumn(c.column()), f);
-        };
-      }
-      if (c.value() instanceof String s) {
-        return switch (c.operator()) {
-          case EQUAL -> eq(binaryColumn(c.column()), Binary.fromString(s));
-          case NOT_EQUAL -> notEq(binaryColumn(c.column()), Binary.fromString(s));
-          default -> throw new IllegalArgumentException("operator not supported: " + c.operator());
-        };
-      }
-      if (c.value() instanceof Boolean b) {
-        return switch (c.operator()) {
-          case EQUAL -> eq(booleanColumn(c.column()), b);
-          case NOT_EQUAL -> notEq(booleanColumn(c.column()), b);
-          default -> throw new IllegalArgumentException("operator not supported: " + c.operator());
-        };
-      }
-    }
-    if (expr instanceof Expression e) {
-      return switch (e.operator()) {
-        case AND -> and(convert(e.left()), convert(e.right()));
-        case OR -> or(convert(e.left()), convert(e.right()));
-      };
-    }
-    throw new IllegalArgumentException();
+    return new NullExpr();
   }
 
   private static Expr reduce(Condition first, List<List<Object>> second) {

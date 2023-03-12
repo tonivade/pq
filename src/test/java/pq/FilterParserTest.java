@@ -7,19 +7,32 @@ package pq;
 import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.doubleColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
 import static org.apache.parquet.filter2.predicate.FilterApi.floatColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
 import static org.apache.parquet.filter2.predicate.FilterApi.gtEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
+import static org.apache.parquet.filter2.predicate.FilterApi.longColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.lt;
 import static org.apache.parquet.filter2.predicate.FilterApi.ltEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.BINARY;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.BOOLEAN;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.DOUBLE;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.FLOAT;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
+import static org.apache.parquet.schema.Type.Repetition.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
+
 import org.apache.parquet.io.api.Binary;
+import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
 import org.junit.jupiter.api.Test;
 
 class FilterParserTest {
@@ -30,53 +43,83 @@ class FilterParserTest {
 
   @Test
   void filterIntColumn() {
-    assertThat(parser.parse("id = 1")).isEqualTo(eq(intColumn(ID), 1));
-    assertThat(parser.parse("id > 1")).isEqualTo(gt(intColumn(ID), 1));
-    assertThat(parser.parse("id < 1")).isEqualTo(lt(intColumn(ID), 1));
-    assertThat(parser.parse("id != 1")).isEqualTo(notEq(intColumn(ID), 1));
-    assertThat(parser.parse("id >= 1")).isEqualTo(gtEq(intColumn(ID), 1));
-    assertThat(parser.parse("id <= 1")).isEqualTo(ltEq(intColumn(ID), 1));
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
+    assertThat(parser.parse("id = 1").apply(schema).convert()).isEqualTo(eq(intColumn(ID), 1));
+    assertThat(parser.parse("id > 1").apply(schema).convert()).isEqualTo(gt(intColumn(ID), 1));
+    assertThat(parser.parse("id < 1").apply(schema).convert()).isEqualTo(lt(intColumn(ID), 1));
+    assertThat(parser.parse("id != 1").apply(schema).convert()).isEqualTo(notEq(intColumn(ID), 1));
+    assertThat(parser.parse("id >= 1").apply(schema).convert()).isEqualTo(gtEq(intColumn(ID), 1));
+    assertThat(parser.parse("id <= 1").apply(schema).convert()).isEqualTo(ltEq(intColumn(ID), 1));
   }
 
   @Test
-  void filterDecimalColumn() {
-    assertThat(parser.parse("id = 1.")).isEqualTo(eq(floatColumn(ID), 1.0f));
-    assertThat(parser.parse("id > 1.")).isEqualTo(gt(floatColumn(ID), 1.0f));
-    assertThat(parser.parse("id < 1.")).isEqualTo(lt(floatColumn(ID), 1.0f));
-    assertThat(parser.parse("id != 1.")).isEqualTo(notEq(floatColumn(ID), 1.0f));
-    assertThat(parser.parse("id >= 1.")).isEqualTo(gtEq(floatColumn(ID), 1.0f));
-    assertThat(parser.parse("id <= 1.")).isEqualTo(ltEq(floatColumn(ID), 1.0f));
+  void filterLongColumn() {
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT64, ID)));
+    assertThat(parser.parse("id = 1").apply(schema).convert()).isEqualTo(eq(longColumn(ID), 1L));
+    assertThat(parser.parse("id > 1").apply(schema).convert()).isEqualTo(gt(longColumn(ID), 1L));
+    assertThat(parser.parse("id < 1").apply(schema).convert()).isEqualTo(lt(longColumn(ID), 1L));
+    assertThat(parser.parse("id != 1").apply(schema).convert()).isEqualTo(notEq(longColumn(ID), 1L));
+    assertThat(parser.parse("id >= 1").apply(schema).convert()).isEqualTo(gtEq(longColumn(ID), 1L));
+    assertThat(parser.parse("id <= 1").apply(schema).convert()).isEqualTo(ltEq(longColumn(ID), 1L));
+  }
+
+  @Test
+  void filterFloatColumn() {
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, FLOAT, ID)));
+    assertThat(parser.parse("id = 1.").apply(schema).convert()).isEqualTo(eq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id > 1.").apply(schema).convert()).isEqualTo(gt(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id < 1.").apply(schema).convert()).isEqualTo(lt(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id != 1.").apply(schema).convert()).isEqualTo(notEq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id >= 1.").apply(schema).convert()).isEqualTo(gtEq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id <= 1.").apply(schema).convert()).isEqualTo(ltEq(floatColumn(ID), 1.0f));
+  }
+
+  @Test
+  void filterDoubleColumn() {
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, DOUBLE, ID)));
+    assertThat(parser.parse("id = 1.").apply(schema).convert()).isEqualTo(eq(doubleColumn(ID), 1.0d));
+    assertThat(parser.parse("id > 1.").apply(schema).convert()).isEqualTo(gt(doubleColumn(ID), 1.0d));
+    assertThat(parser.parse("id < 1.").apply(schema).convert()).isEqualTo(lt(doubleColumn(ID), 1.0d));
+    assertThat(parser.parse("id != 1.").apply(schema).convert()).isEqualTo(notEq(doubleColumn(ID), 1.0d));
+    assertThat(parser.parse("id >= 1.").apply(schema).convert()).isEqualTo(gtEq(doubleColumn(ID), 1.0d));
+    assertThat(parser.parse("id <= 1.").apply(schema).convert()).isEqualTo(ltEq(doubleColumn(ID), 1.0d));
   }
 
   @Test
   void filterBooleanColumn() {
-    assertThat(parser.parse("id = true")).isEqualTo(eq(booleanColumn(ID), true));
-    assertThat(parser.parse("id != false")).isEqualTo(notEq(booleanColumn(ID), false));
-    assertThatThrownBy(() -> parser.parse("id > true")).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> parser.parse("id < false")).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> parser.parse("id >= true")).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> parser.parse("id <= false")).isInstanceOf(IllegalArgumentException.class);
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, BOOLEAN, ID)));
+    assertThat(parser.parse("id = true").apply(schema).convert()).isEqualTo(eq(booleanColumn(ID), true));
+    assertThat(parser.parse("id != false").apply(schema).convert()).isEqualTo(notEq(booleanColumn(ID), false));
+    assertThatThrownBy(() -> parser.parse("id > true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id < false").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id >= true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id <= false").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void filterStringColumn() {
-    assertThat(parser.parse("id = \"a\"")).isEqualTo(eq(binaryColumn(ID), Binary.fromString("a")));
-    assertThat(parser.parse("id != \"a\"")).isEqualTo(notEq(binaryColumn(ID), Binary.fromString("a")));
-    assertThatThrownBy(() -> parser.parse("id > \"a\"")).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> parser.parse("id < \"a\"")).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> parser.parse("id >= \"a\"")).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> parser.parse("id <= \"a\"")).isInstanceOf(IllegalArgumentException.class);
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, BINARY, ID)));
+    assertThat(parser.parse("id = \"a\"").apply(schema).convert()).isEqualTo(eq(binaryColumn(ID), Binary.fromString("a")));
+    assertThat(parser.parse("id != \"a\"").apply(schema).convert()).isEqualTo(notEq(binaryColumn(ID), Binary.fromString("a")));
+    assertThatThrownBy(() -> parser.parse("id > \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id < \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id >= \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id <= \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void filterTwoExpressions() {
-    assertThat(parser.parse("id > 2 & id < 10")).isEqualTo(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
-    assertThat(parser.parse("id > 2 | id < 10")).isEqualTo(or(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
+    assertThat(parser.parse("id > 2 & id < 10").apply(schema).convert())
+      .isEqualTo(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
+    assertThat(parser.parse("id > 2 | id < 10").apply(schema).convert())
+      .isEqualTo(or(gt(intColumn(ID), 2), lt(intColumn(ID), 10)));
   }
 
   @Test
   void filterThreeExpressions() {
-    assertThat(parser.parse("id > 2 & id < 10 | id = 0"))
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
+    assertThat(parser.parse("id > 2 & id < 10 | id = 0").apply(schema).convert())
       .isEqualTo(or(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)), eq(intColumn(ID), 0)));
   }
 

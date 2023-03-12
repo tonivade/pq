@@ -65,9 +65,18 @@ public class App {
 
     @Override
     public void run() {
-      FilterPredicate predicate = parser.parse(filter);
+      MessageType schema = schema();
+      FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
       try (var reader = createFileReader(file, predicate)) {
         System.out.println(reader.getFilteredRecordCount());
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    private MessageType schema() {
+      try (var reader = createFileReader(file, null)) {
+        return reader.getFileMetaData().getSchema();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -162,8 +171,9 @@ public class App {
 
     @Override
     public void run() {
-      FilterPredicate predicate = parser.parse(filter);
-      try (var reader = createParquetReader(file, predicate, projection())) {
+      MessageType schema = schema();
+      FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
+      try (var reader = createParquetReader(file, predicate, projection(schema))) {
         if (head > 0) {
           stream(size(predicate), reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
@@ -178,16 +188,19 @@ public class App {
       }
     }
 
-    private Schema projection() {
+    private MessageType schema() {
       try (var reader = createFileReader(file, null)) {
-        MessageType schema = reader.getFileMetaData().getSchema();
-        if (select != null) {
-          Set<String> fields = Set.of(select);
-          var projection = new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
-          return new AvroSchemaConverter().convert(projection);
-        }
+        return reader.getFileMetaData().getSchema();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
+      }
+    }
+
+    private Schema projection(MessageType schema) {
+      if (select != null) {
+        Set<String> fields = Set.of(select);
+        var projection = new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
+        return new AvroSchemaConverter().convert(projection);
       }
       return null;
     }
