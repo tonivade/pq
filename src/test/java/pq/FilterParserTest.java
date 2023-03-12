@@ -45,28 +45,37 @@ class FilterParserTest {
   void filterIntColumn() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
     assertThat(parser.parse("id = 1").apply(schema).convert()).isEqualTo(eq(intColumn(ID), 1));
+    assertThat(parser.parse("id = null").apply(schema).convert()).isEqualTo(eq(intColumn(ID), null));
     assertThat(parser.parse("id > 1").apply(schema).convert()).isEqualTo(gt(intColumn(ID), 1));
     assertThat(parser.parse("id < 1").apply(schema).convert()).isEqualTo(lt(intColumn(ID), 1));
     assertThat(parser.parse("id != 1").apply(schema).convert()).isEqualTo(notEq(intColumn(ID), 1));
     assertThat(parser.parse("id >= 1").apply(schema).convert()).isEqualTo(gtEq(intColumn(ID), 1));
     assertThat(parser.parse("id <= 1").apply(schema).convert()).isEqualTo(ltEq(intColumn(ID), 1));
+    assertThatThrownBy(() -> parser.parse("id = 1.").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("id = true").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("id = \"\"").apply(schema).convert()).isInstanceOf(ClassCastException.class);
   }
 
   @Test
   void filterLongColumn() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT64, ID)));
     assertThat(parser.parse("id = 1").apply(schema).convert()).isEqualTo(eq(longColumn(ID), 1L));
+    assertThat(parser.parse("id = null").apply(schema).convert()).isEqualTo(eq(longColumn(ID), null));
     assertThat(parser.parse("id > 1").apply(schema).convert()).isEqualTo(gt(longColumn(ID), 1L));
     assertThat(parser.parse("id < 1").apply(schema).convert()).isEqualTo(lt(longColumn(ID), 1L));
     assertThat(parser.parse("id != 1").apply(schema).convert()).isEqualTo(notEq(longColumn(ID), 1L));
     assertThat(parser.parse("id >= 1").apply(schema).convert()).isEqualTo(gtEq(longColumn(ID), 1L));
     assertThat(parser.parse("id <= 1").apply(schema).convert()).isEqualTo(ltEq(longColumn(ID), 1L));
+    assertThatThrownBy(() -> parser.parse("id = 1.").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("id = true").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("id = \"\"").apply(schema).convert()).isInstanceOf(ClassCastException.class);
   }
 
   @Test
   void filterFloatColumn() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, FLOAT, ID)));
     assertThat(parser.parse("id = 1.").apply(schema).convert()).isEqualTo(eq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id = null").apply(schema).convert()).isEqualTo(eq(floatColumn(ID), null));
     assertThat(parser.parse("id > 1.").apply(schema).convert()).isEqualTo(gt(floatColumn(ID), 1.0f));
     assertThat(parser.parse("id < 1.").apply(schema).convert()).isEqualTo(lt(floatColumn(ID), 1.0f));
     assertThat(parser.parse("id != 1.").apply(schema).convert()).isEqualTo(notEq(floatColumn(ID), 1.0f));
@@ -78,6 +87,7 @@ class FilterParserTest {
   void filterDoubleColumn() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, DOUBLE, ID)));
     assertThat(parser.parse("id = 1.").apply(schema).convert()).isEqualTo(eq(doubleColumn(ID), 1.0d));
+    assertThat(parser.parse("id = null").apply(schema).convert()).isEqualTo(eq(doubleColumn(ID), null));
     assertThat(parser.parse("id > 1.").apply(schema).convert()).isEqualTo(gt(doubleColumn(ID), 1.0d));
     assertThat(parser.parse("id < 1.").apply(schema).convert()).isEqualTo(lt(doubleColumn(ID), 1.0d));
     assertThat(parser.parse("id != 1.").apply(schema).convert()).isEqualTo(notEq(doubleColumn(ID), 1.0d));

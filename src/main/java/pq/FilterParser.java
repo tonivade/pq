@@ -60,7 +60,7 @@ final class FilterParser {
   private static final Parser FALSE = StringParser.of("false");
   private static final Parser TRUE = StringParser.of("true");
 
-  private static final Parser NULL = StringParser.of("null");
+  private static final Parser NULL = StringParser.of("null").map(x -> null);
 
   private static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
 
@@ -73,7 +73,7 @@ final class FilterParser {
   private static final Parser DECIMAL = MINUS.optional().seq(digit().plus()).seq(DOT).seq(digit().star()).flatten()
     .<String, Double>map(Double::parseDouble);
 
-  private static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
+  private static final Parser STRING = QUOTE.seq(word().star()).seq(QUOTE).flatten()
     .<String, String>map(s -> s.replace('"', ' ').trim());
 
   private static final Parser OPERATOR = EQ.or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
@@ -123,17 +123,47 @@ final class FilterParser {
           throw new IllegalArgumentException("field not exists: " + column);
         }
         
-        var columnDescription = schema.getColumnDescription(new String[] { column });
+        var columnDescription = schema.getColumnDescription(column.split("\\."));
         
         return switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
-          case INT32 -> new IntCondition(column, operator, ((Long) value).intValue());
-          case INT64 -> new LongCondition(column, operator, (Long) value);
-          case FLOAT -> new FloatCondition(column, operator, ((Double) value).floatValue());
-          case DOUBLE -> new DoubleCondition(column, operator, ((Double) value));
-          case BOOLEAN -> new BooleanCondition(column, operator, (Boolean) value);
-          case BINARY -> new StringCondition(column, operator, (String) value);
-          default -> throw new IllegalArgumentException();
+          case INT32 -> new IntCondition(column, operator, asInt());
+          case INT64 -> new LongCondition(column, operator, asLong());
+          case FLOAT -> new FloatCondition(column, operator, asFloat());
+          case DOUBLE -> new DoubleCondition(column, operator, asDouble());
+          case BOOLEAN -> new BooleanCondition(column, operator, asBoolean());
+          case BINARY -> new StringCondition(column, operator, asString());
+          default -> throw new IllegalArgumentException("not supported: " + columnDescription);
         };
+      }
+
+      private String asString() {
+        return (String) value;
+      }
+
+      private Boolean asBoolean() {
+        return (Boolean) value;
+      }
+
+      private Double asDouble() {
+        return (Double) value;
+      }
+
+      private Long asLong() {
+        return (Long) value;
+      }
+
+      private Integer asInt() {
+        if (value == null) {
+          return null;
+        }
+        return ((Long) value).intValue();
+      }
+
+      private Float asFloat() {
+        if (value == null) {
+          return null;
+        }
+        return ((Double) value).floatValue();
       }
     }
 
