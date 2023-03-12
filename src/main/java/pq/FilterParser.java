@@ -41,10 +41,15 @@ final class FilterParser {
   private static final CharacterParser MINUS = CharacterParser.of('-');
   private static final CharacterParser DOT = CharacterParser.of('.');
   private static final CharacterParser UNDERSCORE = CharacterParser.of('_');
+  
+  private static final Parser FALSE = StringParser.of("false");
+  private static final Parser TRUE = StringParser.of("true");
+
+  private static final Parser NULL = StringParser.of("null");
 
   static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
 
-  static final Parser BOOLEAN = StringParser.of("true").or(StringParser.of("false")).flatten()
+  static final Parser BOOLEAN = TRUE.or(FALSE).flatten()
     .<String, Boolean>map(Boolean::parseBoolean);
 
   static final Parser INTEGER = MINUS.optional().seq(digit().plus()).flatten()
@@ -62,7 +67,7 @@ final class FilterParser {
   static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
     .<String, Logic>map(FilterParser::toLogic);
 
-  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER))
+  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL))
     .<List<Object>, FilterPredicate>map(result -> {
       var column = (String) result.get(0);
       var operator = (Operator) result.get(1);
