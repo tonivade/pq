@@ -214,7 +214,7 @@ public class App {
 
     @Parameters(paramLabel = "FILE", description = "destination parquet file")
     private File file;
-    
+
     @Option(names = "--schema", description = "file with avro schema", paramLabel = "FILE")
     private File schemaFile;
 
