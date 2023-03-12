@@ -8,6 +8,7 @@ import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
+import static org.apache.parquet.filter2.predicate.FilterApi.floatColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
 import static org.apache.parquet.filter2.predicate.FilterApi.gtEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
@@ -20,6 +21,7 @@ import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
 
 import java.util.List;
+
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
 import org.petitparser.context.Result;
@@ -45,8 +47,11 @@ final class FilterParser {
   static final Parser BOOLEAN = StringParser.of("true").or(StringParser.of("false")).flatten()
     .<String, Boolean>map(Boolean::parseBoolean);
 
-  static final Parser NUMBER = MINUS.optional().seq(digit().plus()).flatten()
+  static final Parser INTEGER = MINUS.optional().seq(digit().plus()).flatten()
     .<String, Integer>map(Integer::parseInt);
+
+  static final Parser DECIMAL = MINUS.optional().seq(digit().plus()).seq(DOT).seq(digit().star()).flatten()
+    .<String, Float>map(Float::parseFloat);
 
   static final Parser STRING = QUOTE.seq(word().plus()).seq(QUOTE).flatten()
     .<String, String>map(s -> s.replace('"', ' ').trim());
@@ -57,7 +62,7 @@ final class FilterParser {
   static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
     .<String, Logic>map(FilterParser::toLogic);
 
-  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(NUMBER.or(STRING).or(BOOLEAN))
+  static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER))
     .<List<Object>, FilterPredicate>map(result -> {
       var column = (String) result.get(0);
       var operator = (Operator) result.get(1);
@@ -65,6 +70,7 @@ final class FilterParser {
       return translate(column, operator, value);
     });
 
+  @SuppressWarnings("unchecked")
   static final Parser PARSER = EXPRESSION.seq(LOGIC.seq(EXPRESSION).star())
     .<List<Object>, FilterPredicate>map(result -> {
       var first = (FilterPredicate) result.get(0);
@@ -86,7 +92,6 @@ final class FilterParser {
     OR
   }
 
-  // FIXME: implement complete syntax
   FilterPredicate parse(String filter) {
     if (filter != null) {
       Result parse = PARSER.parse(filter);
@@ -104,6 +109,16 @@ final class FilterParser {
         case LOWER_THAN -> lt(intColumn(column), i);
         case GREATER_THAN_EQUAL -> gtEq(intColumn(column), i);
         case LOWER_THAN_EQUAL -> ltEq(intColumn(column), i);
+      };
+    }
+    if (value instanceof Float f) {
+      return switch (operator) {
+        case EQUAL -> eq(floatColumn(column), f);
+        case NOT_EQUAL -> notEq(floatColumn(column), f);
+        case GREATER_THAN -> gt(floatColumn(column), f);
+        case LOWER_THAN -> lt(floatColumn(column), f);
+        case GREATER_THAN_EQUAL -> gtEq(floatColumn(column), f);
+        case LOWER_THAN_EQUAL -> ltEq(floatColumn(column), f);
       };
     }
     if (value instanceof String s) {

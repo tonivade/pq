@@ -8,6 +8,7 @@ import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.eq;
+import static org.apache.parquet.filter2.predicate.FilterApi.floatColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.gt;
 import static org.apache.parquet.filter2.predicate.FilterApi.gtEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
@@ -17,6 +18,7 @@ import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.apache.parquet.io.api.Binary;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +36,16 @@ class FilterParserTest {
     assertThat(parser.parse("id != 1")).isEqualTo(notEq(intColumn(ID), 1));
     assertThat(parser.parse("id >= 1")).isEqualTo(gtEq(intColumn(ID), 1));
     assertThat(parser.parse("id <= 1")).isEqualTo(ltEq(intColumn(ID), 1));
+  }
+
+  @Test
+  void filterDecimalColumn() {
+    assertThat(parser.parse("id = 1.")).isEqualTo(eq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id > 1.")).isEqualTo(gt(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id < 1.")).isEqualTo(lt(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id != 1.")).isEqualTo(notEq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id >= 1.")).isEqualTo(gtEq(floatColumn(ID), 1.0f));
+    assertThat(parser.parse("id <= 1.")).isEqualTo(ltEq(floatColumn(ID), 1.0f));
   }
 
   @Test
