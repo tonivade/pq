@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 
 import org.apache.parquet.io.api.Binary;
+import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.junit.jupiter.api.Test;
@@ -99,6 +100,7 @@ class FilterParserTest {
   void filterBooleanColumn() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, BOOLEAN, ID)));
     assertThat(parser.parse("id = true").apply(schema).convert()).isEqualTo(eq(booleanColumn(ID), true));
+    assertThat(parser.parse("id = null").apply(schema).convert()).isEqualTo(eq(booleanColumn(ID), null));
     assertThat(parser.parse("id != false").apply(schema).convert()).isEqualTo(notEq(booleanColumn(ID), false));
     assertThatThrownBy(() -> parser.parse("id > true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id < false").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
@@ -110,11 +112,29 @@ class FilterParserTest {
   void filterStringColumn() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, BINARY, ID)));
     assertThat(parser.parse("id = \"a\"").apply(schema).convert()).isEqualTo(eq(binaryColumn(ID), Binary.fromString("a")));
+    assertThat(parser.parse("id = \"\"").apply(schema).convert()).isEqualTo(eq(binaryColumn(ID), Binary.fromString("")));
+    assertThat(parser.parse("id = null").apply(schema).convert()).isEqualTo(eq(binaryColumn(ID), null));
     assertThat(parser.parse("id != \"a\"").apply(schema).convert()).isEqualTo(notEq(binaryColumn(ID), Binary.fromString("a")));
     assertThatThrownBy(() -> parser.parse("id > \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id < \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id >= \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id <= \"a\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void filterInnerColumn() {
+    var inner = new GroupType(REQUIRED, "inner", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
+    var schema = new MessageType("schema", List.of(inner));
+    assertThat(parser.parse("inner.id = 1").apply(schema).convert()).isEqualTo(eq(intColumn("inner." + ID), 1));
+    assertThat(parser.parse("inner.id = null").apply(schema).convert()).isEqualTo(eq(intColumn("inner." + ID), null));
+    assertThat(parser.parse("inner.id > 1").apply(schema).convert()).isEqualTo(gt(intColumn("inner." + ID), 1));
+    assertThat(parser.parse("inner.id < 1").apply(schema).convert()).isEqualTo(lt(intColumn("inner." + ID), 1));
+    assertThat(parser.parse("inner.id != 1").apply(schema).convert()).isEqualTo(notEq(intColumn("inner." + ID), 1));
+    assertThat(parser.parse("inner.id >= 1").apply(schema).convert()).isEqualTo(gtEq(intColumn("inner." + ID), 1));
+    assertThat(parser.parse("inner.id <= 1").apply(schema).convert()).isEqualTo(ltEq(intColumn("inner." + ID), 1));
+    assertThatThrownBy(() -> parser.parse("inner.id = 1.").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("inner.id = true").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("inner.id = \"\"").apply(schema).convert()).isInstanceOf(ClassCastException.class);
   }
 
   @Test
