@@ -113,7 +113,7 @@ final class FilterParser {
   }
 
   sealed interface Expr {
-    
+
     TypedExpr apply(MessageType schema);
 
     record Condition(String column, Operator operator, Object value) implements Expr {
@@ -123,9 +123,9 @@ final class FilterParser {
         if (!schema.containsPath(path)) {
           throw new IllegalArgumentException("field not exists: " + column);
         }
-        
+
         var columnDescription = schema.getColumnDescription(path);
-        
+
         return switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
           case INT32 -> new IntCondition(column, operator, asInt());
           case INT64 -> new LongCondition(column, operator, asLong());
@@ -174,7 +174,7 @@ final class FilterParser {
         return new TypedExpression(left.apply(schema), operator, right.apply(schema));
       }
     }
-    
+
     record NullExpr() implements Expr {
       @Override
       public TypedExpr apply(MessageType schema) {
@@ -184,11 +184,11 @@ final class FilterParser {
   }
 
   sealed interface TypedExpr {
-    
+
     FilterPredicate convert();
 
     sealed interface TypedCondition<T> extends TypedExpr {
-      
+
       String column();
       Operator operator();
       T value();
@@ -225,13 +225,13 @@ final class FilterParser {
         @Override
         public FilterPredicate convert() {
           return switch (operator) {
-            case EQUAL -> eq(binaryColumn(column), toBinary());
-            case NOT_EQUAL -> notEq(binaryColumn(column), toBinary());
+            case EQUAL -> eq(binaryColumn(column), asBinary());
+            case NOT_EQUAL -> notEq(binaryColumn(column), asBinary());
             default -> throw new IllegalArgumentException();
           };
         }
 
-        private Binary toBinary() {
+        private Binary asBinary() {
           return value != null ? Binary.fromString(value) : null;
         }
       }
@@ -277,7 +277,7 @@ final class FilterParser {
     }
 
     record TypedExpression(TypedExpr left, Logic operator, TypedExpr right) implements TypedExpr {
-      
+
       @Override
       public FilterPredicate convert() {
         return switch (operator) {
@@ -286,7 +286,7 @@ final class FilterParser {
         };
       }
     }
-    
+
     record NullTypedExpr() implements TypedExpr {
       @Override
       public FilterPredicate convert() {
@@ -306,30 +306,30 @@ final class FilterParser {
   private static Expr reduce(Condition first, List<List<Object>> second) {
     Expr result = first;
     for (List<Object> current : second) {
-      Logic logic = (FilterParser.Logic) current.get(0);
-      Condition next = (Condition) current.get(1);
+      var logic = (Logic) current.get(0);
+      var next = (Condition) current.get(1);
       result = new Expression(result, logic, next);
     }
     return result;
   }
 
-  private static FilterParser.Operator toOperator(String o) {
-    return switch (o) {
+  private static FilterParser.Operator toOperator(String operator) {
+    return switch (operator) {
       case "=" -> Operator.EQUAL;
       case "!=" -> Operator.NOT_EQUAL;
       case ">" -> Operator.GREATER_THAN;
       case "<" -> Operator.LOWER_THAN;
       case ">=" -> Operator.GREATER_THAN_EQUAL;
       case "<=" -> Operator.LOWER_THAN_EQUAL;
-      default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
+      default -> throw new IllegalArgumentException("operator not supported: `" + operator + "`");
     };
   }
 
-  private static FilterParser.Logic toLogic(String o) {
-    return switch (o) {
+  private static FilterParser.Logic toLogic(String operator) {
+    return switch (operator) {
       case "&" -> Logic.AND;
       case "|" -> Logic.OR;
-      default -> throw new IllegalArgumentException("operator not supported: `" + o + "`");
+      default -> throw new IllegalArgumentException("operator not supported: `" + operator + "`");
     };
   }
 }
