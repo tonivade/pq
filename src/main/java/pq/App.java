@@ -18,6 +18,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
@@ -31,6 +32,7 @@ import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.schema.MessageType;
 
 import com.eclipsesource.json.Json;
@@ -235,6 +237,10 @@ public class App {
     }
 
     private Object convert(Schema schema, JsonValue json) {
+      if (schema.isUnion()) {
+        // XXX: I'm not sure how to manage union types
+        return convert(schema.getTypes().stream().filter(s -> s.getType() != Type.NULL).findFirst().orElseThrow(), json);
+      }
       if (json instanceof JsonObject object) {
         var record = new GenericData.Record(schema);
         for (Member member : object) {
@@ -253,8 +259,13 @@ public class App {
       } else if (json.isBoolean()) {
         return json.asBoolean();
       } else if (json.isNumber()) {
-
-        return json.asInt();
+        return switch (schema.getType()) {
+          case INT -> json.asInt();
+          case LONG -> json.asLong();
+          case FLOAT -> json.asFloat();
+          case DOUBLE -> json.asDouble();
+          default -> throw new IllegalArgumentException();
+        };
       } else if (json.isNull()) {
         return null;
       }
@@ -303,6 +314,7 @@ public class App {
 
   private static ParquetWriter<GenericRecord> createParquetWriter(File file, Schema schema) throws IOException {
     return AvroParquetWriter.<GenericRecord>builder(new FileSystemOutputFile(file))
+        .withWriteMode(Mode.OVERWRITE)
         .withDataModel(GenericData.get())
         .withSchema(schema)
         .build();
