@@ -202,9 +202,17 @@ public class App {
         var schema = new Schema.Parser().parse(schemaFile);
         try (var output = createParquetWriter(file, schema)) {
           try (var lines = new BufferedReader(new InputStreamReader(System.in)).lines()) {
-            lines.map(Json::parse).forEach(new Writer(schema, output)::write);
+            lines.map(Json::parse).map(new Converter(schema)::toRecord).forEach(value -> write(output, value));
           }
         }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    void write(ParquetWriter<GenericRecord> output, GenericRecord value) {
+      try {
+        output.write(value);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
