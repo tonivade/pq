@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -65,18 +66,10 @@ public class App {
 
     @Override
     public void run() {
-      MessageType schema = schema();
+      MessageType schema = schema(file);
       FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
       try (var reader = createFileReader(file, predicate)) {
         System.out.println(reader.getFilteredRecordCount());
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-
-    private MessageType schema() {
-      try (var reader = createFileReader(file, null)) {
-        return reader.getFileMetaData().getSchema();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -98,25 +91,18 @@ public class App {
     @Override
     public void run() {
       try (var reader = createFileReader(file, null)) {
-        var schema = projection(reader.getFileMetaData().getSchema());
+        MessageType schema = reader.getFileMetaData().getSchema();
+        var projection = projection(schema, select).orElse(schema);
         if (format.equals("parquet")) {
-          System.out.print(schema);
+          System.out.print(projection);
         } else if (format.equals("avro")) {
-          System.out.println(new AvroSchemaConverter().convert(schema));
+          System.out.println(new AvroSchemaConverter().convert(projection));
         } else {
           throw new IllegalArgumentException("invalid format: " + format);
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
-    }
-
-    private MessageType projection(MessageType schema) {
-      if (select != null) {
-        Set<String> fields = Set.of(select);
-        return new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
-      }
-      return schema;
     }
   }
 
@@ -171,9 +157,9 @@ public class App {
 
     @Override
     public void run() {
-      MessageType schema = schema();
+      MessageType schema = schema(file);
       FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
-      try (var reader = createParquetReader(file, predicate, projection(schema))) {
+      try (var reader = createParquetReader(file, predicate, projection(schema, select).orElse(null))) {
         if (head > 0) {
           stream(size(predicate), reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
@@ -186,23 +172,6 @@ public class App {
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
-    }
-
-    private MessageType schema() {
-      try (var reader = createFileReader(file, null)) {
-        return reader.getFileMetaData().getSchema();
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-
-    private Schema projection(MessageType schema) {
-      if (select != null) {
-        Set<String> fields = Set.of(select);
-        var projection = new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList());
-        return new AvroSchemaConverter().convert(projection);
-      }
-      return null;
     }
 
     private long size(FilterPredicate predicate) {
@@ -284,7 +253,7 @@ public class App {
       } else if (json.isBoolean()) {
         return json.asBoolean();
       } else if (json.isNumber()) {
-        // XXX: support int, long, float, double
+
         return json.asInt();
       } else if (json.isNull()) {
         return null;
@@ -300,6 +269,22 @@ public class App {
 
   public static void main(String... args) {
     System.exit(new CommandLine(new App()).execute(args));
+  }
+
+  private static MessageType schema(File file) {
+    try (var reader = createFileReader(file, null)) {
+      return reader.getFileMetaData().getSchema();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private static Optional<MessageType> projection(MessageType schema, String[] select) {
+    if (select != null) {
+      Set<String> fields = Set.of(select);
+      return Optional.of(new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList()));
+    }
+    return Optional.empty();
   }
 
   private static Stream<Tuple> stream(long size, ParquetReader<GenericRecord> reader) {
@@ -323,10 +308,10 @@ public class App {
         .build();
   }
 
-  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, Schema projection) throws IOException {
+  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, MessageType projection) throws IOException {
     var config = new Configuration();
     if (projection != null) {
-      AvroReadSupport.setRequestedProjection(config, projection);
+      AvroReadSupport.setRequestedProjection(config, new AvroSchemaConverter().convert(projection));
     }
     if (filter != null) {
       return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
@@ -335,9 +320,9 @@ public class App {
         .withConf(config)
         .build();
     }
-      return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
-        .withDataModel(GenericData.get())
-        .withConf(config)
-        .build();
+    return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
+      .withDataModel(GenericData.get())
+      .withConf(config)
+      .build();
   }
 }
