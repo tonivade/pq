@@ -6,7 +6,11 @@ package pq;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,6 +20,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.security.AbortExecutionException;
 import uk.org.webcompere.systemstubs.security.SystemExit;
+import uk.org.webcompere.systemstubs.stream.SystemIn;
 import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 @ExtendWith(SystemStubsExtension.class)
@@ -33,13 +38,16 @@ class AppTest {
   @SystemStub
   SystemOut systemOut;
 
+  @SystemStub
+  SystemIn systemIn;
+
   @Nested
   class schema {
 
     @Test
     void parquet() {
       assertThatThrownBy(() -> App.main(SCHEMA, EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+        .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
         message spark_schema {
@@ -62,7 +70,7 @@ class AppTest {
     @Test
     void avro() {
       assertThatThrownBy(() -> App.main(SCHEMA, "--format", "avro", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+        .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
         {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null},{"name":"last_name","type":["null","string"],"default":null},{"name":"email","type":["null","string"],"default":null},{"name":"gender","type":["null","string"],"default":null},{"name":"ip_address","type":["null","string"],"default":null},{"name":"cc","type":["null","string"],"default":null},{"name":"country","type":["null","string"],"default":null},{"name":"birthdate","type":["null","string"],"default":null},{"name":"salary","type":["null","double"],"default":null},{"name":"title","type":["null","string"],"default":null},{"name":"comments","type":["null","string"],"default":null}]}
@@ -72,7 +80,7 @@ class AppTest {
     @Test
     void avroWithSelect() {
       assertThatThrownBy(() -> App.main(SCHEMA, "--format", "avro", "--select", "id,first_name", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+        .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
         {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null}]}
@@ -82,7 +90,7 @@ class AppTest {
     @Test
     void parquetWithSelect() {
       assertThatThrownBy(() -> App.main(SCHEMA, "--format", "parquet", "--select", "id,first_name", EXAMPLE_PARQUET))
-      .isInstanceOf(AbortExecutionException.class);
+        .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
         message spark_schema {
@@ -251,6 +259,35 @@ class AppTest {
     @Test
     void select() {
       assertThatThrownBy(() -> App.main(READ, "--select", "id,email", "--head", "3", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":1,"email":"ajordan0@com.com"}
+          {"id":2,"email":"afreeman1@is.gd"}
+          {"id":3,"email":"emorgan2@altervista.org"}
+          """);
+    }
+  }
+
+  @Nested
+  class write {
+
+    @Test
+    void writeFile() throws IOException {
+      File schemaFile = File.createTempFile("test", ".schema");
+      Files.writeString(schemaFile.toPath(), """
+          {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"email","type":["null","string"],"default":null}]}
+          """, StandardCharsets.UTF_8);
+      systemIn.setInputStream(new ByteArrayInputStream("""
+          {"id":1,"email":"ajordan0@com.com"}
+          {"id":2,"email":"afreeman1@is.gd"}
+          {"id":3,"email":"emorgan2@altervista.org"}
+          """.getBytes()));
+
+      File tempFile = File.createTempFile("test", ".parquet");
+      assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), tempFile.getAbsolutePath()))
+        .isInstanceOf(AbortExecutionException.class);
+      assertThatThrownBy(() -> App.main(READ, tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
