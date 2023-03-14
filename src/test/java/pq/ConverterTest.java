@@ -21,7 +21,6 @@ import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ConverterTest {
@@ -177,7 +176,6 @@ class ConverterTest {
   }
 
   @Test
-  @Disabled
   void convertArrayWithOptionalElement() {
     var schema = createSchemaFor(Types.requiredList().optionalGroupElement().addField(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named("array"));
     var element = Json.object().add(ID, "hola");
@@ -188,7 +186,7 @@ class ConverterTest {
 
     var expected = new GenericData.Record(schema);
     var expectedArray = new GenericData.Array<>(1, schema.getField("array").schema());
-    var expectedElement = new GenericData.Record(schema.getField("array").schema().getElementType().getField("element").schema());
+    var expectedElement = new GenericData.Record(schema.getField("array").schema().getElementType().getField("element").schema().getTypes().get(1));
     expectedElement.put(ID, "hola");
     expectedArray.add(expectedElement);
     expected.put("array", expectedArray);
