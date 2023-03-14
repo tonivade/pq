@@ -67,7 +67,7 @@ class Converter {
       case LONG -> json.asLong();
       case FLOAT -> json.asFloat();
       case DOUBLE -> json.asDouble();
-      default -> throw new IllegalArgumentException(schema + ":" + json);
+      default -> throw new IllegalStateException(schema + ":" + json);
     };
   }
 

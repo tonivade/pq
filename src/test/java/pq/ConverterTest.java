@@ -140,6 +140,21 @@ class ConverterTest {
   }
 
   @Test
+  void convertObjectOptional() {
+    var schema = createSchemaFor(Types.optionalGroup().addField(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named(INNER).asGroupType());
+    var inner = Json.object().add(ID, "hola");
+    var json = Json.object().add(INNER, inner);
+
+    GenericRecord record = new Converter(schema).toRecord(json);
+
+    var expected = new GenericData.Record(schema);
+    var expectedInner = new GenericData.Record(schema.getField(INNER).schema().getTypes().get(1));
+    expectedInner.put(ID, "hola");
+    expected.put(INNER, expectedInner);
+    assertThat(record).isEqualTo(expected);
+  }
+
+  @Test
   void convertArray() {
     var schema = createSchemaFor(Types.requiredList().element(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named("array"));
     var element = Json.object().add(ID, "hola");
