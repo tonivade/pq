@@ -5,7 +5,6 @@
 package pq;
 
 import static java.util.Objects.requireNonNull;
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
@@ -36,25 +35,30 @@ class Converter {
   }
 
   static Object convert(Schema schema, JsonValue json) {
+    if (json.isNull()) {
+      return null;
+    }
     if (schema.isUnion()) {
       // XXX: I'm not sure how to manage union types
       return convert(filterNull(schema), json);
     }
-    if (json instanceof JsonObject object && schema.getType() == Type.RECORD) {
+    if (json.isObject() && schema.getType() == Type.RECORD) {
+      if (schema.getName().equals("list") && schema.getField("element") != null) {
+        return convert(schema.getField("element").schema(), json);
+      }
       var value = new GenericData.Record(schema);
-      for (Member member : object) {
+      for (Member member : json.asObject()) {
         Field field = schema.getField(member.getName());
         value.put(member.getName(), convert(field.schema(), member.getValue()));
       }
       return value;
-    } else if (json instanceof JsonArray jsonArray && schema.getType() == Type.ARRAY) {
-      var array = new GenericData.Array<>(jsonArray.size(), schema);
-      for (JsonValue value : jsonArray) {
+    }
+    if (json.isArray() && schema.getType() == Type.ARRAY) {
+      var array = new GenericData.Array<>(json.asArray().size(), schema);
+      for (JsonValue value : json.asArray()) {
         array.add(convert(schema.getElementType(), value));
       }
       return array;
-    } else if (json.isNull()) {
-      return null;
     }
     return switch (schema.getType()) {
       case STRING -> json.asString();

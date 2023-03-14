@@ -21,6 +21,7 @@ import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ConverterTest {
@@ -151,6 +152,43 @@ class ConverterTest {
     var expected = new GenericData.Record(schema);
     var expectedArray = new GenericData.Array<>(1, schema.getField("array").schema());
     var expectedElement = new GenericData.Record(schema.getField("array").schema().getElementType());
+    expectedElement.put(ID, "hola");
+    expectedArray.add(expectedElement);
+    expected.put("array", expectedArray);
+    assertThat(record).isEqualTo(expected);
+  }
+
+  @Test
+  void convertArrayWithRequiredElement() {
+    var schema = createSchemaFor(Types.requiredList().requiredGroupElement().addField(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named("array"));
+    var element = Json.object().add(ID, "hola");
+    var array = Json.array().add(element);
+    var json = Json.object().add("array", array);
+
+    GenericRecord record = new Converter(schema).toRecord(json);
+
+    var expected = new GenericData.Record(schema);
+    var expectedArray = new GenericData.Array<>(1, schema.getField("array").schema());
+    var expectedElement = new GenericData.Record(schema.getField("array").schema().getElementType().getField("element").schema());
+    expectedElement.put(ID, "hola");
+    expectedArray.add(expectedElement);
+    expected.put("array", expectedArray);
+    assertThat(record).isEqualTo(expected);
+  }
+
+  @Test
+  @Disabled
+  void convertArrayWithOptionalElement() {
+    var schema = createSchemaFor(Types.requiredList().optionalGroupElement().addField(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named("array"));
+    var element = Json.object().add(ID, "hola");
+    var array = Json.array().add(element);
+    var json = Json.object().add("array", array);
+
+    GenericRecord record = new Converter(schema).toRecord(json);
+
+    var expected = new GenericData.Record(schema);
+    var expectedArray = new GenericData.Array<>(1, schema.getField("array").schema());
+    var expectedElement = new GenericData.Record(schema.getField("array").schema().getElementType().getField("element").schema());
     expectedElement.put(ID, "hola");
     expectedArray.add(expectedElement);
     expected.put("array", expectedArray);
