@@ -12,9 +12,7 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.FLOAT;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
 import static org.assertj.core.api.Assertions.assertThat;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
+import com.eclipsesource.json.Json;
 import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -33,7 +31,7 @@ class ConverterTest {
   @Test
   void convertInt() {
     var schema = createSchemaFor(Types.required(INT32).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, 1);
+    var json = Json.object().add(ID, 1);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -45,7 +43,7 @@ class ConverterTest {
   @Test
   void convertOptional() {
     var schema = createSchemaFor(Types.optional(INT32).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, 1);
+    var json = Json.object().add(ID, 1);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -57,7 +55,7 @@ class ConverterTest {
   @Test
   void convertNull() {
     var schema = createSchemaFor(Types.optional(INT32).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, JsonValue.NULL);
+    var json = Json.object().add(ID, Json.NULL);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -69,7 +67,7 @@ class ConverterTest {
   @Test
   void convertLong() {
     var schema = createSchemaFor(Types.required(INT64).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, 1);
+    var json = Json.object().add(ID, 1);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -81,7 +79,7 @@ class ConverterTest {
   @Test
   void convertFloat() {
     var schema = createSchemaFor(Types.required(FLOAT).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, 1);
+    var json = Json.object().add(ID, 1);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -93,7 +91,7 @@ class ConverterTest {
   @Test
   void convertDouble() {
     var schema = createSchemaFor(Types.required(DOUBLE).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, 1);
+    var json = Json.object().add(ID, 1);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -105,7 +103,7 @@ class ConverterTest {
   @Test
   void convertBoolean() {
     var schema = createSchemaFor(Types.required(BOOLEAN).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, true);
+    var json = Json.object().add(ID, true);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -117,7 +115,7 @@ class ConverterTest {
   @Test
   void convertString() {
     var schema = createSchemaFor(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType());
-    var json = new JsonObject().add(ID, "hola");
+    var json = Json.object().add(ID, "hola");
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -129,8 +127,8 @@ class ConverterTest {
   @Test
   void convertObject() {
     var schema = createSchemaFor(Types.requiredGroup().addField(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named(INNER).asGroupType());
-    var inner = new JsonObject().add(ID, "hola");
-    var json = new JsonObject().add(INNER, inner);
+    var inner = Json.object().add(ID, "hola");
+    var json = Json.object().add(INNER, inner);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
@@ -144,9 +142,9 @@ class ConverterTest {
   @Test
   void convertArray() {
     var schema = createSchemaFor(Types.requiredList().element(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named("array"));
-    var element = new JsonObject().add(ID, "hola");
-    var array = new JsonArray().add(element);
-    var json = new JsonObject().add("array", array);
+    var element = Json.object().add(ID, "hola");
+    var array = Json.array().add(element);
+    var json = Json.object().add("array", array);
 
     GenericRecord record = new Converter(schema).toRecord(json);
 
