@@ -28,9 +28,9 @@ import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
+import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
-import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.schema.MessageType;
 
 import com.eclipsesource.json.Json;
