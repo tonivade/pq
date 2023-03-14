@@ -42,17 +42,23 @@ class Converter {
     }
     if (json instanceof JsonObject object && schema.getType() == Type.RECORD) {
       var value = new GenericData.Record(schema);
-      for (Member member : object) {
-        Field field = schema.getField(member.getName());
-        value.put(member.getName(), convert(field.schema(), member.getValue()));
+      if (schema.getName().equals("list")) {
+        return convert(schema.getField("element").schema().getElementType(), json);
+      } else {
+        for (Member member : object) {
+          Field field = schema.getField(member.getName());
+          value.put(member.getName(), convert(field.schema(), member.getValue()));
+        }
       }
       return value;
     } else if (json instanceof JsonArray jsonArray && schema.getType() == Type.ARRAY) {
-      var array = new GenericData.Array<>(jsonArray.size(), schema.getElementType());
+      var array = new GenericData.Array<>(jsonArray.size(), schema);
       for (JsonValue value : jsonArray) {
         array.add(convert(schema.getElementType(), value));
       }
       return array;
+    } else if (json.isNull()) {
+      return null;
     }
     return switch (schema.getType()) {
       case STRING -> json.asString();
@@ -61,8 +67,7 @@ class Converter {
       case LONG -> json.asLong();
       case FLOAT -> json.asFloat();
       case DOUBLE -> json.asDouble();
-      case NULL -> null;
-      default -> throw new IllegalArgumentException();
+      default -> throw new IllegalArgumentException(schema + ":" + json);
     };
   }
 }
