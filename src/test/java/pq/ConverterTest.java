@@ -23,7 +23,6 @@ import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ConverterTest {
@@ -143,9 +142,8 @@ class ConverterTest {
   }
 
   @Test
-  @Disabled
   void convertArray() {
-    var schema = createSchemaFor(Types.requiredList().requiredListElement().requiredElement(BINARY).as(stringType()).named("array"));
+    var schema = createSchemaFor(Types.requiredList().element(Types.required(BINARY).as(stringType()).named(ID).asPrimitiveType()).named("array"));
     var element = new JsonObject().add(ID, "hola");
     var array = new JsonArray().add(element);
     var json = new JsonObject().add("array", array);

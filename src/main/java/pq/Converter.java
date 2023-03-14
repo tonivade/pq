@@ -38,17 +38,13 @@ class Converter {
   static Object convert(Schema schema, JsonValue json) {
     if (schema.isUnion()) {
       // XXX: I'm not sure how to manage union types
-      return convert(schema.getTypes().stream().filter(s -> s.getType() != Type.NULL).findFirst().orElseThrow(), json);
+      return convert(filterNull(schema), json);
     }
     if (json instanceof JsonObject object && schema.getType() == Type.RECORD) {
       var value = new GenericData.Record(schema);
-      if (schema.getName().equals("list")) {
-        return convert(schema.getField("element").schema().getElementType(), json);
-      } else {
-        for (Member member : object) {
-          Field field = schema.getField(member.getName());
-          value.put(member.getName(), convert(field.schema(), member.getValue()));
-        }
+      for (Member member : object) {
+        Field field = schema.getField(member.getName());
+        value.put(member.getName(), convert(field.schema(), member.getValue()));
       }
       return value;
     } else if (json instanceof JsonArray jsonArray && schema.getType() == Type.ARRAY) {
@@ -69,5 +65,9 @@ class Converter {
       case DOUBLE -> json.asDouble();
       default -> throw new IllegalArgumentException(schema + ":" + json);
     };
+  }
+
+  private static Schema filterNull(Schema schema) {
+    return schema.getTypes().stream().filter(s -> s.getType() != Type.NULL).findFirst().orElseThrow();
   }
 }
