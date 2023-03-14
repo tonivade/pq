@@ -117,7 +117,7 @@ class AppTest {
     @Test
     @Disabled("not working yet")
     void countWithFilter() {
-      assertThatThrownBy(() -> App.main(COUNT, "--filter", "gender = \"Female\"", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(COUNT, "--filter", "gender == \"Female\"", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -236,7 +236,7 @@ class AppTest {
 
     @Test
     void filterInt() {
-      assertThatThrownBy(() -> App.main(READ, "--filter", "id = 1000", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--filter", "id == 1000", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -246,7 +246,7 @@ class AppTest {
 
     @Test
     void filterString() {
-      assertThatThrownBy(() -> App.main(READ, "--filter", "last_name = \"Meyer\"", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(READ, "--filter", "last_name == \"Meyer\"", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""

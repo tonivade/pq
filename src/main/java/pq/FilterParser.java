@@ -76,10 +76,10 @@ final class FilterParser {
   private static final Parser STRING = QUOTE.seq(word().star()).seq(QUOTE).flatten()
     .<String, String>map(s -> s.replace('"', ' ').trim());
 
-  private static final Parser OPERATOR = EQ.or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
+  private static final Parser OPERATOR = EQ.seq(EQ).or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
     .<String, Operator>map(FilterParser::toOperator);
 
-  private static final Parser LOGIC = AMPERSAND.or(PIPE).flatten().trim()
+  private static final Parser LOGIC = AMPERSAND.seq(AMPERSAND).or(PIPE.seq(PIPE)).flatten().trim()
     .<String, Logic>map(FilterParser::toLogic);
 
   private static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL))
@@ -315,7 +315,7 @@ final class FilterParser {
 
   private static FilterParser.Operator toOperator(String operator) {
     return switch (operator) {
-      case "=" -> Operator.EQUAL;
+      case "==" -> Operator.EQUAL;
       case "!=" -> Operator.NOT_EQUAL;
       case ">" -> Operator.GREATER_THAN;
       case "<" -> Operator.LOWER_THAN;
@@ -327,8 +327,8 @@ final class FilterParser {
 
   private static FilterParser.Logic toLogic(String operator) {
     return switch (operator) {
-      case "&" -> Logic.AND;
-      case "|" -> Logic.OR;
+      case "&&" -> Logic.AND;
+      case "||" -> Logic.OR;
       default -> throw new IllegalArgumentException("operator not supported: `" + operator + "`");
     };
   }
