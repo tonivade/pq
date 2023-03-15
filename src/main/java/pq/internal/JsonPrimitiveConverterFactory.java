@@ -4,9 +4,34 @@ import java.util.function.Consumer;
 
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
+import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.PrimitiveConverter;
 
-public final class JsonPrimitiveConverterFactory {
+final class JsonPrimitiveConverterFactory {
+
+  static Converter intConverter(Consumer<Integer> consumer) {
+    return new IntegerConverter(consumer);
+  }
+
+  static Converter longConverter(Consumer<Long> consumer) {
+    return new LongConverter(consumer);
+  }
+
+  static Converter floatConverter(Consumer<Float> consumer) {
+    return new FloatConverter(consumer);
+  }
+
+  static Converter doubleConverter(Consumer<Double> consumer) {
+    return new DoubleConverter(consumer);
+  }
+
+  static Converter booleanConverter(Consumer<Boolean> consumer) {
+    return new BooleanConverter(consumer);
+  }
+
+  static Converter stringConverter(Consumer<String> consumer) {
+    return new StringConverter(consumer);
+  }
 
   static final class IntegerConverter extends PrimitiveConverter {
 
@@ -101,11 +126,10 @@ public final class JsonPrimitiveConverterFactory {
     public void setDictionary(Dictionary dictionary) {
       this.dictionary = dictionary;
     }
-  }
 
-  public static Object create(Object object) {
-    // TODO Auto-generated method stub
-    return null;
+    @Override
+    public boolean hasDictionarySupport() {
+      return true;
+    }
   }
-
 }

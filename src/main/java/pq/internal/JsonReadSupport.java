@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package pq.internal;
 
 import java.util.LinkedHashMap;
@@ -11,7 +15,7 @@ import org.apache.parquet.schema.MessageType;
 import com.eclipsesource.json.JsonValue;
 
 public final class JsonReadSupport extends ReadSupport<JsonValue> {
-  
+
   private final MessageType projection;
 
   public JsonReadSupport(MessageType projection) {
@@ -23,7 +27,7 @@ public final class JsonReadSupport extends ReadSupport<JsonValue> {
       MessageType fileSchema, ReadContext readContext) {
     return new JsonRecordMaterializer(readContext.getRequestedSchema());
   }
-  
+
   @Override
   public ReadContext init(Configuration configuration, Map<String, String> keyValueMetaData, MessageType fileSchema) {
     return new ReadContext(projection != null ? projection : fileSchema, new LinkedHashMap<>());

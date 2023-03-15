@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package pq.internal;
 
 import org.apache.parquet.io.api.GroupConverter;
@@ -7,9 +11,9 @@ import org.apache.parquet.schema.MessageType;
 import com.eclipsesource.json.JsonValue;
 
 public final class JsonRecordMaterializer extends RecordMaterializer<JsonValue> {
-  
+
   private final JsonGroupConverter root;
-  
+
   private JsonValue value;
 
   public JsonRecordMaterializer(MessageType requestedSchema) {

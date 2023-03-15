@@ -195,11 +195,20 @@ public class App {
     @Option(names = "--head", description = "get the first N number of rows", paramLabel = "ROWS", defaultValue = "0")
     private int head;
 
-    @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
-    private String[] select;
+    @Option(names = "--tail", description = "get the last N number of rows", paramLabel = "ROWS", defaultValue = "0")
+    private int tail;
+
+    @Option(names = "--get", description = "print just the row with given index", paramLabel = "ROW", defaultValue = "-1")
+    private int get;
 
     @Option(names = "--skip", description = "skip a number N of rows", paramLabel = "ROWS", defaultValue = "0")
     private int skip;
+
+    @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
+    private String filter;
+
+    @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
+    private String[] select;
 
     @Option(names = "--index", description = "print row index", defaultValue = "false")
     private boolean index;
@@ -207,24 +216,30 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
-    private final Printer printer = new Printer(System.out);
+    private final FilterParser parser = new FilterParser();
 
     @Override
     public void run() {
       MessageType schema = schema(file);
-      try (var reader = createJsonReader(file, projection(schema, select).orElse(null))) {
+      FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
+      long size = size(predicate);
+      try (var reader = createJsonReader(file, predicate, projection(schema, select).orElse(null))) {
         if (head > 0) {
-          stream(size(), reader).skip(skip).limit(head).forEach(this::print);
+          stream(size, reader).skip(skip).limit(head).forEach(this::print);
+        } else if (tail > 0) {
+          stream(size, reader).skip(size - tail).forEach(this::print);
+        } else if (get > -1) {
+          stream(size, reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
         } else {
-          stream(size(), reader).skip(skip).forEach(this::print);
+          stream(size, reader).skip(skip).forEach(this::print);
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
     }
 
-    private long size() {
-      try (var reader = createFileReader(file, null)) {
+    private long size(FilterPredicate filter) {
+      try (var reader = createFileReader(file, filter)) {
         return reader.getFilteredRecordCount();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -233,7 +248,7 @@ public class App {
 
     private void print(Tuple<JsonValue> tuple) {
       if (index) {
-        printer.printIndex(tuple.index());
+        System.out.println("#" + tuple.index());
       }
       System.out.println(tuple.value());
     }
@@ -336,7 +351,13 @@ public class App {
       .build();
   }
 
-  private static ParquetReader<JsonValue> createJsonReader(File file, MessageType projection) throws IOException {
+  private static ParquetReader<JsonValue> createJsonReader(File file, FilterPredicate filter, MessageType projection) throws IOException {
+    if (filter != null) {
+      return JsonParquetReader.builder(new FileSystemInputFile(file))
+          .withProjection(projection)
+          .withFilter(FilterCompat.get(filter))
+          .build();
+    }
     return JsonParquetReader.builder(new FileSystemInputFile(file))
         .withProjection(projection)
         .build();
