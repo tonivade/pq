@@ -31,63 +31,63 @@ final class JsonObjectHolder {
     value = null;
   }
 
-  Consumer<Integer> intConsumer(String field) {
+  Consumer<Integer> setInt(String field) {
     return i -> value.set(field, i);
   }
 
-  Consumer<Long> longConsumer(String field) {
+  Consumer<Long> setLong(String field) {
     return l -> value.set(field, l);
   }
 
-  Consumer<Float> floatConsumer(String field) {
+  Consumer<Float> setFloat(String field) {
     return f -> value.set(field, f);
   }
 
-  Consumer<Double> doubleConsumer(String field) {
+  Consumer<Double> setDouble(String field) {
     return d -> value.set(field, d);
   }
 
-  Consumer<Boolean> booleanConsumer(String field) {
+  Consumer<Boolean> setBoolean(String field) {
     return b -> value.set(field, b);
   }
 
-  Consumer<String> stringConsumer(String field) {
+  Consumer<String> setString(String field) {
     return s -> value.set(field, s);
   }
 
-  Consumer<JsonValue> valueConsumer(String field) {
+  Consumer<JsonValue> setValue(String field) {
     return v -> value.set(field, v);
   }
 
-  Consumer<Integer> intArrayConsumer(String field) {
+  Consumer<Integer> addInt(String field) {
     return i -> asArray(field).add(i);
   }
 
-  Consumer<Long> longArrayConsumer(String field) {
+  Consumer<Long> addLong(String field) {
     return l -> asArray(field).add(l);
   }
 
-  Consumer<Float> floatArrayConsumer(String field) {
+  Consumer<Float> addFloat(String field) {
     return f -> asArray(field).add(f);
   }
 
-  Consumer<Double> doubleArrayConsumer(String field) {
+  Consumer<Double> addDouble(String field) {
     return d -> asArray(field).add(d);
   }
 
-  Consumer<Boolean> booleanArrayConsumer(String field) {
+  Consumer<Boolean> addBoolean(String field) {
     return b -> asArray(field).add(b);
   }
 
-  Consumer<String> stringArrayConsumer(String field) {
+  Consumer<String> addString(String field) {
     return s -> asArray(field).add(s);
   }
 
-  Consumer<JsonValue> valueArrayConsumer(String field) {
+  Consumer<JsonValue> addValue(String field) {
     return v -> asArray(field).add(v);
   }
 
-  Consumer<JsonValue> consumer() {
+  Consumer<JsonValue> set() {
     return v -> this.value = v.asObject();
   }
 

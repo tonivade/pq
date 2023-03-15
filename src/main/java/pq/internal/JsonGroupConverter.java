@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.GroupType;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.Type.Repetition;
 
 final class JsonGroupConverter extends GroupConverter {
@@ -39,33 +40,39 @@ final class JsonGroupConverter extends GroupConverter {
       if (fieldType.isRepetition(Repetition.REPEATED)) {
         if (fieldType.isPrimitive()) {
           var converter = switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
-            case INT32 -> intConverter(value.intArrayConsumer(fieldName));
-            case INT64 -> longConverter(value.longArrayConsumer(fieldName));
-            case FLOAT -> floatConverter(value.floatArrayConsumer(fieldName));
-            case DOUBLE -> doubleConverter(value.doubleArrayConsumer(fieldName));
-            case BOOLEAN -> booleanConverter(value.booleanArrayConsumer(fieldName));
-            case BINARY -> stringConverter(value.stringArrayConsumer(fieldName));
+            case INT32 -> intConverter(value.addInt(fieldName));
+            case INT64 -> longConverter(value.addLong(fieldName));
+            case FLOAT -> floatConverter(value.addFloat(fieldName));
+            case DOUBLE -> doubleConverter(value.addDouble(fieldName));
+            case BOOLEAN -> booleanConverter(value.addBoolean(fieldName));
+            case BINARY -> stringConverter(value.addString(fieldName));
             default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
           };
           converters[schema.getFieldIndex(fieldName)] = converter;
         } else {
           converters[schema.getFieldIndex(fieldName)] =
-            new JsonGroupConverter(fieldType.asGroupType(), value.valueArrayConsumer(fieldName));
+            new JsonGroupConverter(fieldType.asGroupType(), value.addValue(fieldName));
         }
       } else if (fieldType.isPrimitive()) {
         var converter = switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
-          case INT32 -> intConverter(value.intConsumer(fieldName));
-          case INT64 -> longConverter(value.longConsumer(fieldName));
-          case FLOAT -> floatConverter(value.floatConsumer(fieldName));
-          case DOUBLE -> doubleConverter(value.doubleConsumer(fieldName));
-          case BOOLEAN -> booleanConverter(value.booleanConsumer(fieldName));
-          case BINARY -> stringConverter(value.stringConsumer(fieldName));
+          case INT32 -> intConverter(value.setInt(fieldName));
+          case INT64 -> longConverter(value.setLong(fieldName));
+          case FLOAT -> floatConverter(value.setFloat(fieldName));
+          case DOUBLE -> doubleConverter(value.setDouble(fieldName));
+          case BOOLEAN -> booleanConverter(value.setBoolean(fieldName));
+          case BINARY -> stringConverter(value.setString(fieldName));
           default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
         };
         converters[schema.getFieldIndex(fieldName)] = converter;
       } else {
-        converters[schema.getFieldIndex(fieldName)] =
-          new JsonGroupConverter(fieldType.asGroupType(), value.valueConsumer(fieldName));
+        var groupType = fieldType.asGroupType();
+
+        if (groupType.getLogicalTypeAnnotation() != null && groupType.getLogicalTypeAnnotation().equals(LogicalTypeAnnotation.listType())) {
+          converters[schema.getFieldIndex(fieldName)] = new JsonListConverter(groupType, value.setValue(fieldName));
+        } else {
+          converters[schema.getFieldIndex(fieldName)] =
+              new JsonGroupConverter(groupType, value.setValue(fieldName));
+        }
       }
     }
   }

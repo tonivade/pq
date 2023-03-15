@@ -17,7 +17,7 @@ final class JsonRecordMaterializer extends RecordMaterializer<JsonValue> {
 
   JsonRecordMaterializer(MessageType requestedSchema) {
     this.value = new JsonObjectHolder();
-    this.root = new JsonGroupConverter(requestedSchema, value.consumer());
+    this.root = new JsonGroupConverter(requestedSchema, value.set());
   }
 
   @Override
