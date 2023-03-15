@@ -69,28 +69,8 @@ class AppTest {
     }
 
     @Test
-    void avro() {
-      assertThatThrownBy(() -> App.main(SCHEMA, "--format", "avro", EXAMPLE_PARQUET))
-        .isInstanceOf(AbortExecutionException.class);
-
-      assertThat(systemOut.getText()).isEqualTo("""
-        {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null},{"name":"last_name","type":["null","string"],"default":null},{"name":"email","type":["null","string"],"default":null},{"name":"gender","type":["null","string"],"default":null},{"name":"ip_address","type":["null","string"],"default":null},{"name":"cc","type":["null","string"],"default":null},{"name":"country","type":["null","string"],"default":null},{"name":"birthdate","type":["null","string"],"default":null},{"name":"salary","type":["null","double"],"default":null},{"name":"title","type":["null","string"],"default":null},{"name":"comments","type":["null","string"],"default":null}]}
-        """);
-    }
-
-    @Test
-    void avroWithSelect() {
-      assertThatThrownBy(() -> App.main(SCHEMA, "--format", "avro", "--select", "id,first_name", EXAMPLE_PARQUET))
-        .isInstanceOf(AbortExecutionException.class);
-
-      assertThat(systemOut.getText()).isEqualTo("""
-        {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"first_name","type":["null","string"],"default":null}]}
-        """);
-    }
-
-    @Test
     void parquetWithSelect() {
-      assertThatThrownBy(() -> App.main(SCHEMA, "--format", "parquet", "--select", "id,first_name", EXAMPLE_PARQUET))
+      assertThatThrownBy(() -> App.main(SCHEMA, "--select", "id,first_name", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
 
       assertThat(systemOut.getText()).isEqualTo("""
@@ -276,7 +256,10 @@ class AppTest {
     void writeFile() throws IOException {
       File schemaFile = File.createTempFile("test", ".schema");
       Files.writeString(schemaFile.toPath(), """
-          {"type":"record","name":"spark_schema","fields":[{"name":"id","type":["null","int"],"default":null},{"name":"email","type":["null","string"],"default":null}]}
+          message spark_schema {
+            optional int32 id;
+            optional binary email (STRING);
+          }
           """, StandardCharsets.UTF_8);
       systemIn.setInputStream(new ByteArrayInputStream("""
           {"id":1,"email":"ajordan0@com.com"}
@@ -285,7 +268,7 @@ class AppTest {
           """.getBytes()));
 
       File tempFile = File.createTempFile("test", ".parquet");
-      assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), "--format", "avro", tempFile.getAbsolutePath()))
+      assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);
       assertThatThrownBy(() -> App.main(READ, tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);

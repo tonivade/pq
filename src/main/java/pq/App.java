@@ -23,9 +23,7 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.avro.Schema;
 import org.apache.parquet.ParquetReadOptions;
-import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.ParquetFileReader;
@@ -78,9 +76,6 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
-    @Option(names = "--format", description = "schema format, parquet or avro", paramLabel = "FORMAT", defaultValue = "parquet")
-    private String format;
-
     @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
     private String[] select;
 
@@ -89,13 +84,7 @@ public class App {
       try (var reader = createFileReader(file)) {
         MessageType schema = reader.getFileMetaData().getSchema();
         var projection = projection(schema, select).orElse(schema);
-        if (format.equals("parquet")) {
-          System.out.print(projection);
-        } else if (format.equals("avro")) {
-          System.out.println(new AvroSchemaConverter().convert(projection));
-        } else {
-          throw new IllegalArgumentException("invalid format: " + format);
-        }
+        System.out.print(projection);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -212,14 +201,7 @@ public class App {
     }
 
     private MessageType parseSchema() throws IOException {
-      if (format.equals("avro")) {
-        var schema = new Schema.Parser().parse(schemaFile);
-        return new AvroSchemaConverter().convert(schema);
-      }
-      if (format.equals("parquet")) {
-        return MessageTypeParser.parseMessageType(readString(schemaFile.toPath()));
-      }
-      throw new IllegalArgumentException("invalid format: " + format);
+      return MessageTypeParser.parseMessageType(readString(schemaFile.toPath()));
     }
 
     void write(ParquetWriter<JsonValue> output, JsonValue value) {
