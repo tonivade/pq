@@ -39,12 +39,12 @@ final class JsonGroupConverter extends GroupConverter {
       String fieldName = fieldType.getName();
       if (fieldType.isPrimitive()) {
         var converter = switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
-          case INT32 -> intConverter(v -> value.set(fieldName, v));
-          case INT64 -> longConverter(v -> value.set(fieldName, v));
-          case FLOAT -> floatConverter(v -> value.set(fieldName, v));
-          case DOUBLE -> doubleConverter(v -> value.set(fieldName, v));
-          case BOOLEAN -> booleanConverter(v -> value.set(fieldName, v));
-          case BINARY -> stringConverter(v -> value.set(fieldName, v));
+          case INT32 -> intConverter(i -> value.set(fieldName, i));
+          case INT64 -> longConverter(l -> value.set(fieldName, l));
+          case FLOAT -> floatConverter(f -> value.set(fieldName, f));
+          case DOUBLE -> doubleConverter(d -> value.set(fieldName, d));
+          case BOOLEAN -> booleanConverter(b -> value.set(fieldName, b));
+          case BINARY -> stringConverter(s -> value.set(fieldName, s));
           default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
         };
         converters[schema.getFieldIndex(fieldName)] = converter;
