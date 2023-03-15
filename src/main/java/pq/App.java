@@ -34,6 +34,7 @@ import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
 
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
 import com.jerolba.carpet.filestream.FileSystemInputFile;
 import com.jerolba.carpet.filestream.FileSystemOutputFile;
 
@@ -43,9 +44,10 @@ import picocli.CommandLine.HelpCommand;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ScopeType;
+import pq.internal.JsonParquetReader;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
+  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadJsonCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
 public class App {
 
   @Command(name = "count", description = "print total number of rows in parquet file")
@@ -178,12 +180,62 @@ public class App {
       }
     }
 
-    private void print(Tuple tuple) {
+    private void print(Tuple<GenericRecord> tuple) {
       if (index) {
         printer.printIndex(tuple.index());
       }
       printer.printObject(tuple.value());
       printer.printSeparator();
+    }
+  }
+
+  @Command(name = "read", description = "print content of parquet file in json format")
+  public static class ReadJsonCommand implements Runnable {
+
+    @Option(names = "--head", description = "get the first N number of rows", paramLabel = "ROWS", defaultValue = "0")
+    private int head;
+
+    @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
+    private String[] select;
+
+    @Option(names = "--skip", description = "skip a number N of rows", paramLabel = "ROWS", defaultValue = "0")
+    private int skip;
+
+    @Option(names = "--index", description = "print row index", defaultValue = "false")
+    private boolean index;
+
+    @Parameters(paramLabel = "FILE", description = "parquet file")
+    private File file;
+
+    private final Printer printer = new Printer(System.out);
+
+    @Override
+    public void run() {
+      MessageType schema = schema(file);
+      try (var reader = createJsonReader(file, projection(schema, select).orElse(null))) {
+        if (head > 0) {
+          stream(size(), reader).skip(skip).limit(head).forEach(this::print);
+        } else {
+          stream(size(), reader).skip(skip).forEach(this::print);
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    private long size() {
+      try (var reader = createFileReader(file, null)) {
+        return reader.getFilteredRecordCount();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    private void print(Tuple<JsonValue> tuple) {
+      if (index) {
+        printer.printIndex(tuple.index());
+      }
+      System.out.println(tuple.value());
     }
   }
 
@@ -244,8 +296,8 @@ public class App {
     return Optional.empty();
   }
 
-  private static Stream<Tuple> stream(long size, ParquetReader<GenericRecord> reader) {
-    var spliterator = Spliterators.spliterator(new ParquetIterator(reader), size,
+  private static <T> Stream<Tuple<T>> stream(long size, ParquetReader<T> reader) {
+    var spliterator = Spliterators.spliterator(new ParquetIterator<>(reader), size,
       Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
     return StreamSupport.stream(spliterator, false);
   }
@@ -282,5 +334,11 @@ public class App {
       .withDataModel(GenericData.get())
       .withConf(config)
       .build();
+  }
+
+  private static ParquetReader<JsonValue> createJsonReader(File file, MessageType projection) throws IOException {
+    return JsonParquetReader.builder(new FileSystemInputFile(file))
+        .withProjection(projection)
+        .build();
   }
 }

@@ -11,16 +11,15 @@ import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.apache.avro.generic.GenericRecord;
 import org.apache.parquet.hadoop.ParquetReader;
 
-final class ParquetIterator implements Iterator<Tuple> {
+final class ParquetIterator<T> implements Iterator<Tuple<T>> {
 
-  private final ParquetReader<GenericRecord> reader;
+  private final ParquetReader<T> reader;
 
-  private GenericRecord current = null;
+  private T current = null;
 
-  public ParquetIterator(ParquetReader<GenericRecord> reader) {
+  public ParquetIterator(ParquetReader<T> reader) {
     this.reader = requireNonNull(reader);
   }
 
@@ -30,16 +29,16 @@ final class ParquetIterator implements Iterator<Tuple> {
   }
 
   @Override
-  public Tuple next() {
+  public Tuple<T> next() {
     var result = tryAdvance();
     if (result == null) {
       throw new NoSuchElementException();
     }
     current = null;
-    return new Tuple(reader.getCurrentRowIndex(), result);
+    return new Tuple<>(reader.getCurrentRowIndex(), result);
   }
 
-  private GenericRecord tryAdvance() {
+  private T tryAdvance() {
     try {
       if (current == null) {
         current = reader.read();
@@ -51,5 +50,5 @@ final class ParquetIterator implements Iterator<Tuple> {
   }
 }
 
-record Tuple(long index, GenericRecord value) {}
+record Tuple<T>(long index, T value) {}
 
