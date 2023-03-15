@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023, Antonio Gabriel Muñoz Conejo <antoniogmc at gmail dot com>
+ * Distributed under the terms of the MIT License
+ */
 package pq.internal;
 
 import java.util.function.Consumer;
@@ -8,6 +12,8 @@ import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.PrimitiveConverter;
 
 final class JsonPrimitiveConverterFactory {
+
+  private JsonPrimitiveConverterFactory() { }
 
   static Converter intConverter(Consumer<Integer> consumer) {
     return new IntegerConverter(consumer);
