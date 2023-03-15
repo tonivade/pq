@@ -13,6 +13,7 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.DOUBLE;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.FLOAT;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
+import static org.apache.parquet.schema.Types.optionalGroup;
 import static org.apache.parquet.schema.Types.repeated;
 import static org.apache.parquet.schema.Types.repeatedGroup;
 import static org.apache.parquet.schema.Types.required;
@@ -25,7 +26,6 @@ import java.util.function.Consumer;
 
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.PrimitiveType;
-import org.apache.parquet.schema.Types;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -108,7 +108,7 @@ class JsonGroupConverterTest {
     @Test
     void convertInner() {
       PrimitiveType id = required(BINARY).as(stringType()).named(ID);
-      var converter = new JsonGroupConverter(requiredGroup().addField(Types.optionalGroup().addField(id).named("inner")).named("item"), consumer);
+      var converter = new JsonGroupConverter(requiredGroup().addField(optionalGroup().addField(id).named("inner")).named("item"), consumer);
 
       converter.start();
       converter.getConverter(0).asGroupConverter().start();
