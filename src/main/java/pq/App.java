@@ -45,7 +45,7 @@ import pq.internal.JsonParquetReader;
 import pq.internal.JsonParquetWriter;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadJsonCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
+  subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
 public class App {
 
   @Command(name = "count", description = "print total number of rows in parquet file")
@@ -121,7 +121,7 @@ public class App {
   }
 
   @Command(name = "read", description = "print content of parquet file in json format")
-  public static class ReadJsonCommand implements Runnable {
+  public static class ReadCommand implements Runnable {
 
     @Option(names = "--head", description = "get the first N number of rows", paramLabel = "ROWS", defaultValue = "0")
     private int head;
