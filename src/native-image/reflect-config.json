@@ -49,10 +49,6 @@
   "methods":[{"name":"setPattern","parameterTypes":["java.lang.String"] }]
 },
 {
-  "name":"com.fasterxml.jackson.databind.ext.Java7SupportImpl",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
   "name":"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
