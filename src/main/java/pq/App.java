@@ -54,7 +54,6 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
-    // FIXME: doesn't work count with filter
     @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
     private String filter;
 
@@ -64,8 +63,9 @@ public class App {
     public void run() {
       MessageType schema = schema(file);
       FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
-      try (var reader = createFileReader(file, predicate)) {
-        System.out.println(reader.getFilteredRecordCount());
+      try (var reader = createJsonReader(file, predicate, null)) {
+        long count = stream(reader).count();
+        System.out.println(count);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -153,25 +153,25 @@ public class App {
     public void run() {
       MessageType schema = schema(file);
       FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
-      long size = size(predicate);
       try (var reader = createJsonReader(file, predicate, projection(schema, select).orElse(null))) {
         if (head > 0) {
-          stream(size, reader).skip(skip).limit(head).forEach(this::print);
+          stream(reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
-          stream(size, reader).skip(size - tail).forEach(this::print);
+          // XXX: this needs read twice the file
+          stream(reader).skip(size(predicate) - tail).forEach(this::print);
         } else if (get > -1) {
-          stream(size, reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
+          stream(reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
         } else {
-          stream(size, reader).skip(skip).forEach(this::print);
+          stream(reader).skip(skip).forEach(this::print);
         }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
     }
 
-    private long size(FilterPredicate filter) {
-      try (var reader = createFileReader(file, filter)) {
-        return reader.getFilteredRecordCount();
+    private long size(FilterPredicate predicate) {
+      try (var reader = createJsonReader(file, predicate, null)) {
+        return stream(reader).count();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -251,14 +251,14 @@ public class App {
   private static Optional<MessageType> projection(MessageType schema, String[] select) {
     if (select != null) {
       Set<String> fields = Set.of(select);
-      return Optional.of(new MessageType(schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList()));
+      return Optional.of(new MessageType(
+          schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList()));
     }
     return Optional.empty();
   }
 
-  private static <T> Stream<Tuple<T>> stream(long size, ParquetReader<T> reader) {
-    var spliterator = Spliterators.spliterator(new ParquetIterator<>(reader), size,
-      Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
+  private static <T> Stream<Tuple<T>> stream(ParquetReader<T> reader) {
+    var spliterator = Spliterators.spliteratorUnknownSize(new ParquetIterator<>(reader), Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
     return StreamSupport.stream(spliterator, false);
   }
 
