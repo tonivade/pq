@@ -86,7 +86,7 @@ public class App {
 
     @Override
     public void run() {
-      try (var reader = createFileReader(file, null)) {
+      try (var reader = createFileReader(file)) {
         MessageType schema = reader.getFileMetaData().getSchema();
         var projection = projection(schema, select).orElse(schema);
         if (format.equals("parquet")) {
@@ -110,7 +110,7 @@ public class App {
 
     @Override
     public void run() {
-      try (var reader = createFileReader(file, null)) {
+      try (var reader = createFileReader(file)) {
         reader.getFileMetaData().getKeyValueMetaData()
           .forEach((k, v) -> System.out.println("\"" + k + "\":" + v));
         System.out.println("\"createdBy\":" + reader.getFileMetaData().getCreatedBy());
@@ -241,7 +241,7 @@ public class App {
   }
 
   private static MessageType schema(File file) {
-    try (var reader = createFileReader(file, null)) {
+    try (var reader = createFileReader(file)) {
       return reader.getFileMetaData().getSchema();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -262,11 +262,7 @@ public class App {
     return StreamSupport.stream(spliterator, false);
   }
 
-  private static ParquetFileReader createFileReader(File file, FilterPredicate filter) throws IOException {
-    if (filter != null) {
-      return new ParquetFileReader(new FileSystemInputFile(file),
-        ParquetReadOptions.builder().withRecordFilter(FilterCompat.get(filter)).build());
-    }
+  private static ParquetFileReader createFileReader(File file) throws IOException {
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 
