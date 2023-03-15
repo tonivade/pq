@@ -287,7 +287,7 @@ class AppTest {
           """.getBytes()));
 
       File tempFile = File.createTempFile("test", ".parquet");
-      assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), tempFile.getAbsolutePath()))
+      assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), "--format", "avro", tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);
       assertThatThrownBy(() -> App.main(READ, tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);

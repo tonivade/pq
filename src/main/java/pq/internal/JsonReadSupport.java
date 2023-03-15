@@ -14,11 +14,11 @@ import org.apache.parquet.schema.MessageType;
 
 import com.eclipsesource.json.JsonValue;
 
-public final class JsonReadSupport extends ReadSupport<JsonValue> {
+final class JsonReadSupport extends ReadSupport<JsonValue> {
 
   private final MessageType projection;
 
-  public JsonReadSupport(MessageType projection) {
+  JsonReadSupport(MessageType projection) {
     this.projection = projection;
   }
 

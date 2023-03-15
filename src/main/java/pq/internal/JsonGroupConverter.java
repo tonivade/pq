@@ -20,7 +20,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 
-public final class JsonGroupConverter extends GroupConverter {
+final class JsonGroupConverter extends GroupConverter {
 
   private final GroupType schema;
   private final Consumer<JsonValue> consumer;
@@ -29,7 +29,7 @@ public final class JsonGroupConverter extends GroupConverter {
   private JsonObject value;
 
   // TODO: add support to repeted groups and logical types
-  public JsonGroupConverter(GroupType schema, Consumer<JsonValue> consumer) {
+  JsonGroupConverter(GroupType schema, Consumer<JsonValue> consumer) {
     this.schema = requireNonNull(schema);
     this.consumer = requireNonNull(consumer);
     this.converters = new Converter[schema.getFieldCount()];

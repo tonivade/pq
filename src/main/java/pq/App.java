@@ -4,6 +4,11 @@
  */
 package pq;
 
+import static java.nio.file.Files.readString;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
+import com.jerolba.carpet.filestream.FileSystemInputFile;
+import com.jerolba.carpet.filestream.FileSystemOutputFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -15,15 +20,8 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.ParquetReadOptions;
-import org.apache.parquet.avro.AvroParquetReader;
-import org.apache.parquet.avro.AvroParquetWriter;
-import org.apache.parquet.avro.AvroReadSupport;
 import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
@@ -32,12 +30,7 @@ import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
-
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonValue;
-import com.jerolba.carpet.filestream.FileSystemInputFile;
-import com.jerolba.carpet.filestream.FileSystemOutputFile;
-
+import org.apache.parquet.schema.MessageTypeParser;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -45,6 +38,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ScopeType;
 import pq.internal.JsonParquetReader;
+import pq.internal.JsonParquetWriter;
 
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
   subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadJsonCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
@@ -193,16 +187,19 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "destination parquet file")
     private File file;
 
-    @Option(names = "--schema", description = "file with avro schema", paramLabel = "FILE")
+    @Option(names = "--schema", description = "file with schema", paramLabel = "FILE")
     private File schemaFile;
+
+    @Option(names = "--format", description = "schema format, parquet or avro", paramLabel = "FORMAT", defaultValue = "parquet")
+    private String format;
 
     @Override
     public void run() {
       try {
-        var schema = new Schema.Parser().parse(schemaFile);
-        try (var output = createParquetWriter(file, schema)) {
+        var schema = parseSchema();
+        try (var output = createJsonWriter(file, schema)) {
           try (var lines = new BufferedReader(new InputStreamReader(System.in)).lines()) {
-            lines.map(Json::parse).map(new Converter(schema)::toRecord).forEach(value -> write(output, value));
+            lines.map(Json::parse).forEach(value -> write(output, value));
           }
         }
       } catch (IOException e) {
@@ -210,7 +207,18 @@ public class App {
       }
     }
 
-    void write(ParquetWriter<GenericRecord> output, GenericRecord value) {
+    private MessageType parseSchema() throws IOException {
+      if (format.equals("avro")) {
+        var schema = new Schema.Parser().parse(schemaFile);
+        return new AvroSchemaConverter().convert(schema);
+      }
+      if (format.equals("parquet")) {
+        return MessageTypeParser.parseMessageType(readString(schemaFile.toPath()));
+      }
+      throw new IllegalArgumentException("invalid format: " + format);
+    }
+
+    void write(ParquetWriter<JsonValue> output, JsonValue value) {
       try {
         output.write(value);
       } catch (IOException e) {
@@ -258,30 +266,11 @@ public class App {
     return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
   }
 
-  private static ParquetWriter<GenericRecord> createParquetWriter(File file, Schema schema) throws IOException {
-    return AvroParquetWriter.<GenericRecord>builder(new FileSystemOutputFile(file))
+  private static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
+    return JsonParquetWriter.builder(new FileSystemOutputFile(file))
         .withWriteMode(Mode.OVERWRITE)
-        .withDataModel(GenericData.get())
         .withSchema(schema)
         .build();
-  }
-
-  private static ParquetReader<GenericRecord> createParquetReader(File file, FilterPredicate filter, MessageType projection) throws IOException {
-    var config = new Configuration();
-    if (projection != null) {
-      AvroReadSupport.setRequestedProjection(config, new AvroSchemaConverter().convert(projection));
-    }
-    if (filter != null) {
-      return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
-        .withDataModel(GenericData.get())
-        .withFilter(FilterCompat.get(filter))
-        .withConf(config)
-        .build();
-    }
-    return AvroParquetReader.<GenericRecord>builder(new FileSystemInputFile(file))
-      .withDataModel(GenericData.get())
-      .withConf(config)
-      .build();
   }
 
   private static ParquetReader<JsonValue> createJsonReader(File file, FilterPredicate filter, MessageType projection) throws IOException {
