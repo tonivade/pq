@@ -4,6 +4,8 @@
  */
 package pq.internal;
 
+import com.eclipsesource.json.JsonValue;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,8 +13,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
-
-import com.eclipsesource.json.JsonValue;
 
 final class JsonReadSupport extends ReadSupport<JsonValue> {
 

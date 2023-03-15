@@ -4,11 +4,11 @@
  */
 package pq.internal;
 
+import com.eclipsesource.json.JsonValue;
+
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
-
-import com.eclipsesource.json.JsonValue;
 
 final class JsonRecordMaterializer extends RecordMaterializer<JsonValue> {
 

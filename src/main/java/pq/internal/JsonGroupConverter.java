@@ -11,14 +11,16 @@ import static pq.internal.JsonPrimitiveConverterFactory.floatConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.intConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.longConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.stringConverter;
+
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+
 import java.util.function.Consumer;
 
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.GroupType;
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 
 final class JsonGroupConverter extends GroupConverter {
 

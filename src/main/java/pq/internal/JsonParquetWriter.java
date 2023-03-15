@@ -5,15 +5,19 @@
 package pq.internal;
 
 import com.eclipsesource.json.JsonValue;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.OutputFile;
 import org.apache.parquet.schema.MessageType;
 
-public class JsonParquetWriter {
+public final class JsonParquetWriter {
+
+  private JsonParquetWriter() { }
 
   public static Builder builder(OutputFile file) {
     return new Builder(file);

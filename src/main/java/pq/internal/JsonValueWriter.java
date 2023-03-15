@@ -5,7 +5,9 @@
 package pq.internal;
 
 import static java.util.Objects.requireNonNull;
+
 import com.eclipsesource.json.JsonValue;
+
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.GroupType;

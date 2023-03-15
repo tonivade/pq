@@ -4,14 +4,16 @@
  */
 package pq.internal;
 
+import com.eclipsesource.json.JsonValue;
+
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.schema.MessageType;
 
-import com.eclipsesource.json.JsonValue;
-
 public final class JsonParquetReader {
+
+  private JsonParquetReader() { }
 
   public static Builder builder(InputFile file) {
     return new Builder(file);

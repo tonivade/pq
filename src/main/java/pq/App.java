@@ -5,10 +5,12 @@
 package pq;
 
 import static java.nio.file.Files.readString;
+
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonValue;
 import com.jerolba.carpet.filestream.FileSystemInputFile;
 import com.jerolba.carpet.filestream.FileSystemOutputFile;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
 import org.apache.avro.Schema;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.avro.AvroSchemaConverter;
@@ -31,6 +34,7 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;

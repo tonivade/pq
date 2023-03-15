@@ -5,8 +5,11 @@
 package pq.internal;
 
 import static java.util.Objects.requireNonNull;
+
 import com.eclipsesource.json.JsonValue;
+
 import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.api.RecordConsumer;
