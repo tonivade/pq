@@ -13,16 +13,16 @@ import org.apache.parquet.schema.MessageType;
 final class JsonRecordMaterializer extends RecordMaterializer<JsonValue> {
 
   private final JsonGroupConverter root;
-
-  private JsonValue value;
+  private final JsonObjectHolder value;
 
   JsonRecordMaterializer(MessageType requestedSchema) {
-    this.root = new JsonGroupConverter(requestedSchema, v -> this.value = v);
+    this.value = new JsonObjectHolder();
+    this.root = new JsonGroupConverter(requestedSchema, value.consumer());
   }
 
   @Override
   public JsonValue getCurrentRecord() {
-    return value;
+    return value.get();
   }
 
   @Override
