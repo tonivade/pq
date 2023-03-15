@@ -104,6 +104,7 @@ dependencies {
     exclude group: 'log4j', module: 'log4j'
     exclude group: 'com.jcraft', module: 'jsch'
     exclude group: 'dnsjava', module: 'dnsjava'
+    exclude group: 'com.google.code.gson', module: 'gson'
 
     exclude group: 'org.apache.kerby', module: 'kerb-simplekdc'
     exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
