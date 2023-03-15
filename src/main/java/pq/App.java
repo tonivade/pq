@@ -177,7 +177,7 @@ public class App {
       }
     }
 
-    private void print(Tuple<JsonValue> tuple) {
+    private void print(Tuple tuple) {
       if (index) {
         System.out.println("#" + tuple.index());
       }
@@ -257,8 +257,8 @@ public class App {
     return Optional.empty();
   }
 
-  private static <T> Stream<Tuple<T>> stream(ParquetReader<T> reader) {
-    var spliterator = Spliterators.spliteratorUnknownSize(new ParquetIterator<>(reader), Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
+  private static Stream<Tuple> stream(ParquetReader<JsonValue> reader) {
+    var spliterator = Spliterators.spliteratorUnknownSize(new ParquetIterator(reader), Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
     return StreamSupport.stream(spliterator, false);
   }
 

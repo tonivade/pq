@@ -6,6 +6,8 @@ package pq;
 
 import static java.util.Objects.requireNonNull;
 
+import com.eclipsesource.json.JsonValue;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
@@ -13,13 +15,13 @@ import java.util.NoSuchElementException;
 
 import org.apache.parquet.hadoop.ParquetReader;
 
-final class ParquetIterator<T> implements Iterator<Tuple<T>> {
+final class ParquetIterator implements Iterator<Tuple> {
 
-  private final ParquetReader<T> reader;
+  private final ParquetReader<JsonValue> reader;
 
-  private T current = null;
+  private JsonValue current = null;
 
-  public ParquetIterator(ParquetReader<T> reader) {
+  public ParquetIterator(ParquetReader<JsonValue> reader) {
     this.reader = requireNonNull(reader);
   }
 
@@ -29,16 +31,16 @@ final class ParquetIterator<T> implements Iterator<Tuple<T>> {
   }
 
   @Override
-  public Tuple<T> next() {
+  public Tuple next() {
     var result = tryAdvance();
     if (result == null) {
       throw new NoSuchElementException();
     }
     current = null;
-    return new Tuple<>(reader.getCurrentRowIndex(), result);
+    return new Tuple(reader.getCurrentRowIndex(), result);
   }
 
-  private T tryAdvance() {
+  private JsonValue tryAdvance() {
     try {
       if (current == null) {
         current = reader.read();
@@ -50,5 +52,5 @@ final class ParquetIterator<T> implements Iterator<Tuple<T>> {
   }
 }
 
-record Tuple<T>(long index, T value) {}
+record Tuple(long index, JsonValue value) {}
 
