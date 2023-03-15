@@ -118,6 +118,28 @@ class JsonGroupConverterTest {
 
       verify(consumer).accept(object().add("inner", object().add(ID, "a")));
     }
+
+    @Test
+    void convertList() {
+      PrimitiveType id = required(BINARY).as(stringType()).named(ID);
+      var converter = new JsonGroupConverter(requiredGroup().requiredList().element(id).named("inner").named("item"), consumer);
+
+      converter.start();
+      converter.getConverter(0).asGroupConverter().start();
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().start();
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().getConverter(0).asPrimitiveConverter().addBinary(Binary.fromString("a"));
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().end();
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().start();
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().getConverter(0).asPrimitiveConverter().addBinary(Binary.fromString("b"));
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().end();
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().start();
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().getConverter(0).asPrimitiveConverter().addBinary(Binary.fromString("c"));
+      converter.getConverter(0).asGroupConverter().getConverter(0).asGroupConverter().end();
+      converter.getConverter(0).asGroupConverter().end();
+      converter.end();
+
+      verify(consumer).accept(object().add("inner", array().add(object().add(ID, "a")).add(object().add(ID, "b")).add(object().add(ID, "c"))));
+    }
   }
 
   @Nested

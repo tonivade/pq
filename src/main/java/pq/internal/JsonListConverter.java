@@ -41,7 +41,7 @@ final class JsonListConverter extends GroupConverter {
         default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
       };
     } else {
-      converter = new JsonGroupConverter(schema, value.addValue());
+      converter = new JsonGroupConverter(schema.getFields().get(0).asGroupType(), value.addValue());
     }
   }
 
