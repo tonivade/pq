@@ -52,7 +52,9 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
-    @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
+    @Option(names = "--filter",
+        description = "predicate to apply to the rows: *warning* with this option a full scan of the file will be made",
+        paramLabel = "PREDICATE")
     private String filter;
 
     private final FilterParser parser = new FilterParser();
@@ -61,12 +63,8 @@ public class App {
     public void run() {
       MessageType schema = schema(file);
       FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
-      try (var reader = createJsonReader(file, predicate, null)) {
-        long count = stream(reader).count();
-        System.out.println(count);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      long count = size(file, predicate);
+      System.out.println(count);
     }
   }
 
@@ -146,21 +144,13 @@ public class App {
         if (head > 0) {
           stream(reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
-          // XXX: this needs read twice the file
-          stream(reader).skip(size(predicate) - tail).forEach(this::print);
+          // XXX: this needs read twice the file if filter is not null
+          stream(reader).skip(size(file, predicate) - tail).forEach(this::print);
         } else if (get > -1) {
           stream(reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
         } else {
           stream(reader).skip(skip).forEach(this::print);
         }
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-
-    private long size(FilterPredicate predicate) {
-      try (var reader = createJsonReader(file, predicate, null)) {
-        return stream(reader).count();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -220,6 +210,21 @@ public class App {
 
   public static void main(String... args) {
     System.exit(new CommandLine(new App()).execute(args));
+  }
+
+  private static long size(File file, FilterPredicate predicate) {
+    if (predicate != null) {
+      try (var reader = createJsonReader(file, predicate, null)) {
+        return stream(reader).count();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    try (var reader = createFileReader(file)) {
+      return reader.getRecordCount();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private static MessageType schema(File file) {
