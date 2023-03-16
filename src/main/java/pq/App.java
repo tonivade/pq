@@ -25,7 +25,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.filter2.compat.FilterCompat;
-import org.apache.parquet.filter2.predicate.FilterPredicate;
+import org.apache.parquet.filter2.compat.FilterCompat.Filter;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetReader;
@@ -53,17 +53,13 @@ public class App {
     private File file;
 
     @Option(names = "--filter",
-        description = "predicate to apply to the rows: *warning* with this option a full scan of the file will be made",
+        description = "predicate to apply to the rows: *warning* not working without column indexes",
         paramLabel = "PREDICATE")
     private String filter;
 
-    private final FilterParser parser = new FilterParser();
-
     @Override
     public void run() {
-      MessageType schema = schema(file);
-      FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
-      long count = size(file, predicate);
+      long count = size(file, parseFilter(filter, schema(file)));
       System.out.println(count);
     }
   }
@@ -79,7 +75,7 @@ public class App {
 
     @Override
     public void run() {
-      try (var reader = createFileReader(file)) {
+      try (var reader = createFileReader(file, FilterCompat.NOOP)) {
         MessageType schema = reader.getFileMetaData().getSchema();
         var projection = projection(schema, select).orElse(schema);
         System.out.print(projection);
@@ -97,10 +93,24 @@ public class App {
 
     @Override
     public void run() {
-      try (var reader = createFileReader(file)) {
+      try (var reader = createFileReader(file, FilterCompat.NOOP)) {
         reader.getFileMetaData().getKeyValueMetaData()
           .forEach((k, v) -> System.out.println("\"" + k + "\":" + v));
         System.out.println("\"createdBy\":" + reader.getFileMetaData().getCreatedBy());
+
+        for (var block : reader.getFooter().getBlocks()) {
+          System.out.println("\"block\":" + block.getOrdinal() + ", \"rowCount\":" + block.getRowCount());
+          for (var column : block.getColumns()) {
+            System.out.println(
+                "\"column\":" + column.getPath() + "," +
+                "\"type\":\"" + column.getPrimitiveType() + "\"," +
+                "\"index\":" + (column.getColumnIndexReference() != null) + "," +
+                "\"dictionary\":" + column.hasDictionaryPage() + "," +
+                "\"encrypted\":" + column.isEncrypted() + "," +
+                "\"stats\":[" + column.getStatistics() + "]"
+            );
+          }
+        }
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -134,18 +144,15 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
-    private final FilterParser parser = new FilterParser();
-
     @Override
     public void run() {
       MessageType schema = schema(file);
-      FilterPredicate predicate = parser.parse(filter).apply(schema).convert();
-      try (var reader = createJsonReader(file, predicate, projection(schema, select).orElse(null))) {
+      try (var reader = createJsonReader(file, parseFilter(filter, schema), projection(schema, select).orElse(null))) {
         if (head > 0) {
           stream(reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
           // XXX: this needs read twice the file if filter is not null
-          stream(reader).skip(size(file, predicate) - tail).forEach(this::print);
+          stream(reader).skip(size(file, parseFilter(filter, schema)) - tail).forEach(this::print);
         } else if (get > -1) {
           stream(reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
         } else {
@@ -212,27 +219,28 @@ public class App {
     System.exit(new CommandLine(new App()).execute(args));
   }
 
-  private static long size(File file, FilterPredicate predicate) {
-    if (predicate != null) {
-      try (var reader = createJsonReader(file, predicate, null)) {
-        return stream(reader).count();
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-    try (var reader = createFileReader(file)) {
-      return reader.getRecordCount();
+  private static long size(File file, Filter filter) {
+    try (var reader = createFileReader(file, filter)) {
+      return reader.getFilteredRecordCount();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
   private static MessageType schema(File file) {
-    try (var reader = createFileReader(file)) {
+    try (var reader = createFileReader(file, FilterCompat.NOOP)) {
       return reader.getFileMetaData().getSchema();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  private static Filter parseFilter(String filter, MessageType schema) {
+    if (filter == null) {
+      return FilterCompat.NOOP;
+    }
+    var predicate = new FilterParser().parse(filter).apply(schema).convert();
+    return FilterCompat.get(predicate);
   }
 
   private static Optional<MessageType> projection(MessageType schema, String[] select) {
@@ -249,8 +257,8 @@ public class App {
     return StreamSupport.stream(spliterator, false);
   }
 
-  private static ParquetFileReader createFileReader(File file) throws IOException {
-    return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().build());
+  private static ParquetFileReader createFileReader(File file, Filter filter) throws IOException {
+    return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().withRecordFilter(filter).useBloomFilter().useColumnIndexFilter().useColumnIndexFilter().useStatsFilter().build());
   }
 
   private static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
@@ -260,15 +268,10 @@ public class App {
         .build();
   }
 
-  private static ParquetReader<JsonValue> createJsonReader(File file, FilterPredicate filter, MessageType projection) throws IOException {
-    if (filter != null) {
-      return JsonParquetReader.builder(new FileSystemInputFile(file))
-          .withProjection(projection)
-          .withFilter(FilterCompat.get(filter))
-          .build();
-    }
+  private static ParquetReader<JsonValue> createJsonReader(File file, Filter filter, MessageType projection) throws IOException {
     return JsonParquetReader.builder(new FileSystemInputFile(file))
         .withProjection(projection)
+        .withFilter(filter)
         .build();
   }
 }

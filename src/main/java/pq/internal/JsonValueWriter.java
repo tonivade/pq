@@ -29,14 +29,17 @@ final class JsonValueWriter {
       for (var fieldType : schema.getFields()) {
         if (fieldType.isPrimitive()) {
           String fieldName = fieldType.getName();
-          JsonValue jsonValue = value.asObject().get(fieldName);
+          JsonValue fieldValue = value.asObject().get(fieldName);
+          if (fieldValue.isNull()) {
+            continue;
+          }
           switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
-            case INT32 -> writeInt(fieldName, jsonValue.asInt());
-            case INT64 -> writeLong(fieldName, jsonValue.asLong());
-            case FLOAT -> writeFloat(fieldName, jsonValue.asFloat());
-            case DOUBLE -> writeDouble(fieldName, jsonValue.asDouble());
-            case BOOLEAN -> writeBoolean(fieldName, jsonValue.asBoolean());
-            case BINARY -> writeString(fieldName, jsonValue.asString());
+            case INT32 -> writeInt(fieldName, fieldValue.asInt());
+            case INT64 -> writeLong(fieldName, fieldValue.asLong());
+            case FLOAT -> writeFloat(fieldName, fieldValue.asFloat());
+            case DOUBLE -> writeDouble(fieldName, fieldValue.asDouble());
+            case BOOLEAN -> writeBoolean(fieldName, fieldValue.asBoolean());
+            case BINARY -> writeString(fieldName, fieldValue.asString());
             default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
           }
         } else {
