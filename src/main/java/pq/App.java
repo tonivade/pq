@@ -91,6 +91,9 @@ public class App {
     @Parameters(paramLabel = "FILE", description = "parquet file")
     private File file;
 
+    @Option(names = "--show-blocks", description = "show block metadata info", defaultValue = "false")
+    private boolean showBlocks;
+
     @Override
     public void run() {
       try (var reader = createFileReader(file, FilterCompat.NOOP)) {
@@ -98,17 +101,19 @@ public class App {
           .forEach((k, v) -> System.out.println("\"" + k + "\":" + v));
         System.out.println("\"createdBy\":" + reader.getFileMetaData().getCreatedBy());
 
-        for (var block : reader.getFooter().getBlocks()) {
-          System.out.println("\"block\":" + block.getOrdinal() + ", \"rowCount\":" + block.getRowCount());
-          for (var column : block.getColumns()) {
-            System.out.println(
-                "\"column\":" + column.getPath() + "," +
-                "\"type\":\"" + column.getPrimitiveType() + "\"," +
-                "\"index\":" + (column.getColumnIndexReference() != null) + "," +
-                "\"dictionary\":" + column.hasDictionaryPage() + "," +
-                "\"encrypted\":" + column.isEncrypted() + "," +
-                "\"stats\":[" + column.getStatistics() + "]"
-            );
+        if (showBlocks) {
+          for (var block : reader.getFooter().getBlocks()) {
+            System.out.println("\"block\":" + block.getOrdinal() + ", \"rowCount\":" + block.getRowCount());
+            for (var column : block.getColumns()) {
+              System.out.println(
+                  "\"column\":" + column.getPath() + "," +
+                  "\"type\":\"" + column.getPrimitiveType() + "\"," +
+                  "\"index\":" + (column.getColumnIndexReference() != null) + "," +
+                  "\"dictionary\":" + column.hasDictionaryPage() + "," +
+                  "\"encrypted\":" + column.isEncrypted() + "," +
+                  "\"stats\":[" + column.getStatistics() + "]"
+              );
+            }
           }
         }
       } catch (IOException e) {
