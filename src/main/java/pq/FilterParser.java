@@ -118,7 +118,7 @@ final class FilterParser {
 
     TypedExpr apply(MessageType schema);
     
-    Set<String> collect();
+    Set<String> columns();
 
     record Condition(String column, Operator operator, Object value) implements Expr {
       @Override
@@ -142,7 +142,7 @@ final class FilterParser {
       }
       
       @Override
-      public Set<String> collect() {
+      public Set<String> columns() {
         return Set.of(column);
       }
 
@@ -184,10 +184,10 @@ final class FilterParser {
       }
       
       @Override
-      public Set<String> collect() {
+      public Set<String> columns() {
         Set<String> columns = new HashSet<>();
-        columns.addAll(left.collect());
-        columns.addAll(right.collect());
+        columns.addAll(left.columns());
+        columns.addAll(right.columns());
         return Set.copyOf(columns);
       }
     }
@@ -199,7 +199,7 @@ final class FilterParser {
       }
       
       @Override
-      public Set<String> collect() {
+      public Set<String> columns() {
         return Set.of();
       }
     }

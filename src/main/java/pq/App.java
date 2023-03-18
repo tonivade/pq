@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.util.ArrayDeque;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
@@ -53,7 +54,7 @@ public class App {
     private File file;
 
     @Option(names = "--filter",
-        description = "predicate to apply to the rows: *warning* not working without column indexes",
+        description = "predicate to apply to the rows",
         paramLabel = "PREDICATE")
     private String filter;
 
@@ -163,8 +164,14 @@ public class App {
         if (head > 0) {
           stream(reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
-          // XXX: this needs read twice the file if filter is not null
-          stream(reader).skip(size(file, parseFilter(filter, schema)) - tail).forEach(this::print);
+          ArrayDeque<Tuple> deque = new ArrayDeque<>(tail);
+          stream(reader).skip(skip).forEach(i -> {
+            if (deque.size() == tail) {
+              deque.removeFirst();
+            }
+            deque.addLast(i);
+          });
+          deque.forEach(this::print);
         } else if (get > -1) {
           stream(reader).skip(skip).skip(get).findFirst().ifPresent(this::print);
         } else {
@@ -231,14 +238,6 @@ public class App {
     System.exit(new CommandLine(new App()).execute(args));
   }
 
-  private static long size(File file, Filter filter) {
-    try (var reader = createFileReader(file, filter)) {
-      return reader.getFilteredRecordCount();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   private static MessageType schema(File file) {
     try (var reader = createFileReader(file, FilterCompat.NOOP)) {
       return reader.getFileMetaData().getSchema();
@@ -256,7 +255,7 @@ public class App {
   }
 
   private static Optional<MessageType> createProjection(MessageType schema, String filter) {
-    String[] select = new FilterParser().parse(filter).collect().toArray(String[]::new);
+    String[] select = new FilterParser().parse(filter).columns().toArray(String[]::new);
     return createProjection(schema, select);
   }
 
