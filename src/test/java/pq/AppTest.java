@@ -120,6 +120,17 @@ class AppTest {
     }
 
     @Test
+    void csvFormat() {
+      assertThatThrownBy(() -> App.main(READ, "--format", "csv", "--get", "1", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          id,first_name,last_name,email,gender,ip_address,cc,country,birthdate,salary,title,comments
+          2,"Albert","Freeman","afreeman1@is.gd","Male","218.111.175.34","","Canada","1/16/1968",150280.17,"Accountant IV",""
+          """);
+    }
+
+    @Test
     void getWithIndex() {
       assertThatThrownBy(() -> App.main(READ, "--index", "--get", "1", EXAMPLE_PARQUET))
         .isInstanceOf(AbortExecutionException.class);
