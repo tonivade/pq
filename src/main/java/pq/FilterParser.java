@@ -22,6 +22,7 @@ import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.parquet.filter2.predicate.FilterPredicate;
@@ -115,6 +116,8 @@ final class FilterParser {
   sealed interface Expr {
 
     TypedExpr apply(MessageType schema);
+    
+    List<String> collect();
 
     record Condition(String column, Operator operator, Object value) implements Expr {
       @Override
@@ -135,6 +138,11 @@ final class FilterParser {
           case BINARY -> new StringCondition(column, operator, asString());
           default -> throw new IllegalArgumentException("not supported: " + columnDescription);
         };
+      }
+      
+      @Override
+      public List<String> collect() {
+        return List.of(column);
       }
 
       private String asString() {
@@ -173,12 +181,25 @@ final class FilterParser {
       public TypedExpr apply(MessageType schema) {
         return new TypedExpression(left.apply(schema), operator, right.apply(schema));
       }
+      
+      @Override
+      public List<String> collect() {
+        List<String> list = new ArrayList<>();
+        list.addAll(left.collect());
+        list.addAll(right.collect());
+        return List.copyOf(list);
+      }
     }
 
     record NullExpr() implements Expr {
       @Override
       public TypedExpr apply(MessageType schema) {
         return new NullTypedExpr();
+      }
+      
+      @Override
+      public List<String> collect() {
+        return List.of();
       }
     }
   }

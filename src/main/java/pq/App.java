@@ -6,11 +6,6 @@ package pq;
 
 import static java.nio.file.Files.readString;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonValue;
-import com.jerolba.carpet.filestream.FileSystemInputFile;
-import com.jerolba.carpet.filestream.FileSystemOutputFile;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +27,11 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
+
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
+import com.jerolba.carpet.filestream.FileSystemInputFile;
+import com.jerolba.carpet.filestream.FileSystemOutputFile;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -59,8 +59,15 @@ public class App {
 
     @Override
     public void run() {
-      long count = size(file, parseFilter(filter, schema(file)));
-      System.out.println(count);
+      MessageType schema = schema(file);
+      Filter parseFilter = parseFilter(filter, schema);
+      MessageType projection = createProjection(schema, filter).orElse(null);
+      try (var reader = createJsonReader(file, parseFilter, projection)) {
+        var count = stream(reader).count();
+        System.out.println(count);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
   }
 
@@ -77,7 +84,7 @@ public class App {
     public void run() {
       try (var reader = createFileReader(file, FilterCompat.NOOP)) {
         MessageType schema = reader.getFileMetaData().getSchema();
-        var projection = projection(schema, select).orElse(schema);
+        var projection = createProjection(schema, select).orElse(schema);
         System.out.print(projection);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -152,7 +159,7 @@ public class App {
     @Override
     public void run() {
       MessageType schema = schema(file);
-      try (var reader = createJsonReader(file, parseFilter(filter, schema), projection(schema, select).orElse(null))) {
+      try (var reader = createJsonReader(file, parseFilter(filter, schema), createProjection(schema, select).orElse(null))) {
         if (head > 0) {
           stream(reader).skip(skip).limit(head).forEach(this::print);
         } else if (tail > 0) {
@@ -248,8 +255,13 @@ public class App {
     return FilterCompat.get(predicate);
   }
 
-  private static Optional<MessageType> projection(MessageType schema, String[] select) {
-    if (select != null) {
+  private static Optional<MessageType> createProjection(MessageType schema, String filter) {
+    String[] select = new FilterParser().parse(filter).collect().toArray(String[]::new);
+    return createProjection(schema, select);
+  }
+
+  private static Optional<MessageType> createProjection(MessageType schema, String[] select) {
+    if (select != null && select.length > 0) {
       Set<String> fields = Set.of(select);
       return Optional.of(new MessageType(
           schema.getName(), schema.getFields().stream().filter(f -> fields.contains(f.getName())).toList()));
@@ -258,12 +270,14 @@ public class App {
   }
 
   private static Stream<Tuple> stream(ParquetReader<JsonValue> reader) {
-    var spliterator = Spliterators.spliteratorUnknownSize(new ParquetIterator(reader), Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
+    var spliterator = Spliterators.spliteratorUnknownSize(
+        new ParquetIterator(reader), Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
     return StreamSupport.stream(spliterator, false);
   }
 
   private static ParquetFileReader createFileReader(File file, Filter filter) throws IOException {
-    return new ParquetFileReader(new FileSystemInputFile(file), ParquetReadOptions.builder().withRecordFilter(filter).useBloomFilter().useColumnIndexFilter().useColumnIndexFilter().useStatsFilter().build());
+    return new ParquetFileReader(
+        new FileSystemInputFile(file), ParquetReadOptions.builder().withRecordFilter(filter).build());
   }
 
   private static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
