@@ -62,13 +62,17 @@ public class App {
     public void run() {
       MessageType schema = schema(file);
       Filter parseFilter = parseFilter(filter, schema);
-      MessageType projection = createProjection(schema, filter).orElse(null);
+      MessageType projection = createProjection(schema, filter).orElseGet(() -> justOneColumn(schema));
       try (var reader = createJsonReader(file, parseFilter, projection)) {
         var count = stream(reader).count();
         System.out.println(count);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
+    }
+
+    private MessageType justOneColumn(MessageType schema) {
+      return new MessageType(schema.getName(), schema.getFields().get(0));
     }
   }
 
