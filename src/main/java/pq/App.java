@@ -108,6 +108,7 @@ public class App {
         reader.getFileMetaData().getKeyValueMetaData()
           .forEach((k, v) -> System.out.println("\"" + k + "\":" + v));
         System.out.println("\"createdBy\":" + reader.getFileMetaData().getCreatedBy());
+        System.out.println("\"count\":" + reader.getRecordCount());
 
         if (showBlocks) {
           for (var block : reader.getFooter().getBlocks()) {
