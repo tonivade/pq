@@ -22,8 +22,9 @@ import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
@@ -117,7 +118,7 @@ final class FilterParser {
 
     TypedExpr apply(MessageType schema);
     
-    List<String> collect();
+    Set<String> collect();
 
     record Condition(String column, Operator operator, Object value) implements Expr {
       @Override
@@ -141,8 +142,8 @@ final class FilterParser {
       }
       
       @Override
-      public List<String> collect() {
-        return List.of(column);
+      public Set<String> collect() {
+        return Set.of(column);
       }
 
       private String asString() {
@@ -183,11 +184,11 @@ final class FilterParser {
       }
       
       @Override
-      public List<String> collect() {
-        List<String> list = new ArrayList<>();
-        list.addAll(left.collect());
-        list.addAll(right.collect());
-        return List.copyOf(list);
+      public Set<String> collect() {
+        Set<String> columns = new HashSet<>();
+        columns.addAll(left.collect());
+        columns.addAll(right.collect());
+        return Set.copyOf(columns);
       }
     }
 
@@ -198,8 +199,8 @@ final class FilterParser {
       }
       
       @Override
-      public List<String> collect() {
-        return List.of();
+      public Set<String> collect() {
+        return Set.of();
       }
     }
   }
