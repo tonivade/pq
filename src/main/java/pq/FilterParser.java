@@ -93,29 +93,30 @@ final class FilterParser extends GrammarDefinition {
   @SuppressWarnings("unchecked")
   public FilterParser() {
     def("value", STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL));
-    def("singleExpression", ID.seq(OPERATOR).seq(ref("value"))
-      .<List<Object>, Expr>map(result -> {
+    def("singleExpression", ID.seq(OPERATOR).seq(ref("value")));
+    def("notExpression", NOT.seq(LEFTPARENT).seq(ref("start")).seq(RIGHTPARENT));
+    def("parenExpression", LEFTPARENT.seq(ref("start")).seq(RIGHTPARENT));
+    def("expression", ref("notExpression").or(ref("parenExpression")).or(ref("singleExpression")));
+    def("start", ref("expression").seq(LOGIC.seq(ref("expression")).star()));
+
+    action("singleExpression", (List<Object> result) -> {
         var column = (String) result.get(0);
         var operator = (Operator) result.get(1);
         var value = result.get(2);
         return new Condition(column, operator, value);
-      }));
-    def("notExpression", NOT.seq(LEFTPARENT).seq(ref("expression")).seq(RIGHTPARENT)
-      .<List<Object>, Expr>map(result -> {
+      });
+    action("notExpression", (List<Object> result) -> {
         Expr inner = (Expr) result.get(2);
         return new NotExpression(inner);
-      }));
-    def("parentExpression", LEFTPARENT.seq(ref("expression")).seq(RIGHTPARENT)
-      .<List<Object>, Expr>map(result -> {
-        throw new RuntimeException();
-      }));
-    def("expression", ref("notExpression").or(ref("parentExpression")).or(ref("singleExpression")));
-    def("start", ref("expression").seq(LOGIC.seq(ref("expression")).star())
-      .<List<Object>, Expr>map(result -> {
+      });
+    action("parenExpression", (List<Object> result) -> {
+        return result.get(1);
+      });
+    action("start", (List<Object> result) -> {
         var first = (Expr) result.get(0);
         var second = (List<List<Object>>) result.get(1);
         return reduce(first, second);
-      }));
+      });
   }
 
   enum Operator {

@@ -35,7 +35,6 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FilterParserTest {
@@ -151,12 +150,11 @@ class FilterParserTest {
   @Test
   void filterThreeExpressions() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
-    assertThat(parser.parse("id > 2 && id < 10 || id == 0").apply(schema).convert())
+    assertThat(parser.parse("(id > 2 && id < 10) || id == 0").apply(schema).convert())
       .isEqualTo(or(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)), eq(intColumn(ID), 0)));
   }
 
   @Test
-  @Disabled
   void filterThreeExpressionsWithParent() {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
     assertThat(parser.parse("id > 2 && (id < 10 || id == 0)").apply(schema).convert())
