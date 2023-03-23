@@ -34,6 +34,8 @@ import org.petitparser.context.Result;
 import org.petitparser.parser.Parser;
 import org.petitparser.parser.primitive.CharacterParser;
 import org.petitparser.parser.primitive.StringParser;
+import org.petitparser.tools.GrammarDefinition;
+import org.petitparser.tools.GrammarParser;
 
 import pq.FilterParser.Expr.Condition;
 import pq.FilterParser.Expr.Expression;
@@ -48,7 +50,7 @@ import pq.FilterParser.TypedExpr.TypedCondition.LongCondition;
 import pq.FilterParser.TypedExpr.TypedCondition.StringCondition;
 import pq.FilterParser.TypedExpr.TypedExpression;
 
-final class FilterParser {
+final class FilterParser extends GrammarDefinition {
 
   private static final CharacterParser NOT = CharacterParser.of('!');
   private static final CharacterParser LEFTPARENT = CharacterParser.of('(');
@@ -88,30 +90,33 @@ final class FilterParser {
   private static final Parser LOGIC = AMPERSAND.seq(AMPERSAND).or(PIPE.seq(PIPE)).flatten().trim()
     .<String, Logic>map(FilterParser::toLogic);
 
-  private static final Parser EXPRESSION = ID.seq(OPERATOR).seq(STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL))
-    .<List<Object>, Expr>map(result -> {
-      var column = (String) result.get(0);
-      var operator = (Operator) result.get(1);
-      var value = result.get(2);
-      return new Condition(column, operator, value);
-    });
-
   @SuppressWarnings("unchecked")
-  private static final Parser NOT_EXPESSSION = NOT.seq(LEFTPARENT).seq(EXPRESSION).separatedBy(RIGHTPARENT).<List<Object>, Expr>map(result -> {
-    List<Object> object = (List<Object>) result.get(0);
-    Expr inner = (Expr) object.get(2);
-    return new NotExpression(inner);
-  });
-
-  private static final Parser PARENT_EXPRESSION = NOT_EXPESSSION.or(EXPRESSION);
-
-  @SuppressWarnings("unchecked")
-  private static final Parser PARSER = PARENT_EXPRESSION.seq(LOGIC.seq(PARENT_EXPRESSION).star())
-    .<List<Object>, Expr>map(result -> {
-      var first = (Expr) result.get(0);
-      var second = (List<List<Object>>) result.get(1);
-      return reduce(first, second);
-    });
+  public FilterParser() {
+    def("value", STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL));
+    def("singleExpression", ID.seq(OPERATOR).seq(ref("value"))
+      .<List<Object>, Expr>map(result -> {
+        var column = (String) result.get(0);
+        var operator = (Operator) result.get(1);
+        var value = result.get(2);
+        return new Condition(column, operator, value);
+      }));
+    def("notExpression", NOT.seq(LEFTPARENT).seq(ref("expression")).seq(RIGHTPARENT)
+      .<List<Object>, Expr>map(result -> {
+        Expr inner = (Expr) result.get(2);
+        return new NotExpression(inner);
+      }));
+    def("parentExpression", LEFTPARENT.seq(ref("expression")).seq(RIGHTPARENT)
+      .<List<Object>, Expr>map(result -> {
+        throw new RuntimeException();
+      }));
+    def("expression", ref("notExpression").or(ref("parentExpression")).or(ref("singleExpression")));
+    def("start", ref("expression").seq(LOGIC.seq(ref("expression")).star())
+      .<List<Object>, Expr>map(result -> {
+        var first = (Expr) result.get(0);
+        var second = (List<List<Object>>) result.get(1);
+        return reduce(first, second);
+      }));
+  }
 
   enum Operator {
     EQUAL,
@@ -353,7 +358,7 @@ final class FilterParser {
 
   Expr parse(String filter) {
     if (filter != null) {
-      Result parse = PARSER.parse(filter);
+      Result parse = new GrammarParser(new FilterParser()).parse(filter);
       return parse.get();
     }
     return new NullExpr();
