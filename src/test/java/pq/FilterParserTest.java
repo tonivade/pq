@@ -16,6 +16,7 @@ import static org.apache.parquet.filter2.predicate.FilterApi.intColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.longColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.lt;
 import static org.apache.parquet.filter2.predicate.FilterApi.ltEq;
+import static org.apache.parquet.filter2.predicate.FilterApi.not;
 import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.BINARY;
@@ -27,13 +28,14 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
 import static org.apache.parquet.schema.Type.Repetition.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import java.util.List;
 
+import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FilterParserTest {
@@ -151,6 +153,23 @@ class FilterParserTest {
     var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
     assertThat(parser.parse("id > 2 && id < 10 || id == 0").apply(schema).convert())
       .isEqualTo(or(and(gt(intColumn(ID), 2), lt(intColumn(ID), 10)), eq(intColumn(ID), 0)));
+  }
+
+  @Test
+  @Disabled
+  void filterThreeExpressionsWithParent() {
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
+    assertThat(parser.parse("id > 2 && (id < 10 || id == 0)").apply(schema).convert())
+      .isEqualTo(and(gt(intColumn(ID), 2), or(lt(intColumn(ID), 10), eq(intColumn(ID), 0))));
+  }
+
+  @Test
+  void notExpression() {
+    var schema = new MessageType("schema", List.of(new PrimitiveType(REQUIRED, INT32, ID)));
+
+    FilterPredicate parse = parser.parse("!(id == null)").apply(schema).convert();
+
+    assertThat(parse).isEqualTo(not(eq(intColumn(ID), null)));
   }
 
 }

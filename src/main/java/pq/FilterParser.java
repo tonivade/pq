@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.parquet.filter2.predicate.FilterApi;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.MessageType;
@@ -36,6 +37,7 @@ import org.petitparser.parser.primitive.StringParser;
 
 import pq.FilterParser.Expr.Condition;
 import pq.FilterParser.Expr.Expression;
+import pq.FilterParser.Expr.NotExpression;
 import pq.FilterParser.Expr.NullExpr;
 import pq.FilterParser.TypedExpr.NullTypedExpr;
 import pq.FilterParser.TypedExpr.TypedCondition.BooleanCondition;
@@ -49,6 +51,8 @@ import pq.FilterParser.TypedExpr.TypedExpression;
 final class FilterParser {
 
   private static final CharacterParser NOT = CharacterParser.of('!');
+  private static final CharacterParser LEFTPARENT = CharacterParser.of('(');
+  private static final CharacterParser RIGHTPARENT = CharacterParser.of(')');
   private static final CharacterParser PIPE = CharacterParser.of('|');
   private static final CharacterParser AMPERSAND = CharacterParser.of('&');
   private static final CharacterParser LT = CharacterParser.of('<');
@@ -93,9 +97,18 @@ final class FilterParser {
     });
 
   @SuppressWarnings("unchecked")
-  private static final Parser PARSER = EXPRESSION.seq(LOGIC.seq(EXPRESSION).star())
+  private static final Parser NOT_EXPESSSION = NOT.seq(LEFTPARENT).seq(EXPRESSION).separatedBy(RIGHTPARENT).<List<Object>, Expr>map(result -> {
+    List<Object> object = (List<Object>) result.get(0);
+    Expr inner = (Expr) object.get(2);
+    return new NotExpression(inner);
+  });
+
+  private static final Parser PARENT_EXPRESSION = NOT_EXPESSSION.or(EXPRESSION);
+
+  @SuppressWarnings("unchecked")
+  private static final Parser PARSER = PARENT_EXPRESSION.seq(LOGIC.seq(PARENT_EXPRESSION).star())
     .<List<Object>, Expr>map(result -> {
-      var first = (Condition) result.get(0);
+      var first = (Expr) result.get(0);
       var second = (List<List<Object>>) result.get(1);
       return reduce(first, second);
     });
@@ -117,7 +130,7 @@ final class FilterParser {
   sealed interface Expr {
 
     TypedExpr apply(MessageType schema);
-    
+
     Set<String> columns();
 
     record Condition(String column, Operator operator, Object value) implements Expr {
@@ -140,7 +153,7 @@ final class FilterParser {
           default -> throw new IllegalArgumentException("not supported: " + columnDescription);
         };
       }
-      
+
       @Override
       public Set<String> columns() {
         return Set.of(column);
@@ -182,7 +195,7 @@ final class FilterParser {
       public TypedExpr apply(MessageType schema) {
         return new TypedExpression(left.apply(schema), operator, right.apply(schema));
       }
-      
+
       @Override
       public Set<String> columns() {
         Set<String> columns = new HashSet<>();
@@ -192,12 +205,25 @@ final class FilterParser {
       }
     }
 
+    record NotExpression(Expr inner) implements Expr {
+
+      @Override
+      public TypedExpr apply(MessageType schema) {
+        return new TypedExpr.TypedNotExpression(inner.apply(schema));
+      }
+
+      @Override
+      public Set<String> columns() {
+        return inner.columns();
+      }
+    }
+
     record NullExpr() implements Expr {
       @Override
       public TypedExpr apply(MessageType schema) {
         return new NullTypedExpr();
       }
-      
+
       @Override
       public Set<String> columns() {
         return Set.of();
@@ -309,6 +335,14 @@ final class FilterParser {
       }
     }
 
+    record TypedNotExpression(TypedExpr inner) implements TypedExpr {
+
+      @Override
+      public FilterPredicate convert() {
+        return FilterApi.not(inner.convert());
+      }
+    }
+
     record NullTypedExpr() implements TypedExpr {
       @Override
       public FilterPredicate convert() {
@@ -325,11 +359,11 @@ final class FilterParser {
     return new NullExpr();
   }
 
-  private static Expr reduce(Condition first, List<List<Object>> second) {
+  private static Expr reduce(Expr first, List<List<Object>> second) {
     Expr result = first;
     for (List<Object> current : second) {
       var logic = (Logic) current.get(0);
-      var next = (Condition) current.get(1);
+      var next = (Expr) current.get(1);
       result = new Expression(result, logic, next);
     }
     return result;
