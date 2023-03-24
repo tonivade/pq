@@ -28,7 +28,6 @@ import com.eclipsesource.json.JsonValue;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
-import picocli.CommandLine.ITypeConverter;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ScopeType;
 import pq.internal.JsonParquetReader;
@@ -37,18 +36,6 @@ import pq.internal.JsonParquetWriter;
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
   subcommands = { CountCommand.class, SchemaCommand.class, ReadCommand.class, MetadataCommand.class, WriteCommand.class, HelpCommand.class })
 public class App {
-
-  enum Format {
-    JSON, CSV;
-  }
-
-  static final class FormatConverter implements ITypeConverter<Format> {
-
-    @Override
-    public Format convert(String value) {
-      return Format.valueOf(value.toUpperCase());
-    }
-  }
 
   @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT)
   void setVerbose(boolean verbose) {

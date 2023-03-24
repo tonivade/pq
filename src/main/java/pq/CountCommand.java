@@ -21,7 +21,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "count", description = "print total number of rows in parquet file")
-public class CountCommand implements Runnable {
+class CountCommand implements Runnable {
 
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;

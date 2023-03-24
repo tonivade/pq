@@ -25,11 +25,9 @@ import com.eclipsesource.json.JsonValue;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import pq.App.Format;
-import pq.App.FormatConverter;
 
 @Command(name = "write", description = "create a parquet file from a jsonl stream and a avro schema")
-public class WriteCommand implements Runnable {
+class WriteCommand implements Runnable {
 
   @Parameters(paramLabel = "FILE", description = "destination parquet file")
   private File file;
@@ -37,7 +35,7 @@ public class WriteCommand implements Runnable {
   @Option(names = "--schema", description = "file with schema", paramLabel = "FILE")
   private File schemaFile;
 
-  @Option(names = "--format", description = "input format, json or csv", defaultValue = "json", converter = FormatConverter.class)
+  @Option(names = "--format", description = "input format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class) 
   private Format format;
 
   @Override

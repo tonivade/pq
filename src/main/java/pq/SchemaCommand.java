@@ -19,7 +19,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "schema", description = "print schema of parquet file")
-public class SchemaCommand implements Runnable {
+class SchemaCommand implements Runnable {
 
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;

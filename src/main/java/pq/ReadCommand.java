@@ -23,11 +23,9 @@ import org.apache.parquet.schema.MessageType;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import pq.App.Format;
-import pq.App.FormatConverter;
 
 @Command(name = "read", description = "print content of parquet file in json format")
-public class ReadCommand implements Runnable {
+class ReadCommand implements Runnable {
 
   @Option(names = "--head", description = "get the first N number of rows", paramLabel = "ROWS", defaultValue = "0")
   private int head;
@@ -50,7 +48,7 @@ public class ReadCommand implements Runnable {
   @Option(names = "--index", description = "print row index", defaultValue = "false")
   private boolean index;
 
-  @Option(names = "--format", description = "output format, json or csv", defaultValue = "json", converter = FormatConverter.class)
+  @Option(names = "--format", description = "output format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class)
   private Format format;
 
   @Parameters(paramLabel = "FILE", description = "parquet file")
