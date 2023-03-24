@@ -76,10 +76,13 @@ dependencies {
     exclude group: 'org.apache.curator', module: 'curator-recipes'
     exclude group: 'org.apache.curator', module: 'curator-client'
     exclude group: 'org.apache.hadoop', module: 'hadoop-annotations'
+    exclude group: 'org.apache.hadoop', module: 'hadoop-auth'
     exclude group: 'org.apache.hadoop.thirdparty', module: 'hadoop-shaded-protobuf_3_7'
     exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     exclude group: 'org.apache.commons', module: 'commons-text'
     exclude group: 'org.apache.commons', module: 'commons-math3'
+    exclude group: 'org.apache.commons', module: 'commons-lang3'
+    exclude group: 'org.apache.commons', module: 'commons-configuration2'
     exclude group: 'org.apache.zookeeper', module: 'zookeeper'
     exclude group: 'org.eclipse.jetty', module: 'jetty-server'
     exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
@@ -107,11 +110,11 @@ dependencies {
     exclude group: 'com.jcraft', module: 'jsch'
     exclude group: 'dnsjava', module: 'dnsjava'
     exclude group: 'com.google.code.gson', module: 'gson'
-
     exclude group: 'org.apache.kerby', module: 'kerb-simplekdc'
     exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
     exclude group: 'net.minidev', module: 'json-smart'
     exclude group: 'org.apache.curator', module: 'curator-framework'
+    exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
   }
   runtimeOnly('ch.qos.logback:logback-classic:1.2.11')
 
