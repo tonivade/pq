@@ -24,8 +24,6 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
@@ -33,8 +31,6 @@ import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
-import org.apache.parquet.hadoop.util.HadoopInputFile;
-import org.apache.parquet.hadoop.util.HadoopOutputFile;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
@@ -343,22 +339,19 @@ public class App {
   }
 
   private static ParquetFileReader createFileReader(File file, Filter filter) throws IOException {
-    var inputFile = HadoopInputFile.fromPath(new Path(file.getAbsolutePath()), new Configuration());
     return new ParquetFileReader(
-        inputFile, ParquetReadOptions.builder().withRecordFilter(filter).build());
+        new ParquetInputFile(file), ParquetReadOptions.builder().withRecordFilter(filter).build());
   }
 
   private static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
-    var outputPath = HadoopOutputFile.fromPath(new Path(file.getAbsolutePath()), new Configuration());
-    return JsonParquetWriter.builder(outputPath)
+    return JsonParquetWriter.builder(new ParquetOutputFile(file))
         .withWriteMode(Mode.OVERWRITE)
         .withSchema(schema)
         .build();
   }
 
   private static ParquetReader<JsonValue> createJsonReader(File file, Filter filter, MessageType projection) throws IOException {
-    var inputFile = HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path(file.getAbsolutePath()), new Configuration());
-    return JsonParquetReader.builder(inputFile)
+    return JsonParquetReader.builder(new ParquetInputFile(file))
         .withProjection(projection)
         .withFilter(filter)
         .build();

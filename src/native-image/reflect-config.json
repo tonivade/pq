@@ -197,6 +197,96 @@
   ]
 },
 {
+  "name":"org.apache.parquet.column.ColumnDescriptor",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getMaxDefinitionLevel","parameterTypes":[] }, 
+    {"name":"getMaxRepetitionLevel","parameterTypes":[] }, 
+    {"name":"getPath","parameterTypes":[] }, 
+    {"name":"getPrimitiveType","parameterTypes":[] }, 
+    {"name":"getType","parameterTypes":[] }, 
+    {"name":"getTypeLength","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.column.Encoding",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.column.Encoding$1",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.column.Encoding$2",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.column.Encoding$5",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.column.EncodingStats",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getDataEncodings","parameterTypes":[] }, 
+    {"name":"getDictionaryEncodings","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.column.statistics.BinaryStatistics",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getMax","parameterTypes":[] }, 
+    {"name":"getMaxBytes","parameterTypes":[] }, 
+    {"name":"getMin","parameterTypes":[] }, 
+    {"name":"getMinBytes","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.column.statistics.BooleanStatistics",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getMax","parameterTypes":[] }, 
+    {"name":"getMaxBytes","parameterTypes":[] }, 
+    {"name":"getMin","parameterTypes":[] }, 
+    {"name":"getMinBytes","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.column.statistics.LongStatistics",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getMax","parameterTypes":[] }, 
+    {"name":"getMaxBytes","parameterTypes":[] }, 
+    {"name":"getMin","parameterTypes":[] }, 
+    {"name":"getMinBytes","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.column.statistics.Statistics",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[
+    {"name":"getNumNulls","parameterTypes":[] }, 
+    {"name":"isEmpty","parameterTypes":[] }, 
+    {"name":"isNumNullsSet","parameterTypes":[] }
+  ]
+},
+{
   "name":"org.apache.parquet.column.values.bitpacking.ByteBitPackingBE",
   "fields":[{"name":"factory"}]
 },
@@ -225,6 +315,205 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"org.apache.parquet.hadoop.metadata.BlockMetaData",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getColumns","parameterTypes":[] }, 
+    {"name":"getCompressedSize","parameterTypes":[] }, 
+    {"name":"getOrdinal","parameterTypes":[] }, 
+    {"name":"getPath","parameterTypes":[] }, 
+    {"name":"getRowCount","parameterTypes":[] }, 
+    {"name":"getRowIndexOffset","parameterTypes":[] }, 
+    {"name":"getStartingPos","parameterTypes":[] }, 
+    {"name":"getTotalByteSize","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.hadoop.metadata.ColumnChunkMetaData",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[
+    {"name":"getBloomFilterOffset","parameterTypes":[] }, 
+    {"name":"getCodec","parameterTypes":[] }, 
+    {"name":"getColumnIndexReference","parameterTypes":[] }, 
+    {"name":"getEncodingStats","parameterTypes":[] }, 
+    {"name":"getEncodings","parameterTypes":[] }, 
+    {"name":"getOffsetIndexReference","parameterTypes":[] }, 
+    {"name":"getPath","parameterTypes":[] }, 
+    {"name":"getPrimitiveType","parameterTypes":[] }, 
+    {"name":"getRowGroupOrdinal","parameterTypes":[] }, 
+    {"name":"getStartingPos","parameterTypes":[] }, 
+    {"name":"getType","parameterTypes":[] }, 
+    {"name":"isEncrypted","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.hadoop.metadata.ColumnPath",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.apache.parquet.hadoop.metadata.CompressionCodecName",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.hadoop.metadata.FileMetaData",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getCreatedBy","parameterTypes":[] }, 
+    {"name":"getFileDecryptor","parameterTypes":[] }, 
+    {"name":"getKeyValueMetaData","parameterTypes":[] }, 
+    {"name":"getSchema","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.hadoop.metadata.IntColumnChunkMetaData",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getDictionaryPageOffset","parameterTypes":[] }, 
+    {"name":"getFirstDataPageOffset","parameterTypes":[] }, 
+    {"name":"getStatistics","parameterTypes":[] }, 
+    {"name":"getTotalSize","parameterTypes":[] }, 
+    {"name":"getTotalUncompressedSize","parameterTypes":[] }, 
+    {"name":"getValueCount","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.hadoop.metadata.ParquetMetadata",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getBlocks","parameterTypes":[] }, 
+    {"name":"getFileMetaData","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.io.api.Binary",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"isBackingBytesReused","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.parquet.io.api.Binary$ByteArrayBackedBinary",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getBytes","parameterTypes":[] }, 
+    {"name":"getBytesUnsafe","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.schema.GroupType",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[
+    {"name":"getFieldCount","parameterTypes":[] }, 
+    {"name":"getFields","parameterTypes":[] }, 
+    {"name":"isPrimitive","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.schema.LogicalTypeAnnotation",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.LogicalTypeAnnotation$StringLogicalTypeAnnotation",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.apache.parquet.schema.MessageType",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getColumns","parameterTypes":[] }, 
+    {"name":"getPaths","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.schema.OriginalType",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.PrimitiveType",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[
+    {"name":"getDecimalMetadata","parameterTypes":[] }, 
+    {"name":"getPrimitiveTypeName","parameterTypes":[] }, 
+    {"name":"getTypeLength","parameterTypes":[] }, 
+    {"name":"isPrimitive","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.schema.PrimitiveType$PrimitiveTypeName",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.PrimitiveType$PrimitiveTypeName$1",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.PrimitiveType$PrimitiveTypeName$3",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.PrimitiveType$PrimitiveTypeName$4",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.Type",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[
+    {"name":"getId","parameterTypes":[] }, 
+    {"name":"getLogicalTypeAnnotation","parameterTypes":[] }, 
+    {"name":"getName","parameterTypes":[] }, 
+    {"name":"getOriginalType","parameterTypes":[] }, 
+    {"name":"getRepetition","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.parquet.schema.Type$ID",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.apache.parquet.schema.Type$Repetition",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.Type$Repetition$2",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.apache.parquet.schema.Type$Repetition$3",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
   "name":"picocli.CommandLine$HelpCommand",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
@@ -240,6 +529,10 @@
   "name":"pq.App$CountCommand",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"pq.App$FormatConverter",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
