@@ -82,7 +82,7 @@ final class FilterParser extends GrammarDefinition {
     .<String, Double>map(Double::parseDouble);
 
   private static final Parser STRING = QUOTE.seq(word().star()).seq(QUOTE).flatten()
-    .<String, String>map(s -> s.replace('"', ' ').trim());
+    .<String, String>map(FilterParser::unquote);
 
   private static final Parser OPERATOR = EQ.seq(EQ).or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
     .<String, Operator>map(FilterParser::toOperator);
@@ -400,5 +400,9 @@ final class FilterParser extends GrammarDefinition {
       case "||" -> Logic.OR;
       default -> throw new IllegalArgumentException("operator not supported: `" + operator + "`");
     };
+  }
+
+  private static String unquote(String value) {
+    return value.substring(1, value.length() - 1);
   }
 }
