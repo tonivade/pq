@@ -277,7 +277,35 @@ class AppTest {
   class write {
 
     @Test
-    void writeFile() throws IOException {
+    void writeFileCsv() throws IOException {
+      File schemaFile = File.createTempFile("test", ".schema");
+      Files.writeString(schemaFile.toPath(), """
+          message spark_schema {
+            optional int32 id;
+            optional binary email (STRING);
+          }
+          """, StandardCharsets.UTF_8);
+      systemIn.setInputStream(new ByteArrayInputStream("""
+          1,"ajordan0@com.com"
+          2,"afreeman1@is.gd"
+          3,"emorgan2@altervista.org"
+          """.getBytes()));
+
+      File tempFile = File.createTempFile("test", ".parquet");
+      assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), "--format", "csv", tempFile.getAbsolutePath()))
+        .isInstanceOf(AbortExecutionException.class);
+      assertThatThrownBy(() -> App.main(READ, tempFile.getAbsolutePath()))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          {"id":1,"email":"ajordan0@com.com"}
+          {"id":2,"email":"afreeman1@is.gd"}
+          {"id":3,"email":"emorgan2@altervista.org"}
+          """);
+    }
+
+    @Test
+    void writeFileJson() throws IOException {
       File schemaFile = File.createTempFile("test", ".schema");
       Files.writeString(schemaFile.toPath(), """
           message spark_schema {
