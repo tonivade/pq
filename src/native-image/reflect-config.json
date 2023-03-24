@@ -532,7 +532,7 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"pq.App$FormatConverter",
+  "name":"pq.FormatConverter",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
