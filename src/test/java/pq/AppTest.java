@@ -258,6 +258,19 @@ class AppTest {
           {"id":3,"email":"emorgan2@altervista.org"}
           """);
     }
+
+    @Test
+    void selectCsvFormat() {
+      assertThatThrownBy(() -> App.main(READ, "--select", "id,email", "--head", "3", "--format", "csv", EXAMPLE_PARQUET))
+        .isInstanceOf(AbortExecutionException.class);
+
+      assertThat(systemOut.getText()).isEqualTo("""
+          id,email
+          1,"ajordan0@com.com"
+          2,"afreeman1@is.gd"
+          3,"emorgan2@altervista.org"
+          """);
+    }
   }
 
   @Nested
