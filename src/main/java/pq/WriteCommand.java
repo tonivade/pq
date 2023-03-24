@@ -27,7 +27,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "write", description = "create a parquet file from a jsonl stream and a avro schema")
-class WriteCommand implements Runnable {
+final class WriteCommand implements Runnable {
 
   @Parameters(paramLabel = "FILE", description = "destination parquet file")
   private File file;

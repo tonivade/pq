@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "read", description = "print content of parquet file in json format")
-class ReadCommand implements Runnable {
+final class ReadCommand implements Runnable {
 
   @Option(names = "--head", description = "get the first N number of rows", paramLabel = "ROWS", defaultValue = "0")
   private int head;

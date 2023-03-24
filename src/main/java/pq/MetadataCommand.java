@@ -17,7 +17,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "metadata", description = "print metadata of parquet file")
-class MetadataCommand implements Runnable {
+final class MetadataCommand implements Runnable {
 
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;
