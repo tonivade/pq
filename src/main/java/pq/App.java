@@ -181,8 +181,9 @@ public class App {
     @Override
     public void run() {
       MessageType schema = schema(file);
-      Output output = createOutput(schema);
-      try (var reader = createJsonReader(file, parseFilter(filter, schema), createProjection(schema, select).orElse(null))) {
+      Optional<MessageType> projection = createProjection(schema, select);
+      Output output = createOutput(projection.orElse(schema));
+      try (var reader = createJsonReader(file, parseFilter(filter, schema), projection.orElse(null))) {
         if (head > 0) {
           stream(reader).skip(skip).limit(head).forEach(output::printRow);
         } else if (tail > 0) {

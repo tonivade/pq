@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
 
-class ParquetInputFile implements InputFile {
+final class ParquetInputFile implements InputFile {
 
   private static final int BUFFER_LENGTH = 4 * 1024;
 

@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import org.apache.parquet.io.OutputFile;
 import org.apache.parquet.io.PositionOutputStream;
 
-class ParquetOutputFile implements OutputFile {
+final class ParquetOutputFile implements OutputFile {
 
   private final File file;
 
