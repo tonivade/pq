@@ -91,7 +91,7 @@ final class WriteCommand implements Runnable {
     }
 
     private JsonValue convert(String value, PrimitiveTypeName primitiveTypeName) {
-      if (value == null) {
+      if (value.equals("null")) {
         return Json.NULL;
       }
       return switch (primitiveTypeName) {
