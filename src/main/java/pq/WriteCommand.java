@@ -91,6 +91,9 @@ final class WriteCommand implements Runnable {
     }
 
     private JsonValue convert(String value, PrimitiveTypeName primitiveTypeName) {
+      if (value == null) {
+        return Json.NULL;
+      }
       return switch (primitiveTypeName) {
         case INT32 -> Json.value(Integer.parseInt(value));
         case INT64 -> Json.value(Long.parseLong(value));
