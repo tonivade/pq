@@ -7,6 +7,8 @@ package pq;
 import static java.nio.file.Files.readString;
 import static java.util.stream.Collectors.joining;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +24,8 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
@@ -29,13 +33,10 @@ import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.hadoop.util.HadoopInputFile;
+import org.apache.parquet.hadoop.util.HadoopOutputFile;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
-
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonValue;
-import com.jerolba.carpet.filestream.FileSystemInputFile;
-import com.jerolba.carpet.filestream.FileSystemOutputFile;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -50,7 +51,7 @@ import pq.internal.JsonParquetWriter;
 @Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
   subcommands = { App.CountCommand.class, App.SchemaCommand.class, App.ReadCommand.class, App.MetadataCommand.class, App.WriteCommand.class, HelpCommand.class })
 public class App {
-  
+
   enum Format {
     JSON, CSV;
   }
@@ -174,7 +175,7 @@ public class App {
 
     @Option(names = "--index", description = "print row index", defaultValue = "false")
     private boolean index;
-    
+
     @Option(names = "--format", description = "output format, json or csv", defaultValue = "json", converter = FormatConverter.class)
     private Format format;
 
@@ -229,9 +230,9 @@ public class App {
     }
 
     final class CsvOutput implements Output {
-      
+
       private final List<String> columns;
-      
+
       CsvOutput(MessageType schema) {
         List<String> names = new ArrayList<>();
         for (int i = 0; i < schema.getFieldCount(); i++) {
@@ -342,19 +343,22 @@ public class App {
   }
 
   private static ParquetFileReader createFileReader(File file, Filter filter) throws IOException {
+    var inputFile = HadoopInputFile.fromPath(new Path(file.getAbsolutePath()), new Configuration());
     return new ParquetFileReader(
-        new FileSystemInputFile(file), ParquetReadOptions.builder().withRecordFilter(filter).build());
+        inputFile, ParquetReadOptions.builder().withRecordFilter(filter).build());
   }
 
   private static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
-    return JsonParquetWriter.builder(new FileSystemOutputFile(file))
+    var outputPath = HadoopOutputFile.fromPath(new Path(file.getAbsolutePath()), new Configuration());
+    return JsonParquetWriter.builder(outputPath)
         .withWriteMode(Mode.OVERWRITE)
         .withSchema(schema)
         .build();
   }
 
   private static ParquetReader<JsonValue> createJsonReader(File file, Filter filter, MessageType projection) throws IOException {
-    return JsonParquetReader.builder(new FileSystemInputFile(file))
+    var inputFile = HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path(file.getAbsolutePath()), new Configuration());
+    return JsonParquetReader.builder(inputFile)
         .withProjection(projection)
         .withFilter(filter)
         .build();
