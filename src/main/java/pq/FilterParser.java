@@ -93,12 +93,19 @@ final class FilterParser extends GrammarDefinition {
   @SuppressWarnings("unchecked")
   public FilterParser() {
     def("value", STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL));
+    def("booleanExpression", NOT.optional().seq(ID));
     def("singleExpression", ID.seq(OPERATOR).seq(ref("value")));
     def("notExpression", NOT.seq(LEFTPARENT).seq(ref("start")).seq(RIGHTPARENT));
     def("parenExpression", LEFTPARENT.seq(ref("start")).seq(RIGHTPARENT));
-    def("expression", ref("notExpression").or(ref("parenExpression")).or(ref("singleExpression")));
+    def("expression", ref("notExpression").or(ref("parenExpression")).or(ref("singleExpression")).or(ref("booleanExpression")));
     def("start", ref("expression").seq(LOGIC.seq(ref("expression")).star()));
 
+    action("booleanExpression", (List<Object> result) -> {
+      if (result.get(0) == null) {
+        return new Condition((String) result.get(1), Operator.EQUAL, true);
+      }
+      return new Condition((String) result.get(1), Operator.NOT_EQUAL, true);
+    });
     action("singleExpression", (List<Object> result) -> {
         var column = (String) result.get(0);
         var operator = (Operator) result.get(1);

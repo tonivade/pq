@@ -103,6 +103,8 @@ class FilterParserTest {
     assertThat(parser.parse("id == true").apply(schema).convert()).isEqualTo(eq(booleanColumn(ID), true));
     assertThat(parser.parse("id == null").apply(schema).convert()).isEqualTo(eq(booleanColumn(ID), null));
     assertThat(parser.parse("id != false").apply(schema).convert()).isEqualTo(notEq(booleanColumn(ID), false));
+    assertThat(parser.parse("id").apply(schema).convert()).isEqualTo(eq(booleanColumn(ID), true));
+    assertThat(parser.parse("!id").apply(schema).convert()).isEqualTo(notEq(booleanColumn(ID), true));
     assertThatThrownBy(() -> parser.parse("id > true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id < false").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> parser.parse("id >= true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
