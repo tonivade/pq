@@ -75,7 +75,7 @@ final class WriteCommand implements Runnable {
 
     final MessageType schema;
     
-    public CsvInput(MessageType schema) {
+    CsvInput(MessageType schema) {
       this.schema = requireNonNull(schema);
     }
 
@@ -91,7 +91,7 @@ final class WriteCommand implements Runnable {
     }
 
     private JsonValue convert(String value, PrimitiveTypeName primitiveTypeName) {
-      if (value.equals("null")) {
+      if (value.equals("") || value.equals("null")) {
         return Json.NULL;
       }
       return switch (primitiveTypeName) {
