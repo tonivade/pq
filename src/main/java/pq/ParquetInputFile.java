@@ -16,7 +16,7 @@ import org.apache.parquet.io.SeekableInputStream;
 
 final class ParquetInputFile implements InputFile {
 
-  private static final int BUFFER_LENGTH = 4 * 1024;
+  private static final int BUFFER_LENGTH = 8 * 1024;
 
   private final File file;
 
@@ -74,7 +74,7 @@ final class ParquetInputFile implements InputFile {
 
       @Override
       public void readFully(ByteBuffer buf) throws IOException {
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[BUFFER_LENGTH];
         while (buf.remaining() > 0) {
           int read = randomAccessFile.read(buffer, 0, Math.min(buf.remaining(), buffer.length));
           buf.put(buffer, 0, read);
