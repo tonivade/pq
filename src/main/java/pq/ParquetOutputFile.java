@@ -7,6 +7,7 @@ package pq;
 import static java.util.Objects.requireNonNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,40 +32,7 @@ final class ParquetOutputFile implements OutputFile {
 
   @Override
   public PositionOutputStream createOrOverwrite(long blockSizeHint) throws IOException {
-    return new PositionOutputStream() {
-
-      private final OutputStream output = new FileOutputStream(file);
-
-      private long count;
-
-      @Override
-      public void write(int b) throws IOException {
-        output.write(b);
-        count += 1;
-      }
-
-      @Override
-      public void write(byte[] b) throws IOException {
-        output.write(b);
-        count += b.length;
-      }
-
-      @Override
-      public void write(byte[] b, int off, int len) throws IOException {
-        output.write(b, off, len);
-        count += len;
-      }
-
-      @Override
-      public long getPos() throws IOException {
-        return count;
-      }
-
-      @Override
-      public void close() throws IOException {
-        output.close();
-      }
-    };
+    return new PositionOutputStreamImpl(file);
   }
 
   @Override
@@ -75,5 +43,44 @@ final class ParquetOutputFile implements OutputFile {
   @Override
   public long defaultBlockSize() {
     return 0;
+  }
+
+  private static final class PositionOutputStreamImpl extends PositionOutputStream {
+
+    private final OutputStream output;
+
+    private long count;
+
+    PositionOutputStreamImpl(File file) throws FileNotFoundException {
+      this.output = new FileOutputStream(file);
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      output.write(b);
+      count += 1;
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+      output.write(b);
+      count += b.length;
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+      output.write(b, off, len);
+      count += len;
+    }
+
+    @Override
+    public long getPos() throws IOException {
+      return count;
+    }
+
+    @Override
+    public void close() throws IOException {
+      output.close();
+    }
   }
 }
