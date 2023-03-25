@@ -4,15 +4,16 @@
  */
 package pq.internal;
 
-import com.eclipsesource.json.JsonValue;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
+
+import com.eclipsesource.json.JsonValue;
 
 final class JsonReadSupport extends ReadSupport<JsonValue> {
 
@@ -27,9 +28,9 @@ final class JsonReadSupport extends ReadSupport<JsonValue> {
       MessageType fileSchema, ReadContext readContext) {
     return new JsonRecordMaterializer(readContext.getRequestedSchema());
   }
-
+  
   @Override
-  public ReadContext init(Configuration configuration, Map<String, String> keyValueMetaData, MessageType fileSchema) {
-    return new ReadContext(projection != null ? projection : fileSchema, new LinkedHashMap<>());
+  public ReadContext init(InitContext context) {
+    return new ReadContext(projection != null ? projection : context.getFileSchema(), new LinkedHashMap<>());
   }
 }
