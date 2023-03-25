@@ -21,6 +21,7 @@ import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.schema.MessageType;
 
 import com.eclipsesource.json.JsonValue;
@@ -90,6 +91,7 @@ public final class App {
   static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
     return JsonParquetWriter.builder(new ParquetOutputFile(file))
         .withWriteMode(Mode.OVERWRITE)
+        .withCompressionCodec(CompressionCodecName.SNAPPY)
         .withSchema(schema)
         .build();
   }
