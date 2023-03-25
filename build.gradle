@@ -55,7 +55,7 @@ dependencies {
   implementation('org.apache.parquet:parquet-column:1.12.3')
   implementation('org.apache.parquet:parquet-hadoop:1.12.3')
   implementation('com.github.petitparser:petitparser-core:2.3.1')
-  implementation('com.github.tonivade:minimal-json:0.10.0-SNAPSHOT')
+  implementation('com.github.tonivade:minimal-json:0.10.0')
   implementation('org.apache.hadoop:hadoop-mapreduce-client-core:3.3.4') {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
