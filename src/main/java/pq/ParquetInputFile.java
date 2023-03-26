@@ -37,30 +37,30 @@ final class ParquetInputFile implements InputFile {
 
     private static final int BUFFER_LENGTH = 8 * 1024;
 
-    private final RandomAccessFile randomAccessFile;
+    private final RandomAccessFile file;
 
     SeekableInputStreamImpl(File file) throws FileNotFoundException {
-      this.randomAccessFile = new RandomAccessFile(file, "r");
+      this.file = new RandomAccessFile(file, "r");
     }
 
     @Override
     public long getPos() throws IOException {
-      return randomAccessFile.getFilePointer();
+      return file.getFilePointer();
     }
 
     @Override
     public int read() throws IOException {
-      return randomAccessFile.read();
+      return file.read();
     }
 
     @Override
     public int read(byte[] b) throws IOException {
-      return randomAccessFile.read(b);
+      return file.read(b);
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-      return randomAccessFile.read(b, off, len);
+      return file.read(b, off, len);
     }
 
     @Override
@@ -68,7 +68,7 @@ final class ParquetInputFile implements InputFile {
       int total = 0;
       byte[] buffer = new byte[BUFFER_LENGTH];
       while (buf.remaining() > 0) {
-        int read = randomAccessFile.read(buffer, 0, Math.min(buf.remaining(), buffer.length));
+        int read = file.read(buffer, 0, Math.min(buf.remaining(), buffer.length));
         buf.put(buffer, 0, read);
         total += read;
       }
@@ -77,31 +77,31 @@ final class ParquetInputFile implements InputFile {
 
     @Override
     public void readFully(byte[] bytes, int start, int len) throws IOException {
-      randomAccessFile.readFully(bytes, start, len);
+      file.readFully(bytes, start, len);
     }
 
     @Override
     public void readFully(ByteBuffer buf) throws IOException {
       byte[] buffer = new byte[BUFFER_LENGTH];
       while (buf.remaining() > 0) {
-        int read = randomAccessFile.read(buffer, 0, Math.min(buf.remaining(), buffer.length));
+        int read = file.read(buffer, 0, Math.min(buf.remaining(), buffer.length));
         buf.put(buffer, 0, read);
       }
     }
 
     @Override
     public void readFully(byte[] bytes) throws IOException {
-      randomAccessFile.readFully(bytes);
+      file.readFully(bytes);
     }
 
     @Override
     public void seek(long newPos) throws IOException {
-      randomAccessFile.seek(newPos);
+      file.seek(newPos);
     }
 
     @Override
     public void close() throws IOException {
-      randomAccessFile.close();
+      file.close();
     }
   }
 }

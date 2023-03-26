@@ -4,13 +4,13 @@
  */
 package pq;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.Nested;
@@ -278,20 +278,20 @@ class AppTest {
 
     @Test
     void writeFileCsv() throws IOException {
-      File schemaFile = File.createTempFile("test", ".schema");
+      var schemaFile = File.createTempFile("test", ".schema");
       Files.writeString(schemaFile.toPath(), """
           message spark_schema {
             optional int32 id;
             optional binary email (STRING);
           }
-          """, StandardCharsets.UTF_8);
+          """, UTF_8);
       systemIn.setInputStream(new ByteArrayInputStream("""
           1,"ajordan0@com.com"
           2,"afreeman1@is.gd"
           3,"emorgan2@altervista.org"
           """.getBytes()));
 
-      File tempFile = File.createTempFile("test", ".parquet");
+      var tempFile = File.createTempFile("test", ".parquet");
       assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), "--format", "csv", tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);
       assertThatThrownBy(() -> App.main(READ, tempFile.getAbsolutePath()))
@@ -306,20 +306,20 @@ class AppTest {
 
     @Test
     void writeFileJson() throws IOException {
-      File schemaFile = File.createTempFile("test", ".schema");
+      var schemaFile = File.createTempFile("test", ".schema");
       Files.writeString(schemaFile.toPath(), """
           message spark_schema {
             optional int32 id;
             optional binary email (STRING);
           }
-          """, StandardCharsets.UTF_8);
+          """, UTF_8);
       systemIn.setInputStream(new ByteArrayInputStream("""
           {"id":1,"email":"ajordan0@com.com"}
           {"id":2,"email":"afreeman1@is.gd"}
           {"id":3,"email":"emorgan2@altervista.org"}
           """.getBytes()));
 
-      File tempFile = File.createTempFile("test", ".parquet");
+      var tempFile = File.createTempFile("test", ".parquet");
       assertThatThrownBy(() -> App.main("write", "--schema", schemaFile.getAbsolutePath(), tempFile.getAbsolutePath()))
         .isInstanceOf(AbortExecutionException.class);
       assertThatThrownBy(() -> App.main(READ, tempFile.getAbsolutePath()))
