@@ -35,7 +35,7 @@ final class WriteCommand implements Runnable {
   @Option(names = "--schema", description = "file with schema", paramLabel = "FILE")
   private File schemaFile;
 
-  @Option(names = "--format", description = "input format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class) 
+  @Option(names = "--format", description = "input format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class)
   private Format format;
 
   @Override
@@ -73,8 +73,10 @@ final class WriteCommand implements Runnable {
 
   static final class CsvInput implements Parser {
 
+    private static final String EMPTY = "";
+
     final MessageType schema;
-    
+
     CsvInput(MessageType schema) {
       this.schema = requireNonNull(schema);
     }
@@ -91,7 +93,7 @@ final class WriteCommand implements Runnable {
     }
 
     private JsonValue convert(String value, PrimitiveTypeName primitiveTypeName) {
-      if (value.equals("") || value.equals("null")) {
+      if (value.equals(EMPTY)) {
         return Json.NULL;
       }
       return switch (primitiveTypeName) {

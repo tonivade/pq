@@ -63,7 +63,7 @@ final class ReadCommand implements Runnable {
       if (head > 0) {
         stream(reader).skip(skip).limit(head).forEach(output::printRow);
       } else if (tail > 0) {
-        ArrayDeque<Tuple> deque = new ArrayDeque<>(tail);
+        var deque = new ArrayDeque<Tuple>(tail);
         stream(reader).skip(skip).forEach(i -> {
           if (deque.size() == tail) {
             deque.removeFirst();
@@ -115,6 +115,8 @@ final class ReadCommand implements Runnable {
 
   static final class CsvOutput implements Output {
 
+    private static final String EMPTY = "";
+
     private final List<String> columns;
 
     CsvOutput(MessageType schema) {
@@ -130,7 +132,11 @@ final class ReadCommand implements Runnable {
       List<String> values = new ArrayList<>();
       for (String column : columns) {
         var value = tuple.value().asObject().get(column);
-        values.add(value.toString());
+        if (value.isNull()) {
+          values.add(EMPTY);
+        } else {
+          values.add(value.toString());
+        }
       }
       System.out.println(values.stream().collect(joining(",")));
     }
