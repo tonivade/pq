@@ -144,7 +144,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.0.0-dev-20230321_0741/graalvm-ce-java17-linux-amd64-dev.tar.gz"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230414_0206/graalvm-community-java17-linux-amd64-dev.tar.gz"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
@@ -155,7 +155,7 @@ task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
 }
 
 nativeImage {
-  graalVmHome = "${buildDir}/graalvm-ce-java17-23.0.0-dev"
+  graalVmHome = "${buildDir}/graalvm-community-openjdk-17.0.7+4.1/"
   mainClass = "pq.App"
   executableName = "pq"
   arguments(
