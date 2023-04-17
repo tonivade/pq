@@ -50,10 +50,10 @@ compileTestJava {
 }
 
 dependencies {
-  implementation('info.picocli:picocli:4.7.1')
-  implementation('org.apache.parquet:parquet-common:1.12.3')
-  implementation('org.apache.parquet:parquet-column:1.12.3')
-  implementation('org.apache.parquet:parquet-hadoop:1.12.3')
+  implementation('info.picocli:picocli:4.7.2')
+  implementation('org.apache.parquet:parquet-common:1.13.0')
+  implementation('org.apache.parquet:parquet-column:1.13.0')
+  implementation('org.apache.parquet:parquet-hadoop:1.13.0')
   implementation('com.github.petitparser:petitparser-core:2.3.1')
   implementation('com.github.tonivade:minimal-json:0.10.0')
   implementation('org.apache.hadoop:hadoop-mapreduce-client-core:3.3.5') {
@@ -120,8 +120,8 @@ dependencies {
 
   testImplementation('org.junit.jupiter:junit-jupiter-engine:5.9.2')
   testRuntimeOnly('org.junit.platform:junit-platform-runner:1.9.2')
-  testImplementation('org.mockito:mockito-core:5.2.0')
-  testImplementation('org.mockito:mockito-junit-jupiter:5.2.0')
+  testImplementation('org.mockito:mockito-core:5.3.0')
+  testImplementation('org.mockito:mockito-junit-jupiter:5.3.0')
   testImplementation('org.assertj:assertj-core:3.24.2')
   testImplementation('uk.org.webcompere:system-stubs-jupiter:2.0.2')
 }
