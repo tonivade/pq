@@ -52,5 +52,3 @@ final class ParquetIterator implements Iterator<Tuple> {
   }
 }
 
-record Tuple(long index, JsonValue value) {}
-
