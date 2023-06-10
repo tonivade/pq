@@ -25,7 +25,7 @@ java {
 
 test {
   useJUnitPlatform()
-  
+
   reports {
     html.required = true
   }
@@ -50,10 +50,10 @@ compileTestJava {
 }
 
 dependencies {
-  implementation('info.picocli:picocli:4.7.2')
-  implementation('org.apache.parquet:parquet-common:1.13.0')
-  implementation('org.apache.parquet:parquet-column:1.13.0')
-  implementation('org.apache.parquet:parquet-hadoop:1.13.0')
+  implementation('info.picocli:picocli:4.7.4')
+  implementation('org.apache.parquet:parquet-common:1.13.1')
+  implementation('org.apache.parquet:parquet-column:1.13.1')
+  implementation('org.apache.parquet:parquet-hadoop:1.13.1')
   implementation('com.github.petitparser:petitparser-core:2.3.1')
   implementation('com.github.tonivade:minimal-json:0.10.0')
   implementation('org.apache.hadoop:hadoop-mapreduce-client-core:3.3.5') {
@@ -68,7 +68,7 @@ dependencies {
     exclude group: 'javax.ws.rs', module: 'javax.ws.rs-api'
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     exclude group: 'org.slf4j', module: 'slf4j-reload4j'
-  } 
+  }
   implementation('org.apache.hadoop:hadoop-common:3.3.5') {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
@@ -116,12 +116,12 @@ dependencies {
     exclude group: 'org.apache.curator', module: 'curator-framework'
     exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
   }
-  runtimeOnly('ch.qos.logback:logback-classic:1.4.6')
+  runtimeOnly('ch.qos.logback:logback-classic:1.4.7')
 
   testImplementation('org.junit.jupiter:junit-jupiter-engine:5.9.2')
   testRuntimeOnly('org.junit.platform:junit-platform-runner:1.9.2')
-  testImplementation('org.mockito:mockito-core:5.3.0')
-  testImplementation('org.mockito:mockito-junit-jupiter:5.3.0')
+  testImplementation('org.mockito:mockito-core:5.3.1')
+  testImplementation('org.mockito:mockito-junit-jupiter:5.3.1')
   testImplementation('org.assertj:assertj-core:3.24.2')
   testImplementation('uk.org.webcompere:system-stubs-jupiter:2.0.2')
 }
@@ -144,7 +144,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230414_0206/graalvm-community-java17-linux-amd64-dev.tar.gz"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230609_0651/graalvm-community-java17-linux-amd64-dev.tar.gz"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
