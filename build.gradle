@@ -14,6 +14,7 @@ if (system.isLinux()) {
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
   project.ext.upxVersion = "amd64_linux"
   project.ext.upxExt = "tar.xz"
+  project.ext.pqPath = "../native-image/pq"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "darwin"
@@ -21,6 +22,7 @@ if (system.isLinux()) {
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/Contents/Home"
   project.ext.upxVersion = "amd64_darwin"
   project.ext.upxExt = "tar.xz"
+  project.ext.pqPath = "../native-image/pq"
 } else if (system.isWindows()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "windows"
@@ -28,6 +30,7 @@ if (system.isLinux()) {
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
   project.ext.upxVersion = "win64"
   project.ext.upxExt = "zip"
+  project.ext.pqPath = "..\native-image\pq.exe"
 }
 
 archivesBaseName = 'pq'
@@ -209,11 +212,7 @@ task extractUpx(dependsOn: downloadUpx, type: Exec) {
 
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
   workingDir "$buildDir/upx-4.0.2-${upxVersion}"
-  if (system.isWindows()) {
-    commandLine 'cmd', '/c', 'upx.exe', '--best', '../native-image/pq'
-  } else {
-    commandLine './upx', '--best', '../native-image/pq'
-  }
+  commandLine './upx', '--best', "${pqPath}"
 }
 
 installNativeImage {
