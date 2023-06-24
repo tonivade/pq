@@ -10,17 +10,17 @@ def system = org.gradle.internal.os.OperatingSystem.current()
 if (system.isLinux()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "linux"
-  project.ext.graalExt = ".tar.gz"
+  project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "darwin"
-  project.ext.graalExt = ".tar.gz"
+  project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/Contents/Home"
 } else if (system.isWindows()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "windows"
-  project.ext.graalExt = ".zip"
+  project.ext.graalExt = "zip"
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
 }
 println("$osArch")
