@@ -215,7 +215,3 @@ task compressExecutable(dependsOn: extractUpx, type: Exec) {
 installNativeImage {
   dependsOn extractGraalvm
 }
-
-nativeImage {
-  finalizedBy compressExecutable
-}

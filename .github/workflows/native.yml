@@ -30,15 +30,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Native Image linux/mac
+      - name: Native Image Linux
+        run: ./gradlew nativeImage compressExecutable
+        shell: bash
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: Native Image Macos
         run: ./gradlew nativeImage
         shell: bash
-        if: ${{ matrix.os != 'windows-latest' }}
-      - name: Native Image windows
+        if: ${{ matrix.os == 'macos-latest' }}
+      - name: Native Image Windows
         shell: cmd
         if: ${{ matrix.os == 'windows-latest' }}
         run: >-
-          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat nativeImage
+          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat nativeImage compressExecutable
       - uses: actions/upload-artifact@v2
         with:
           path: ${{ matrix.local_path }}
