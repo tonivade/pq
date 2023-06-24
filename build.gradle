@@ -6,6 +6,12 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.46.0'
 }
 
+def system = org.gradle.internal.os.OperatingSystem.current()
+project.ext.osArch = system.getArch()
+project.ext.opSystem = system.getOsPrefix()
+println("$osArch")
+println("$opSystem")
+
 archivesBaseName = 'pq'
 version = '0.1.0-SNAPSHOT'
 
@@ -144,7 +150,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230609_0651/graalvm-community-java17-linux-amd64-dev.tar.gz"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230616_1155/graalvm-community-java17-${opSystem}-${osArch}-dev.tar.gz"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
@@ -173,7 +179,7 @@ nativeImage {
 }
 
 task downloadUpx(type: Download) {
-  src "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-amd64_linux.tar.xz"
+  src "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-${osArch}_${opSystem}.tar.xz"
   dest new java.io.File(buildDir, "upx.tar.xz")
   onlyIfModified true
 }
@@ -184,7 +190,7 @@ task extractUpx(dependsOn: downloadUpx, type: Exec) {
 }
 
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
-  workingDir "$buildDir/upx-4.0.2-amd64_linux"
+  workingDir "$buildDir/upx-4.0.2-${osArch}_${opSystem}"
   commandLine './upx', '--best', '../native-image/pq'
 }
 
