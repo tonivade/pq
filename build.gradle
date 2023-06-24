@@ -7,8 +7,16 @@ plugins {
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
-project.ext.osArch = system.getArch()
-project.ext.opSystem = system.getOsPrefix()
+if (system.isLinux()) {
+  project.ext.osArch = "amd64"
+  project.ext.opSystem = "linux"
+} else if (system.isMacOsX()) {
+  project.ext.osArch = "amd64"
+  project.ext.opSystem = "linux"
+} else if (system.isWindows()) {
+  project.ext.osArch = "amd64"
+  project.ext.opSystem = "windows"
+}
 println("$osArch")
 println("$opSystem")
 
