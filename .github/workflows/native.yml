@@ -1,7 +1,5 @@
 name: Native Image
 on:
-  push:
-  pull_request:
   release:
     types: [published]
 
