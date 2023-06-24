@@ -31,7 +31,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Native Image Linux
-        run: ./gradlew nativeImage compressExecutable
+        run: ./gradlew nativeImage && ./gradlew compressExecutable
         shell: bash
         if: ${{ matrix.os == 'ubuntu-latest' }}
       - name: Native Image Macos
