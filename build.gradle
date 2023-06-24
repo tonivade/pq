@@ -10,12 +10,18 @@ def system = org.gradle.internal.os.OperatingSystem.current()
 if (system.isLinux()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "linux"
+  project.ext.graalExt = ".tar.gz"
+  project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "darwin"
+  project.ext.graalExt = ".tar.gz"
+  project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/Contents/Home"
 } else if (system.isWindows()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "windows"
+  project.ext.graalExt = ".zip"
+  project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
 }
 println("$osArch")
 println("$opSystem")
@@ -158,7 +164,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230616_1155/graalvm-community-java17-${opSystem}-${osArch}-dev.tar.gz"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230616_1155/graalvm-community-java17-${opSystem}-${osArch}-dev.${graalExt}"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
