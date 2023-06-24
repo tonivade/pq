@@ -12,7 +12,7 @@ if (system.isLinux()) {
   project.ext.opSystem = "linux"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
-  project.ext.opSystem = "linux"
+  project.ext.opSystem = "darwin"
 } else if (system.isWindows()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "windows"
