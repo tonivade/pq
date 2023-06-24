@@ -10,24 +10,25 @@ def system = org.gradle.internal.os.OperatingSystem.current()
 if (system.isLinux()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "linux"
-  project.ext.fileExt = "tar.gz"
+  project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
   project.ext.upxVersion = "amd64_linux"
+  project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "darwin"
-  project.ext.fileExt = "tar.gz"
+  project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/Contents/Home"
   project.ext.upxVersion = "amd64_darwin"
+  project.ext.upxExt = "tar.xz"
 } else if (system.isWindows()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "windows"
-  project.ext.fileExt = "zip"
+  project.ext.graalExt = "zip"
   project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
   project.ext.upxVersion = "win64"
+  project.ext.upxExt = "zip"
 }
-println("$osArch")
-println("$opSystem")
 
 archivesBaseName = 'pq'
 version = '0.1.0-SNAPSHOT'
@@ -167,7 +168,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230616_1155/graalvm-community-java17-${opSystem}-${osArch}-dev.${fileExt}"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230616_1155/graalvm-community-java17-${opSystem}-${osArch}-dev.${graalExt}"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
@@ -196,7 +197,7 @@ nativeImage {
 }
 
 task downloadUpx(type: Download) {
-  src "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-${upxVersion}.${fileExt}"
+  src "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-${upxVersion}.${upxExt}"
   dest new java.io.File(buildDir, "upx.tar.xz")
   onlyIfModified true
 }
