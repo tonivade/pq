@@ -1,7 +1,6 @@
 name: Native Image
 on:
   push:
-    branches: [ "master" ]
   pull_request:
   release:
     types: [published]
@@ -15,13 +14,13 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
         include:
           - os: macos-latest
-            uploaded_filename: pq-x86_64-apple-darwin
+            uploaded_filename: pq-darwin-amd64
             local_path: build/native-image/pq
           - os: ubuntu-latest
-            uploaded_filename: pq-x86_64-pc-linux
+            uploaded_filename: pq-linux-amd64
             local_path: build/native-image/pq
           - os: windows-latest
-            uploaded_filename: pq-x86_64-pc-win32.exe
+            uploaded_filename: pq-windows-amd64.exe
             local_path: build\native-image\pq.exe
     steps:
       - uses: actions/checkout@v3
