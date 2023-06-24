@@ -175,7 +175,7 @@ task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
 }
 
 nativeImage {
-  graalVmHome = "${buildDir}/graalvm-community-openjdk-17.0.7+4.1/"
+  graalVmHome = "${buildDir}/${graalHome}"
   mainClass = "pq.App"
   executableName = "pq"
   arguments(
