@@ -5,6 +5,8 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -24,4 +26,9 @@ jobs:
     - name: Build with Gradle
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
-        arguments: build
+        arguments: build fatJar
+    - name: Upload fatJar
+      uses: actions/upload-artifact@v3
+      with:
+        name: pq.jar
+        path: build/libs/pq-0.1.0-SNAPSHOT-all.jar
