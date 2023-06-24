@@ -7,7 +7,7 @@ on:
     types: [published]
 
 jobs:
-  unix:
+  native-image:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
