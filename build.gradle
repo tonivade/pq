@@ -3,7 +3,7 @@ plugins {
   id 'application'
   id 'de.undercouch.download' version '5.4.0'
   id 'org.mikeneck.graalvm-native-image' version '1.4.1'
-  id 'com.github.ben-manes.versions' version '0.46.0'
+  id 'com.github.ben-manes.versions' version '0.47.0'
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
@@ -80,7 +80,7 @@ dependencies {
   implementation('org.apache.parquet:parquet-hadoop:1.13.1')
   implementation('com.github.petitparser:petitparser-core:2.3.1')
   implementation('com.github.tonivade:minimal-json:0.10.0')
-  implementation('org.apache.hadoop:hadoop-mapreduce-client-core:3.3.5') {
+  implementation('org.apache.hadoop:hadoop-mapreduce-client-core:3.3.6') {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-client'
@@ -93,7 +93,7 @@ dependencies {
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     exclude group: 'org.slf4j', module: 'slf4j-reload4j'
   }
-  implementation('org.apache.hadoop:hadoop-common:3.3.5') {
+  implementation('org.apache.hadoop:hadoop-common:3.3.6') {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     exclude group: 'org.apache.kerby', module: 'kerb-core'
@@ -140,12 +140,12 @@ dependencies {
     exclude group: 'org.apache.curator', module: 'curator-framework'
     exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
   }
-  runtimeOnly('ch.qos.logback:logback-classic:1.4.7')
+  runtimeOnly('ch.qos.logback:logback-classic:1.4.8')
 
-  testImplementation('org.junit.jupiter:junit-jupiter-engine:5.9.2')
-  testRuntimeOnly('org.junit.platform:junit-platform-runner:1.9.2')
-  testImplementation('org.mockito:mockito-core:5.3.1')
-  testImplementation('org.mockito:mockito-junit-jupiter:5.3.1')
+  testImplementation('org.junit.jupiter:junit-jupiter-engine:5.10.0')
+  testRuntimeOnly('org.junit.platform:junit-platform-runner:1.10.0')
+  testImplementation('org.mockito:mockito-core:5.4.0')
+  testImplementation('org.mockito:mockito-junit-jupiter:5.4.0')
   testImplementation('org.assertj:assertj-core:3.24.2')
   testImplementation('uk.org.webcompere:system-stubs-jupiter:2.0.2')
 }
