@@ -30,8 +30,11 @@ if (system.isLinux()) {
   project.ext.upxExt = "zip"
 }
 
-archivesBaseName = 'pq'
 version = '0.1.0-SNAPSHOT'
+
+base {
+  archivesBaseName = 'pq'
+}
 
 repositories {
   mavenLocal()
