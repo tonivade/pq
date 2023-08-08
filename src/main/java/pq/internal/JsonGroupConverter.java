@@ -37,6 +37,7 @@ final class JsonGroupConverter extends GroupConverter {
     this.converters = new Converter[schema.getFieldCount()];
     for (var fieldType : schema.getFields()) {
       String fieldName = fieldType.getName();
+      int fieldIndex = schema.getFieldIndex(fieldName);
       if (fieldType.isRepetition(Repetition.REPEATED)) {
         if (fieldType.isPrimitive()) {
           var converter = switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
@@ -48,9 +49,9 @@ final class JsonGroupConverter extends GroupConverter {
             case BINARY -> stringConverter(value.addString(fieldName));
             default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
           };
-          converters[schema.getFieldIndex(fieldName)] = converter;
+          converters[fieldIndex] = converter;
         } else {
-          converters[schema.getFieldIndex(fieldName)] =
+          converters[fieldIndex] =
             new JsonGroupConverter(fieldType.asGroupType(), value.addValue(fieldName));
         }
       } else if (fieldType.isPrimitive()) {
@@ -63,15 +64,14 @@ final class JsonGroupConverter extends GroupConverter {
           case BINARY -> stringConverter(value.setString(fieldName));
           default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
         };
-        converters[schema.getFieldIndex(fieldName)] = converter;
+        converters[fieldIndex] = converter;
       } else {
         var groupType = fieldType.asGroupType();
 
         if (groupType.getLogicalTypeAnnotation() != null && groupType.getLogicalTypeAnnotation().equals(LogicalTypeAnnotation.listType())) {
-          converters[schema.getFieldIndex(fieldName)] = new JsonListConverter(groupType, value.setValue(fieldName));
+          converters[fieldIndex] = new JsonListConverter(groupType, value.setValue(fieldName));
         } else {
-          converters[schema.getFieldIndex(fieldName)] =
-              new JsonGroupConverter(groupType, value.setValue(fieldName));
+          converters[fieldIndex] = new JsonGroupConverter(groupType, value.setValue(fieldName));
         }
       }
     }
