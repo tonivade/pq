@@ -171,7 +171,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230616_1155/graalvm-community-java17-${opSystem}-${osArch}-dev.${graalExt}"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230803_2310/graalvm-community-java17-${opSystem}-${osArch}-dev.${graalExt}"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
