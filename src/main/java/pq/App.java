@@ -44,7 +44,11 @@ public final class App {
   }
 
   public static void main(String... args) {
-    System.exit(new CommandLine(new App()).execute(args));
+    System.exit(execute(args));
+  }
+
+  static int execute(String... args) {
+    return new CommandLine(new App()).execute(args);
   }
 
   static MessageType schema(File file) {

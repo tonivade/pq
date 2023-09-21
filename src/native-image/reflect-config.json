@@ -283,7 +283,9 @@
   "methods":[
     {"name":"getNumNulls","parameterTypes":[] }, 
     {"name":"isEmpty","parameterTypes":[] }, 
-    {"name":"isNumNullsSet","parameterTypes":[] }
+    {"name":"isNumNullsSet","parameterTypes":[] },
+    {"name":"getMaxBytes","parameterTypes":[] },
+    {"name":"getMinBytes","parameterTypes":[] }
   ]
 },
 {
@@ -369,7 +371,8 @@
     {"name":"getCreatedBy","parameterTypes":[] }, 
     {"name":"getFileDecryptor","parameterTypes":[] }, 
     {"name":"getKeyValueMetaData","parameterTypes":[] }, 
-    {"name":"getSchema","parameterTypes":[] }
+    {"name":"getSchema","parameterTypes":[] },
+    {"name":"getEncryptionType","parameterTypes":[] }
   ]
 },
 {
