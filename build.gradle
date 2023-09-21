@@ -200,7 +200,7 @@ nativeImage {
 }
 
 task downloadUpx(type: Download) {
-  src "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-${upxVersion}.${upxExt}"
+  src "https://github.com/upx/upx/releases/download/v4.1.0/upx-4.1.0-${upxVersion}.${upxExt}"
   dest new java.io.File(buildDir, "upx.tar.xz")
   onlyIfModified true
 }
@@ -211,7 +211,7 @@ task extractUpx(dependsOn: downloadUpx, type: Exec) {
 }
 
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
-  workingDir "$buildDir/upx-4.0.2-${upxVersion}"
+  workingDir "$buildDir/upx-4.1.0-${upxVersion}"
   commandLine './upx', '--best', '../native-image/pq'
 }
 

@@ -369,7 +369,8 @@
     {"name":"getCreatedBy","parameterTypes":[] }, 
     {"name":"getFileDecryptor","parameterTypes":[] }, 
     {"name":"getKeyValueMetaData","parameterTypes":[] }, 
-    {"name":"getSchema","parameterTypes":[] }
+    {"name":"getSchema","parameterTypes":[] },
+    {"name":"getEncryptionType","parameterTypes":[] }
   ]
 },
 {
