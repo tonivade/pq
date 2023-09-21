@@ -11,26 +11,26 @@ if (system.isLinux()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "linux"
   project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
+  project.ext.graalHome = "graalvm-community-openjdk-21+35.1/"
   project.ext.upxVersion = "amd64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "darwin"
   project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/Contents/Home"
+  project.ext.graalHome = "graalvm-community-openjdk-21+35.1/Contents/Home"
   project.ext.upxVersion = "amd64_darwin"
   project.ext.upxExt = "tar.xz"
 } else if (system.isWindows()) {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "windows"
   project.ext.graalExt = "zip"
-  project.ext.graalHome = "graalvm-community-openjdk-17.0.7+4.1/"
+  project.ext.graalHome = "graalvm-community-openjdk-21+35.1/"
   project.ext.upxVersion = "win64"
   project.ext.upxExt = "zip"
 }
 
-version = '0.1.0-SNAPSHOT'
+version = '0.2.0-SNAPSHOT'
 
 base {
   archivesBaseName = 'pq'
@@ -46,7 +46,7 @@ repositories {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
@@ -59,21 +59,21 @@ test {
 }
 
 javadoc.options {
-  addStringOption('-release', '17')
+  addStringOption('-release', '21')
 }
 
 compileJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
   options.compilerArgs << '--enable-preview'
-  options.release = 17
+  options.release = 21
 }
 
 compileTestJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
   options.compilerArgs << '--enable-preview'
-  options.release = 17
+  options.release = 21
 }
 
 dependencies {
@@ -171,7 +171,7 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/23.1.0-dev-20230803_2310/graalvm-community-java17-${opSystem}-${osArch}-dev.${graalExt}"
+  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/24.0.0-dev-20230914_1326/graalvm-community-java21-${opSystem}-${osArch}-dev.${graalExt}"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
