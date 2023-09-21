@@ -283,7 +283,9 @@
   "methods":[
     {"name":"getNumNulls","parameterTypes":[] }, 
     {"name":"isEmpty","parameterTypes":[] }, 
-    {"name":"isNumNullsSet","parameterTypes":[] }
+    {"name":"isNumNullsSet","parameterTypes":[] },
+    {"name":"getMaxBytes","parameterTypes":[] },
+    {"name":"getMinBytes","parameterTypes":[] }
   ]
 },
 {
