@@ -1,9 +1,9 @@
 plugins {
   id 'java-library'
   id 'application'
-  id 'de.undercouch.download' version '5.5.0'
-  id 'org.mikeneck.graalvm-native-image' version '1.4.1'
-  id 'com.github.ben-manes.versions' version '0.49.0'
+  alias(libs.plugins.download)
+  alias(libs.plugins.graalvmNativeImage)
+  alias(libs.plugins.versions)
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
@@ -63,25 +63,22 @@ javadoc.options {
 compileJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
-  options.compilerArgs << '--enable-preview'
   options.release = 21
 }
 
 compileTestJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
-  options.compilerArgs << '--enable-preview'
   options.release = 21
 }
 
 dependencies {
-  implementation('info.picocli:picocli:4.7.5')
-  implementation('org.apache.parquet:parquet-common:1.13.1')
-  implementation('org.apache.parquet:parquet-column:1.13.1')
-  implementation('org.apache.parquet:parquet-hadoop:1.13.1')
-  implementation('com.github.petitparser:petitparser-core:2.3.1')
-  implementation('com.github.tonivade:minimal-json:0.10.0')
-  implementation('org.apache.hadoop:hadoop-mapreduce-client-core:3.3.6') {
+  implementation(libs.picocli)
+  implementation(libs.parquetColumn)
+  implementation(libs.parquetHadoop)
+  implementation(libs.petitparser)
+  implementation(libs.minimalJson)
+  implementation(libs.hadoopMapreduceClient) {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-client'
@@ -94,7 +91,7 @@ dependencies {
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     exclude group: 'org.slf4j', module: 'slf4j-reload4j'
   }
-  implementation('org.apache.hadoop:hadoop-common:3.3.6') {
+  implementation(libs.hadoopCommon) {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     exclude group: 'org.apache.kerby', module: 'kerb-core'
@@ -141,14 +138,14 @@ dependencies {
     exclude group: 'org.apache.curator', module: 'curator-framework'
     exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
   }
-  runtimeOnly('ch.qos.logback:logback-classic:1.4.11')
+  runtimeOnly(libs.logbackClassic)
 
-  testImplementation('org.junit.jupiter:junit-jupiter-engine:5.10.1')
-  testRuntimeOnly('org.junit.platform:junit-platform-runner:1.10.1')
-  testImplementation('org.mockito:mockito-core:5.7.0')
-  testImplementation('org.mockito:mockito-junit-jupiter:5.7.0')
-  testImplementation('org.assertj:assertj-core:3.24.2')
-  testImplementation('uk.org.webcompere:system-stubs-jupiter:2.1.4')
+  testImplementation(libs.junitJupiter)
+  testRuntimeOnly(libs.junitRunner)
+  testImplementation(libs.mockitoCore)
+  testImplementation(libs.mockitoJunit)
+  testImplementation(libs.assertj)
+  testImplementation(libs.systemStubs)
 }
 
 application {
