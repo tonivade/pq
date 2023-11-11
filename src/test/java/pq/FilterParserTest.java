@@ -28,6 +28,7 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
 import static org.apache.parquet.schema.Type.Repetition.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.util.List;
 
 import org.apache.parquet.filter2.predicate.FilterPredicate;
@@ -53,9 +54,9 @@ class FilterParserTest {
     assertThat(parser.parse("id != 1").apply(schema).convert()).isEqualTo(notEq(intColumn(ID), 1));
     assertThat(parser.parse("id >= 1").apply(schema).convert()).isEqualTo(gtEq(intColumn(ID), 1));
     assertThat(parser.parse("id <= 1").apply(schema).convert()).isEqualTo(ltEq(intColumn(ID), 1));
-    assertThatThrownBy(() -> parser.parse("id == 1.").apply(schema).convert()).isInstanceOf(ClassCastException.class);
-    assertThatThrownBy(() -> parser.parse("id == true").apply(schema).convert()).isInstanceOf(ClassCastException.class);
-    assertThatThrownBy(() -> parser.parse("id == \"\"").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("id == 1.").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id == true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id == \"\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -68,9 +69,9 @@ class FilterParserTest {
     assertThat(parser.parse("id != 1").apply(schema).convert()).isEqualTo(notEq(longColumn(ID), 1L));
     assertThat(parser.parse("id >= 1").apply(schema).convert()).isEqualTo(gtEq(longColumn(ID), 1L));
     assertThat(parser.parse("id <= 1").apply(schema).convert()).isEqualTo(ltEq(longColumn(ID), 1L));
-    assertThatThrownBy(() -> parser.parse("id == 1.").apply(schema).convert()).isInstanceOf(ClassCastException.class);
-    assertThatThrownBy(() -> parser.parse("id == true").apply(schema).convert()).isInstanceOf(ClassCastException.class);
-    assertThatThrownBy(() -> parser.parse("id == \"\"").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("id == 1.").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id == true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("id == \"\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -135,9 +136,9 @@ class FilterParserTest {
     assertThat(parser.parse("inner.id != 1").apply(schema).convert()).isEqualTo(notEq(intColumn("inner." + ID), 1));
     assertThat(parser.parse("inner.id >= 1").apply(schema).convert()).isEqualTo(gtEq(intColumn("inner." + ID), 1));
     assertThat(parser.parse("inner.id <= 1").apply(schema).convert()).isEqualTo(ltEq(intColumn("inner." + ID), 1));
-    assertThatThrownBy(() -> parser.parse("inner.id == 1.").apply(schema).convert()).isInstanceOf(ClassCastException.class);
-    assertThatThrownBy(() -> parser.parse("inner.id == true").apply(schema).convert()).isInstanceOf(ClassCastException.class);
-    assertThatThrownBy(() -> parser.parse("inner.id == \"\"").apply(schema).convert()).isInstanceOf(ClassCastException.class);
+    assertThatThrownBy(() -> parser.parse("inner.id == 1.").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("inner.id == true").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> parser.parse("inner.id == \"\"").apply(schema).convert()).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test

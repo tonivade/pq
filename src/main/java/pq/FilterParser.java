@@ -306,39 +306,57 @@ final class FilterParser extends GrammarDefinition {
   }
 
   private static String asString(Object value) {
-    return (String) value;
+    return switch (value) {
+      case null -> null;
+      case String s -> s;
+      default -> throw new IllegalArgumentException("cannot cast value to string: " + value);
+    };
   }
 
   private static Boolean asBoolean(Object value) {
-    return (Boolean) value;
-  }
-
-  private static Double asDouble(Object value) {
-    return (Double) value;
-  }
-
-  private static Long asLong(Object value) {
-    return (Long) value;
-  }
-
-  private static Integer asInt(Object value) {
-    if (value == null) {
-      return null;
-    }
-    return ((Long) value).intValue();
+    return switch (value) {
+      case null -> null;
+      case Boolean b -> b;
+      default -> throw new IllegalArgumentException("cannot cast value to boolean: " + value);
+    };
   }
 
   private static Float asFloat(Object value) {
-    if (value == null) {
-      return null;
-    }
-    return ((Double) value).floatValue();
+    return switch (value) {
+      case null -> null;
+      case Double d -> d.floatValue();
+      default -> throw new IllegalArgumentException("cannot cast value to float: " + value);
+    };
+  }
+
+  private static Double asDouble(Object value) {
+    return switch (value) {
+      case null -> null;
+      case Double d -> d;
+      default -> throw new IllegalArgumentException("cannot cast value to double: " + value);
+    };
+  }
+
+  private static Long asLong(Object value) {
+    return switch (value) {
+      case null -> null;
+      case Long l -> l;
+      default -> throw new IllegalArgumentException("cannot cast value to long: " + value);
+    };
+  }
+
+  private static Integer asInt(Object value) {
+    return switch (value) {
+      case null -> null;
+      case Long l -> l.intValue();
+      default -> throw new IllegalArgumentException("cannot cast value to integer: " + value);
+    };
   }
 
   private static Binary asBinary(String value) {
-    if (value == null) {
-      return null;
-    }
-    return Binary.fromString(value);
+    return switch (value) {
+      case null -> null;
+      default -> Binary.fromString(value);
+    };
   }
 }
