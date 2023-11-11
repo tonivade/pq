@@ -150,73 +150,43 @@ final class FilterParser extends GrammarDefinition {
 
     default TypedExpr apply(MessageType schema) {
       return switch(this) {
-      case Condition(var column, var operator, var value) -> {
-        String[] path = column.split("\\.");
-        if (!schema.containsPath(path)) {
-          throw new IllegalArgumentException("field not exists: " + column);
+        case Condition(var column, var operator, var value) -> {
+          String[] path = column.split("\\.");
+          if (!schema.containsPath(path)) {
+            throw new IllegalArgumentException("field not exists: " + column);
+          }
+
+          var columnDescription = schema.getColumnDescription(path);
+
+          yield switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
+            case INT32 -> new IntCondition(column, operator, asInt(value));
+            case INT64 -> new LongCondition(column, operator, asLong(value));
+            case FLOAT -> new FloatCondition(column, operator, asFloat(value));
+            case DOUBLE -> new DoubleCondition(column, operator, asDouble(value));
+            case BOOLEAN -> new BooleanCondition(column, operator, asBoolean(value));
+            case BINARY -> new StringCondition(column, operator, asString(value));
+            default -> throw new IllegalArgumentException("not supported: " + columnDescription);
+          };
         }
-
-        var columnDescription = schema.getColumnDescription(path);
-
-        yield switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
-          case INT32 -> new IntCondition(column, operator, asInt(value));
-          case INT64 -> new LongCondition(column, operator, asLong(value));
-          case FLOAT -> new FloatCondition(column, operator, asFloat(value));
-          case DOUBLE -> new DoubleCondition(column, operator, asDouble(value));
-          case BOOLEAN -> new BooleanCondition(column, operator, asBoolean(value));
-          case BINARY -> new StringCondition(column, operator, asString(value));
-          default -> throw new IllegalArgumentException("not supported: " + columnDescription);
-        };
-      }
-      case Expression(var left, var operator, var right) -> 
-        new TypedExpression(left.apply(schema), operator, right.apply(schema));
-      case NotExpression(var inner) -> new TypedNotExpression(inner.apply(schema));
-      case NullExpression ignore -> new TypedNullExpression();
+        case Expression(var left, var operator, var right) ->
+          new TypedExpression(left.apply(schema), operator, right.apply(schema));
+        case NotExpression(var inner) -> new TypedNotExpression(inner.apply(schema));
+        case NullExpression ignore -> new TypedNullExpression();
       };
     }
 
     default Set<String> columns() {
       return switch(this) {
-      case Condition(var column, var operator, var value) -> Set.of(column);
-      case Expression(var left, var operator, var right) -> {
-        Set<String> columns = new HashSet<>();
-        columns.addAll(left.columns());
-        columns.addAll(right.columns());
-        yield Set.copyOf(columns);
-      }
-      case NotExpression(var inner) -> inner.columns();
-      case NullExpression ignore -> Set.of();
+        case Condition(var column, var operator, var value) -> Set.of(column);
+        case Expression(var left, var operator, var right) -> {
+          Set<String> columns = new HashSet<>();
+          columns.addAll(left.columns());
+          columns.addAll(right.columns());
+          yield Set.copyOf(columns);
+        }
+        case NotExpression(var inner) -> inner.columns();
+        case NullExpression ignore -> Set.of();
       };
-    }
-
-    private static String asString(Object value) {
-      return (String) value;
-    }
-
-    private static Boolean asBoolean(Object value) {
-      return (Boolean) value;
-    }
-
-    private static Double asDouble(Object value) {
-      return (Double) value;
-    }
-
-    private static Long asLong(Object value) {
-      return (Long) value;
-    }
-
-    private static Integer asInt(Object value) {
-      if (value == null) {
-        return null;
-      }
-      return ((Long) value).intValue();
-    }
-
-    private static Float asFloat(Object value) {
-      if (value == null) {
-        return null;
-      }
-      return ((Double) value).floatValue();
     }
   }
 
@@ -234,73 +204,62 @@ final class FilterParser extends GrammarDefinition {
 
     default FilterPredicate convert() {
       return switch(this) {
-      case IntCondition(var column, var operator, var value) -> {
-        yield switch (operator) {
-          case EQUAL -> eq(intColumn(column), value);
-          case NOT_EQUAL -> notEq(intColumn(column), value);
-          case GREATER_THAN -> gt(intColumn(column), value);
-          case LOWER_THAN -> lt(intColumn(column), value);
-          case GREATER_THAN_EQUAL -> gtEq(intColumn(column), value);
-          case LOWER_THAN_EQUAL -> ltEq(intColumn(column), value);
-        };
-      }
-      case LongCondition(var column, var operator, var value) -> {
-        yield switch (operator) {
-          case EQUAL -> eq(longColumn(column), value);
-          case NOT_EQUAL -> notEq(longColumn(column), value);
-          case GREATER_THAN -> gt(longColumn(column), value);
-          case LOWER_THAN -> lt(longColumn(column), value);
-          case GREATER_THAN_EQUAL -> gtEq(longColumn(column), value);
-          case LOWER_THAN_EQUAL -> ltEq(longColumn(column), value);
-        };
-      }
-      case FloatCondition(var column, var operator, var value) -> {
-        yield switch (operator) {
-          case EQUAL -> eq(floatColumn(column), value);
-          case NOT_EQUAL -> notEq(floatColumn(column), value);
-          case GREATER_THAN -> gt(floatColumn(column), value);
-          case LOWER_THAN -> lt(floatColumn(column), value);
-          case GREATER_THAN_EQUAL -> gtEq(floatColumn(column), value);
-          case LOWER_THAN_EQUAL -> ltEq(floatColumn(column), value);
-        };
-      }
-      case DoubleCondition(var column, var operator, var value) -> {
-        yield switch (operator) {
-          case EQUAL -> eq(doubleColumn(column), value);
-          case NOT_EQUAL -> notEq(doubleColumn(column), value);
-          case GREATER_THAN -> gt(doubleColumn(column), value);
-          case LOWER_THAN -> lt(doubleColumn(column), value);
-          case GREATER_THAN_EQUAL -> gtEq(doubleColumn(column), value);
-          case LOWER_THAN_EQUAL -> ltEq(doubleColumn(column), value);
-        };
-      }
-      case BooleanCondition(var column, var operator, var value) -> {
-        yield switch (operator) {
-          case EQUAL -> eq(booleanColumn(column), value);
-          case NOT_EQUAL -> notEq(booleanColumn(column), value);
-          default -> throw new IllegalArgumentException();
-        };
-      }
-      case StringCondition(var column, var operator, var value) -> {
-        yield switch (operator) {
-          case EQUAL -> eq(binaryColumn(column), asBinary(value));
-          case NOT_EQUAL -> notEq(binaryColumn(column), asBinary(value));
-          default -> throw new IllegalArgumentException();
-        };
-      }
-      case TypedExpression(var left, var operator, var right) -> {
-        yield switch (operator) {
-          case AND -> and(left.convert(), right.convert());
-          case OR -> or(left.convert(), right.convert());
-        };
-      }
-      case TypedNotExpression(var inner) -> FilterApi.not(inner.convert());
-      case TypedNullExpression ignore -> null;
+        case IntCondition(var column, var operator, var value) ->
+          switch (operator) {
+            case EQUAL -> eq(intColumn(column), value);
+            case NOT_EQUAL -> notEq(intColumn(column), value);
+            case GREATER_THAN -> gt(intColumn(column), value);
+            case LOWER_THAN -> lt(intColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(intColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(intColumn(column), value);
+          };
+        case LongCondition(var column, var operator, var value) ->
+          switch (operator) {
+            case EQUAL -> eq(longColumn(column), value);
+            case NOT_EQUAL -> notEq(longColumn(column), value);
+            case GREATER_THAN -> gt(longColumn(column), value);
+            case LOWER_THAN -> lt(longColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(longColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(longColumn(column), value);
+          };
+        case FloatCondition(var column, var operator, var value) ->
+          switch (operator) {
+            case EQUAL -> eq(floatColumn(column), value);
+            case NOT_EQUAL -> notEq(floatColumn(column), value);
+            case GREATER_THAN -> gt(floatColumn(column), value);
+            case LOWER_THAN -> lt(floatColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(floatColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(floatColumn(column), value);
+          };
+        case DoubleCondition(var column, var operator, var value) ->
+          switch (operator) {
+            case EQUAL -> eq(doubleColumn(column), value);
+            case NOT_EQUAL -> notEq(doubleColumn(column), value);
+            case GREATER_THAN -> gt(doubleColumn(column), value);
+            case LOWER_THAN -> lt(doubleColumn(column), value);
+            case GREATER_THAN_EQUAL -> gtEq(doubleColumn(column), value);
+            case LOWER_THAN_EQUAL -> ltEq(doubleColumn(column), value);
+          };
+        case BooleanCondition(var column, var operator, var value) ->
+          switch (operator) {
+            case EQUAL -> eq(booleanColumn(column), value);
+            case NOT_EQUAL -> notEq(booleanColumn(column), value);
+            default -> throw new IllegalArgumentException();
+          };
+        case StringCondition(var column, var operator, var value) ->
+          switch (operator) {
+            case EQUAL -> eq(binaryColumn(column), asBinary(value));
+            case NOT_EQUAL -> notEq(binaryColumn(column), asBinary(value));
+            default -> throw new IllegalArgumentException();
+          };
+        case TypedExpression(var left, var operator, var right) ->
+          switch (operator) {
+            case AND -> and(left.convert(), right.convert());
+            case OR -> or(left.convert(), right.convert());
+          };
+        case TypedNotExpression(var inner) -> FilterApi.not(inner.convert());
+        case TypedNullExpression ignore -> null;
       };
-    }
-
-    private static Binary asBinary(String value) {
-      return value != null ? Binary.fromString(value) : null;
     }
   }
 
@@ -344,5 +303,42 @@ final class FilterParser extends GrammarDefinition {
 
   private static String unquote(String value) {
     return value.substring(1, value.length() - 1);
+  }
+
+  private static String asString(Object value) {
+    return (String) value;
+  }
+
+  private static Boolean asBoolean(Object value) {
+    return (Boolean) value;
+  }
+
+  private static Double asDouble(Object value) {
+    return (Double) value;
+  }
+
+  private static Long asLong(Object value) {
+    return (Long) value;
+  }
+
+  private static Integer asInt(Object value) {
+    if (value == null) {
+      return null;
+    }
+    return ((Long) value).intValue();
+  }
+
+  private static Float asFloat(Object value) {
+    if (value == null) {
+      return null;
+    }
+    return ((Double) value).floatValue();
+  }
+
+  private static Binary asBinary(String value) {
+    if (value == null) {
+      return null;
+    }
+    return Binary.fromString(value);
   }
 }
