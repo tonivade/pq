@@ -53,6 +53,14 @@ import pq.FilterParser.TypedExpr.TypedNullExpression;
 
 final class FilterParser extends GrammarDefinition {
 
+  private static final String START = "start";
+  private static final String EXPRESSION = "expression";
+  private static final String PAREN_EXPRESSION = "parenExpression";
+  private static final String NOT_EXPRESSION = "notExpression";
+  private static final String SINGLE_EXPRESSION = "singleExpression";
+  private static final String BOOLEAN_EXPRESSION = "booleanExpression";
+  private static final String VALUE = "value";
+  
   private static final CharacterParser NOT = CharacterParser.of('!');
   private static final CharacterParser LEFTPARENT = CharacterParser.of('(');
   private static final CharacterParser RIGHTPARENT = CharacterParser.of(')');
@@ -68,7 +76,6 @@ final class FilterParser extends GrammarDefinition {
 
   private static final Parser FALSE = StringParser.of("false");
   private static final Parser TRUE = StringParser.of("true");
-
   private static final Parser NULL = StringParser.of("null").map(x -> null);
 
   private static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
@@ -93,34 +100,34 @@ final class FilterParser extends GrammarDefinition {
 
   @SuppressWarnings("unchecked")
   public FilterParser() {
-    def("value", STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL));
-    def("booleanExpression", NOT.optional().seq(ID));
-    def("singleExpression", ID.seq(OPERATOR).seq(ref("value")));
-    def("notExpression", NOT.seq(LEFTPARENT).seq(ref("start")).seq(RIGHTPARENT));
-    def("parenExpression", LEFTPARENT.seq(ref("start")).seq(RIGHTPARENT));
-    def("expression", ref("notExpression").or(ref("parenExpression")).or(ref("singleExpression")).or(ref("booleanExpression")));
-    def("start", ref("expression").seq(LOGIC.seq(ref("expression")).star()));
+    def(VALUE, STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL));
+    def(BOOLEAN_EXPRESSION, NOT.optional().seq(ID));
+    def(SINGLE_EXPRESSION, ID.seq(OPERATOR).seq(ref(VALUE)));
+    def(NOT_EXPRESSION, NOT.seq(LEFTPARENT).seq(ref(START)).seq(RIGHTPARENT));
+    def(PAREN_EXPRESSION, LEFTPARENT.seq(ref(START)).seq(RIGHTPARENT));
+    def(EXPRESSION, ref(NOT_EXPRESSION).or(ref(PAREN_EXPRESSION)).or(ref(SINGLE_EXPRESSION)).or(ref(BOOLEAN_EXPRESSION)));
+    def(START, ref(EXPRESSION).seq(LOGIC.seq(ref(EXPRESSION)).star()));
 
-    action("booleanExpression", (List<Object> result) -> {
+    action(BOOLEAN_EXPRESSION, (List<Object> result) -> {
       if (result.get(0) == null) {
         return new Condition((String) result.get(1), Operator.EQUAL, true);
       }
       return new Condition((String) result.get(1), Operator.NOT_EQUAL, true);
     });
-    action("singleExpression", (List<Object> result) -> {
+    action(SINGLE_EXPRESSION, (List<Object> result) -> {
         var column = (String) result.get(0);
         var operator = (Operator) result.get(1);
         var value = result.get(2);
         return new Condition(column, operator, value);
       });
-    action("notExpression", (List<Object> result) -> {
+    action(NOT_EXPRESSION, (List<Object> result) -> {
         Expr inner = (Expr) result.get(2);
         return new NotExpression(inner);
       });
-    action("parenExpression", (List<Object> result) -> {
+    action(PAREN_EXPRESSION, (List<Object> result) -> {
         return result.get(1);
       });
-    action("start", (List<Object> result) -> {
+    action(START, (List<Object> result) -> {
         var first = (Expr) result.get(0);
         var second = (List<List<Object>>) result.get(1);
         return reduce(first, second);
@@ -178,15 +185,16 @@ final class FilterParser extends GrammarDefinition {
     default Set<String> columns() {
       return switch(this) {
         case Condition(var column, var operator, var value) -> Set.of(column);
-        case Expression(var left, var operator, var right) -> {
-          Set<String> columns = new HashSet<>();
-          columns.addAll(left.columns());
-          columns.addAll(right.columns());
-          yield Set.copyOf(columns);
-        }
+        case Expression(var left, var operator, var right) -> merge(left.columns(), right.columns());
         case NotExpression(var inner) -> inner.columns();
         case NullExpression ignore -> Set.of();
       };
+    }
+
+    private static Set<String> merge(Set<String> left, Set<String> right) {
+      Set<String> columns = new HashSet<>(left);
+      columns.addAll(right);
+      return Set.copyOf(columns);
     }
   }
 
