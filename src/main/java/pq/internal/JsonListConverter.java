@@ -59,5 +59,4 @@ final class JsonListConverter extends GroupConverter {
   public void end() {
     value.accept(consumer);
   }
-
 }
