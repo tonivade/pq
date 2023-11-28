@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.GroupType;
+import org.apache.parquet.schema.PrimitiveType;
 
 final class JsonListConverter extends GroupConverter {
 
@@ -31,18 +32,22 @@ final class JsonListConverter extends GroupConverter {
 
     var fieldType = schema.getFields().get(0);
     if (fieldType.isPrimitive()) {
-      this.converter = switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
-        case INT32 -> intConverter(value.addInt());
-        case INT64 -> longConverter(value.addLong());
-        case FLOAT -> floatConverter(value.addFloat());
-        case DOUBLE -> doubleConverter(value.addDouble());
-        case BOOLEAN -> booleanConverter(value.addBoolean());
-        case BINARY -> stringConverter(value.addString());
-        default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
-      };
+      this.converter = buildPrimitiveConverter(fieldType.asPrimitiveType());
     } else {
       this.converter = new JsonGroupConverter(schema.getFields().get(0).asGroupType(), value.addValue());
     }
+  }
+
+  private Converter buildPrimitiveConverter(PrimitiveType fieldType) {
+    return switch (fieldType.getPrimitiveTypeName()) {
+      case INT32 -> intConverter(value.addInt());
+      case INT64 -> longConverter(value.addLong());
+      case FLOAT -> floatConverter(value.addFloat());
+      case DOUBLE -> doubleConverter(value.addDouble());
+      case BOOLEAN -> booleanConverter(value.addBoolean());
+      case BINARY -> stringConverter(value.addString());
+      default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
+    };
   }
 
   @Override
