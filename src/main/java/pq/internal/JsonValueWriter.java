@@ -6,6 +6,7 @@ package pq.internal;
 
 import static java.util.Objects.requireNonNull;
 
+import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 
 import org.apache.parquet.io.api.Binary;
@@ -26,32 +27,36 @@ final class JsonValueWriter {
     if (value.isNull()) {
       // nothing to do
     } else if (value.isObject()) {
-      for (var fieldType : schema.getFields()) {
-        if (fieldType.isPrimitive()) {
-          String fieldName = fieldType.getName();
-          JsonValue fieldValue = value.asObject().get(fieldName);
-          if (fieldValue.isNull()) {
-            continue;
-          }
-          switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
-            case INT32 -> writeInt(fieldName, fieldValue.asInt());
-            case INT64 -> writeLong(fieldName, fieldValue.asLong());
-            case FLOAT -> writeFloat(fieldName, fieldValue.asFloat());
-            case DOUBLE -> writeDouble(fieldName, fieldValue.asDouble());
-            case BOOLEAN -> writeBoolean(fieldName, fieldValue.asBoolean());
-            case BINARY -> writeString(fieldName, fieldValue.asString());
-            default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
-          }
-        } else {
-          // TODO
-          throw new UnsupportedOperationException();
-        }
-      }
+      writeObject(value.asObject());
     } else if (value.isArray()) {
       // TODO
       throw new UnsupportedOperationException();
     } else {
       throw new UnsupportedOperationException();
+    }
+  }
+
+  private void writeObject(JsonObject value) {
+    for (var fieldType : schema.getFields()) {
+      if (fieldType.isPrimitive()) {
+        String fieldName = fieldType.getName();
+        JsonValue fieldValue = value.get(fieldName);
+        if (fieldValue.isNull()) {
+          continue;
+        }
+        switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
+          case INT32 -> writeInt(fieldName, fieldValue.asInt());
+          case INT64 -> writeLong(fieldName, fieldValue.asLong());
+          case FLOAT -> writeFloat(fieldName, fieldValue.asFloat());
+          case DOUBLE -> writeDouble(fieldName, fieldValue.asDouble());
+          case BOOLEAN -> writeBoolean(fieldName, fieldValue.asBoolean());
+          case BINARY -> writeString(fieldName, fieldValue.asString());
+          default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
+        }
+      } else {
+        // TODO
+        throw new UnsupportedOperationException();
+      }
     }
   }
 

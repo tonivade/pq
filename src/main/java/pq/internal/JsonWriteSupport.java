@@ -46,5 +46,4 @@ final class JsonWriteSupport extends WriteSupport<JsonValue> {
   public void write(JsonValue value) {
     writer.write(value);
   }
-
 }

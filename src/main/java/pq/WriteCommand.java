@@ -26,13 +26,13 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "write", description = "create a parquet file from a jsonl stream and a avro schema")
+@Command(name = "write", description = "create a parquet file from a jsonl stream and a schema")
 final class WriteCommand implements Runnable {
 
   @Parameters(paramLabel = "FILE", description = "destination parquet file")
   private File file;
 
-  @Option(names = "--schema", description = "file with schema", paramLabel = "FILE")
+  @Option(names = "--schema", description = "file with schema definition", paramLabel = "FILE")
   private File schemaFile;
 
   @Option(names = "--format", description = "input format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class)
@@ -119,7 +119,7 @@ final class WriteCommand implements Runnable {
     return MessageTypeParser.parseMessageType(readString(schemaFile.toPath()));
   }
 
-  void write(ParquetWriter<JsonValue> output, JsonValue value) {
+  private void write(ParquetWriter<JsonValue> output, JsonValue value) {
     try {
       output.write(value);
     } catch (IOException e) {
