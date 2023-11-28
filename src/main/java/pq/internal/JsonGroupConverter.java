@@ -21,6 +21,7 @@ import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 
 final class JsonGroupConverter extends GroupConverter {
@@ -37,25 +38,8 @@ final class JsonGroupConverter extends GroupConverter {
     this.consumer = requireNonNull(consumer);
     this.converters = new Converter[schema.getFieldCount()];
     for (var fieldType : schema.getFields()) {
-      var fieldName = fieldType.getName();
-      int fieldIndex = schema.getFieldIndex(fieldName);
-      if (fieldType.isRepetition(Repetition.REPEATED)) {
-        if (fieldType.isPrimitive()) {
-          converters[fieldIndex] = buildPrimitiveArrayConverter(fieldType.asPrimitiveType(), fieldName);
-        } else {
-          var groupType = fieldType.asGroupType();
-          converters[fieldIndex] = new JsonGroupConverter(groupType, value.addValue(fieldName));
-        }
-      } else if (fieldType.isPrimitive()) {
-        converters[fieldIndex] = buildPrimitiveConverter(fieldType.asPrimitiveType(), fieldName);
-      } else {
-        var groupType = fieldType.asGroupType();
-        if (groupType.getLogicalTypeAnnotation() != null && groupType.getLogicalTypeAnnotation().equals(LogicalTypeAnnotation.listType())) {
-          converters[fieldIndex] = new JsonListConverter(groupType, value.setValue(fieldName));
-        } else {
-          converters[fieldIndex] = new JsonGroupConverter(groupType, value.setValue(fieldName));
-        }
-      }
+      int fieldIndex = schema.getFieldIndex(fieldType.getName());
+      converters[fieldIndex] = buildConverter(fieldType);
     }
   }
 
@@ -72,6 +56,26 @@ final class JsonGroupConverter extends GroupConverter {
   @Override
   public void end() {
     value.accept(consumer);
+  }
+  
+  private Converter buildConverter(Type fieldType) {
+    var fieldName = fieldType.getName();
+    if (fieldType.isRepetition(Repetition.REPEATED)) {
+      if (fieldType.isPrimitive()) {
+        return buildPrimitiveArrayConverter(fieldType.asPrimitiveType(), fieldName);
+      }
+      var groupType = fieldType.asGroupType();
+      return new JsonGroupConverter(groupType, value.addValue(fieldName));
+    } else if (fieldType.isPrimitive()) {
+      return buildPrimitiveConverter(fieldType.asPrimitiveType(), fieldName);
+    }
+    // group type
+    var groupType = fieldType.asGroupType();
+    if (groupType.getLogicalTypeAnnotation() != null 
+        && groupType.getLogicalTypeAnnotation().equals(LogicalTypeAnnotation.listType())) {
+      return new JsonListConverter(groupType, value.setValue(fieldName));
+    }
+    return new JsonGroupConverter(groupType, value.setValue(fieldName));
   }
 
   private Converter buildPrimitiveConverter(PrimitiveType fieldType, String fieldName) {
