@@ -188,6 +188,7 @@ nativeImage {
   mainClass = "pq.App"
   executableName = "pq"
   arguments(
+          '-J-XX:MaxRAMPercentage=80.0',
           '--verbose',
           '--report-unsupported-elements-at-runtime',
           '--no-fallback',
