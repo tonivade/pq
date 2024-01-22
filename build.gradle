@@ -7,12 +7,19 @@ plugins {
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
-if (system.isLinux()) {
+if (system.getNativePrefix() == "linux-amd64") {
   project.ext.osArch = "amd64"
   project.ext.opSystem = "linux"
   project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm-community-openjdk-21.0.1+12.1/"
   project.ext.upxArch = "amd64_linux"
+  project.ext.upxExt = "tar.xz"
+} else if (system.getNativePrefix() == "linux-aarch64") {
+  project.ext.osArch = "aarch64"
+  project.ext.opSystem = "linux"
+  project.ext.graalExt = "tar.gz"
+  project.ext.graalHome = "graalvm-community-openjdk-21.0.1+12.1/"
+  project.ext.upxArch = "arm64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX()) {
   project.ext.osArch = "amd64"
