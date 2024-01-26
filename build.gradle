@@ -85,6 +85,8 @@ dependencies {
   implementation(libs.parquetHadoop)
   implementation(libs.petitparser)
   implementation(libs.minimalJson)
+  // force version of snappy
+  implementation(libs.snappy)
   implementation(libs.hadoopMapreduceClient) {
     exclude group: 'org.apache.avro', module: 'avro'
     exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
