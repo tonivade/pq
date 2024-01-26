@@ -8,31 +8,31 @@ plugins {
 
 def system = org.gradle.internal.os.OperatingSystem.current()
 if (system.getNativePrefix() == "linux-amd64") {
-  project.ext.osArch = "amd64"
+  project.ext.osArch = "x64"
   project.ext.opSystem = "linux"
   project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm-community-openjdk-21.0.1+12.1/"
+  project.ext.graalHome = "graalvm"
   project.ext.upxArch = "amd64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.getNativePrefix() == "linux-aarch64") {
   project.ext.osArch = "aarch64"
   project.ext.opSystem = "linux"
   project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm-community-openjdk-21.0.1+12.1/"
+  project.ext.graalHome = "graalvm"
   project.ext.upxArch = "arm64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX()) {
-  project.ext.osArch = "amd64"
-  project.ext.opSystem = "darwin"
+  project.ext.osArch = "x64"
+  project.ext.opSystem = "macos"
   project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm-community-openjdk-21.0.1+12.1/Contents/Home"
+  project.ext.graalHome = "graalvm/Contents/Home"
   project.ext.upxArch = "amd64_darwin" // not supported :(
   project.ext.upxExt = "tar.xz"
 } else if (system.isWindows()) {
-  project.ext.osArch = "amd64"
+  project.ext.osArch = "x64"
   project.ext.opSystem = "windows"
   project.ext.graalExt = "zip"
-  project.ext.graalHome = "graalvm-community-openjdk-21.0.1+12.1/"
+  project.ext.graalHome = "graalvm-community-openjdk-21.0.2+13.1/"
   project.ext.upxArch = "win64"
   project.ext.upxExt = "zip"
 }
@@ -173,14 +173,14 @@ task fatJar(type: Jar) {
 }
 
 task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/${graalvm_version}/graalvm-community-java21-${opSystem}-${osArch}-dev.${graalExt}"
+  src "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${graalvm_version}/graalvm-community-jdk-${graalvm_version}_${opSystem}-${osArch}_bin.${graalExt}"
   dest new java.io.File(buildDir, "graalvm.tar.gz")
   onlyIfModified true
 }
 
 task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
   workingDir "$buildDir"
-  commandLine 'tar', '-xvf', 'graalvm.tar.gz'
+  commandLine 'bash', '-c', 'mkdir -p graalvm && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
 }
 
 nativeImage {
@@ -210,11 +210,12 @@ task downloadUpx(type: Download) {
 
 task extractUpx(dependsOn: downloadUpx, type: Exec) {
   workingDir "$buildDir"
-  commandLine 'tar', '-xvf', 'upx.tar.xz'
+  commandLine 'mkdir', 'upx'
+  commandLine 'bash', '-c', 'mkdir -p upx && tar -xvf upx.tar.xz -C upx --strip-components 1'
 }
 
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
-  workingDir "$buildDir/upx-${upx_version}-${upxArch}"
+  workingDir "$buildDir/upx"
   commandLine './upx', '--best', '../native-image/pq'
 }
 
