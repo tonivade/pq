@@ -188,7 +188,7 @@ nativeImage {
   mainClass = "pq.App"
   executableName = "pq"
   arguments(
-          '-J-Xmx900M',
+          '-J-Xmx1G',
           '--verbose',
           '--report-unsupported-elements-at-runtime',
           '--no-fallback',
