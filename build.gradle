@@ -183,6 +183,8 @@ nativeImage {
   mainClass = "pq.App"
   executableName = "pq"
   arguments(
+          '-J-Xms2G',
+          '-J-Xmx2G',
           '--verbose',
           '--report-unsupported-elements-at-runtime',
           '--no-fallback',
@@ -204,7 +206,6 @@ task downloadUpx(type: Download) {
 
 task extractUpx(dependsOn: downloadUpx, type: Exec) {
   workingDir "$buildDir"
-  commandLine 'mkdir', 'upx'
   commandLine 'bash', '-c', 'mkdir -p upx && tar -xvf upx.tar.xz -C upx --strip-components 1'
 }
 
