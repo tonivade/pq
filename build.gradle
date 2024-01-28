@@ -175,7 +175,11 @@ task downloadGraalvm(type: Download) {
 
 task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
   workingDir "$buildDir"
-  commandLine 'bash', '-c', 'mkdir -p graalvm && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
+  if (system.isWindows()) {
+    commandLine 'cmd', '/C', 'if not exists upx mkdir graalvm && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
+  } else {
+    commandLine 'bash', '-c', 'mkdir -p graalvm && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
+  }
 }
 
 nativeImage {
@@ -206,7 +210,11 @@ task downloadUpx(type: Download) {
 
 task extractUpx(dependsOn: downloadUpx, type: Exec) {
   workingDir "$buildDir"
-  commandLine 'bash', '-c', 'mkdir -p upx && tar -xvf upx.tar.xz -C upx --strip-components 1'
+  if (system.isWindows()) {
+    commandLine 'cmd', '/C', 'if not exists upx mkdir upx && tar -xvf upx.tar.xz -C upx --strip-components 1'
+  } else {
+    commandLine 'bash', '-c', 'mkdir -p upx && tar -xvf upx.tar.xz -C upx --strip-components 1'
+  }
 }
 
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
