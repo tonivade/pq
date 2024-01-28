@@ -31,7 +31,7 @@ if (system.isLinux()) {
 }
 
 base {
-  archivesBaseName = 'pq'
+  archivesName = 'pq'
 }
 
 repositories {
