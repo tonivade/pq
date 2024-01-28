@@ -40,7 +40,7 @@ jobs:
         shell: cmd
         if: ${{ matrix.os == 'windows-latest' }}
         run: >-
-          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat extractGraalvm nativeImage
+          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat extractGraalvm && gradlew.bat nativeImage
       - uses: actions/upload-artifact@v4
         with:
           path: ${{ matrix.local_path }}
