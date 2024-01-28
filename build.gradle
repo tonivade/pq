@@ -176,7 +176,7 @@ task downloadGraalvm(type: Download) {
 task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
   workingDir "$buildDir"
   if (system.isWindows()) {
-    commandLine 'cmd', '/c', 'if not exist upx (mkdir graalvm) else (cd.) && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
+    commandLine 'cmd', '/c', 'if not exist graalvm (mkdir graalvm) else (cd.) && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
   } else {
     commandLine 'bash', '-c', 'mkdir -p graalvm && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
   }
