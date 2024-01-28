@@ -219,7 +219,11 @@ task extractUpx(dependsOn: downloadUpx, type: Exec) {
 
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
   workingDir "$buildDir/upx"
-  commandLine './upx', '--best', '../native-image/pq'
+  if (system.isWindows()) {
+    commandLine 'cmd', '/c', 'upx --best ..\native-image\pq.exe'
+  } else {
+    commandLine 'bash', '-c', './upx --best ../native-image/pq'
+  }
 }
 
 installNativeImage {
