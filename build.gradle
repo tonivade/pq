@@ -226,6 +226,15 @@ task compressExecutable(dependsOn: extractUpx, type: Exec) {
   }
 }
 
+task testNativeImage(dependsOn: nativeImage, type: Exec) {
+  workingDir "$buildDir/native-image"
+  if (system.isWindows()) {
+    commandLine 'cmd', '/c', 'pq.exe count ..\\..\\src\\test\\resources\\example.parquet'
+  } else {
+    commandLine 'bash', '-c', './pq count ../../src/test/resources/example.parquet'
+  }
+}
+
 installNativeImage {
   dependsOn extractGraalvm
 }

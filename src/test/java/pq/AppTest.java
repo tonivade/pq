@@ -44,7 +44,7 @@ class AppTest {
       int result = App.execute(SCHEMA, EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
         message spark_schema {
           optional int32 id;
           optional binary first_name (STRING);
@@ -67,7 +67,7 @@ class AppTest {
       int result = App.execute(SCHEMA, "--select", "id,first_name", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
         message spark_schema {
           optional int32 id;
           optional binary first_name (STRING);
@@ -84,7 +84,7 @@ class AppTest {
       int result = App.execute(COUNT, EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
         1000
         """);
     }
@@ -94,7 +94,7 @@ class AppTest {
       int result = App.execute(COUNT, "--filter", "gender == \"Female\"", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
         482
         """);
     }
@@ -108,7 +108,7 @@ class AppTest {
       int result = App.execute(READ, "--get", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
     }
@@ -118,7 +118,7 @@ class AppTest {
       int result = App.execute(READ, "--format", "csv", "--get", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           id,first_name,last_name,email,gender,ip_address,cc,country,birthdate,salary,title,comments
           2,"Albert","Freeman","afreeman1@is.gd","Male","218.111.175.34","","Canada","1/16/1968",150280.17,"Accountant IV",""
           """);
@@ -129,7 +129,7 @@ class AppTest {
       int result = App.execute(READ, "--index", "--get", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           #1
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
@@ -140,7 +140,7 @@ class AppTest {
       int result = App.execute(READ, "--head", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
           """);
     }
@@ -150,7 +150,7 @@ class AppTest {
       int result = App.execute(READ, "--index", "--head", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           #0
           {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
           """);
@@ -161,7 +161,7 @@ class AppTest {
       int result = App.execute(READ, "--skip", "1", "--head", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
     }
@@ -171,7 +171,7 @@ class AppTest {
       int result = App.execute(READ, "--index", "--skip", "1", "--head", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           #1
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
@@ -182,7 +182,7 @@ class AppTest {
       int result = App.execute(READ, "--skip", "1", "--get", "0", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
     }
@@ -192,7 +192,7 @@ class AppTest {
       int result = App.execute(READ, "--index", "--skip", "1", "--get", "0", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           #1
           {"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
           """);
@@ -203,7 +203,7 @@ class AppTest {
       int result = App.execute(READ, "--tail", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
     }
@@ -213,7 +213,7 @@ class AppTest {
       int result = App.execute(READ, "--index", "--tail", "1", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           #999
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
@@ -224,7 +224,7 @@ class AppTest {
       int result = App.execute(READ, "--filter", "id == 1000", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
           """);
     }
@@ -234,7 +234,7 @@ class AppTest {
       int result = App.execute(READ, "--filter", "last_name == \"Meyer\"", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":201,"first_name":"Brian","last_name":"Meyer","email":"bmeyer5k@t-online.de","gender":"Male","ip_address":"85.164.45.115","cc":"","country":"Uganda","birthdate":"7/4/1963","salary":252555.65,"title":"Senior Cost Accountant","comments":""}
           {"id":838,"first_name":"Irene","last_name":"Meyer","email":"imeyern9@ed.gov","gender":"Female","ip_address":"58.245.119.96","cc":"6331103072856450497","country":"Ecuador","birthdate":"5/19/1963","salary":233719.55,"title":"GIS Technical Architect","comments":""}
           {"id":1000,"first_name":"Julie","last_name":"Meyer","email":"jmeyerrr@flavors.me","gender":"Female","ip_address":"217.1.147.132","cc":"374288099198540","country":"China","birthdate":"","salary":222561.13,"title":"","comments":""}
@@ -246,7 +246,7 @@ class AppTest {
       int result = App.execute(READ, "--select", "id,email", "--head", "3", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":1,"email":"ajordan0@com.com"}
           {"id":2,"email":"afreeman1@is.gd"}
           {"id":3,"email":"emorgan2@altervista.org"}
@@ -258,7 +258,7 @@ class AppTest {
       int result = App.execute(READ, "--select", "id,email", "--head", "3", "--format", "csv", EXAMPLE_PARQUET);
 
       assertThat(result).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           id,email
           1,"ajordan0@com.com"
           2,"afreeman1@is.gd"
@@ -291,7 +291,7 @@ class AppTest {
 
       assertThat(result1).isZero();
       assertThat(result2).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":1,"email":"ajordan0@com.com"}
           {"id":2,"email":"afreeman1@is.gd"}
           {"id":3,"email":"emorgan2@altervista.org"}
@@ -319,7 +319,7 @@ class AppTest {
 
       assertThat(result1).isZero();
       assertThat(result2).isZero();
-      assertThat(systemOut.getText()).isEqualTo("""
+      assertThat(systemOut.getText()).isEqualToNormalizingNewlines("""
           {"id":1,"email":"ajordan0@com.com"}
           {"id":2,"email":"afreeman1@is.gd"}
           {"id":3,"email":"emorgan2@altervista.org"}
