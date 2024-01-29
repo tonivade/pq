@@ -13,7 +13,7 @@ The preferred instalation process is download one of the precompiled binary file
 
 - [pq-linux-amd64](https://github.com/tonivade/pq/releases/download/0.4/pq-linux-amd64): native image for linux x86_64.
 - [pq-darwin-amd64](https://github.com/tonivade/pq/releases/download/0.4/pq-darwin-amd64): native image for mac x86_64.
-- [pq-windows-amd64.exe](https://github.com/tonivade/pq/releases/download/0.4/pq-windows-amd64.exe): native image for mac x86_64.
+- [pq-windows-amd64.exe](https://github.com/tonivade/pq/releases/download/0.4/pq-windows-amd64.exe): native image for windows x86_64.
 - [pq.jar](https://github.com/tonivade/pq/releases/download/0.4/pq.jar): fat jar with all the needed classes
 
 Native images has been generated using graalvm-ce 21.0.2.
