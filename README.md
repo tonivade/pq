@@ -52,11 +52,20 @@ print total number of rows in parquet file
   -v, --verbose            enable debug logs
 ```
 
-Example
+Example:
 
 ```sh
-$ ./pq count <file>
+$ ./pq count example.parquet
 1000
+```
+
+### Filter rows
+
+You can get the count or rows that match a filter this way:
+
+```sh
+$ ./pq count --filter 'gender == "Male"' example.parquet
+451
 ```
 
 ## schema
@@ -76,7 +85,7 @@ print schema of parquet file
 Example:
 
 ```sh
-$ ./pq schema <file>
+$ ./pq schema example.parquet
 message spark_schema {
   optional int32 id;
   optional binary first_name (STRING);
@@ -90,6 +99,19 @@ message spark_schema {
   optional double salary;
   optional binary title (STRING);
   optional binary comments (STRING);
+}
+```
+
+### Select columns
+
+You can select the columns you want to include in the schema using the `--select` option
+
+```sh
+$ ./pq schema --select id,first_name,email example.parquet
+message spark_schema {
+  optional int32 id;
+  optional binary first_name (STRING);
+  optional binary email (STRING);
 }
 ```
 
@@ -119,8 +141,28 @@ print content of parquet file in json format
 Example:
 
 ```sh
-$ ./pq read <file>
+$ ./pq read example.parquet
 {"id":1,"first_name":"Amanda","last_name":"Jordan","email":"ajordan0@com.com","gender":"Female","ip_address":null,"cc":"6759521864920116","country":"Indonesia","birthdate":"3/8/1971","salary":49756.53,"title":"Internal Auditor","comments":"1E+02"}
+...
+```
+
+### Select columns
+
+You can select the columns you want to include in the output using the `--select` option
+
+```sh
+$ ./pq read --select id,first_name,email example.parquet
+{"id":1,"first_name":"Amanda","email":"ajordan0@com.com"}
+...
+```
+
+### Filter rows
+
+You can filter the rows that match a filter this way:
+
+```sh
+$ ./pq read --filter 'gender == "Male"' example.parquet
+{"id":2,"first_name":"Albert","last_name":"Freeman","email":"afreeman1@is.gd","gender":"Male","ip_address":"218.111.175.34","cc":"","country":"Canada","birthdate":"1/16/1968","salary":150280.17,"title":"Accountant IV","comments":""}
 ...
 ```
 
@@ -140,7 +182,7 @@ print metadata of parquet file
 Example:
 
 ```sh
-$ ./pq metadata <file>
+$ ./pq metadata example.parquet
 "createdBy":parquet-mr version 1.8.3 (build aef7230e114214b7cc962a8f3fc5aeed6ce80828)
 "count":1000
 ```
