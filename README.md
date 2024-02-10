@@ -11,18 +11,18 @@ Create a tool similar to jq but for parquet files.
 
 The preferred instalation process is download one of the precompiled binary files that can be downloaded from releases page in github. You will find these different files:
 
-- [pq-linux-amd64](https://github.com/tonivade/pq/releases/download/0.4/pq-linux-amd64): native image for linux x86_64.
-- [pq-darwin-amd64](https://github.com/tonivade/pq/releases/download/0.4/pq-darwin-amd64): native image for mac x86_64.
-- [pq-windows-amd64.exe](https://github.com/tonivade/pq/releases/download/0.4/pq-windows-amd64.exe): native image for windows x86_64.
-- [pq.jar](https://github.com/tonivade/pq/releases/download/0.4/pq.jar): fat jar with all the needed classes
+- [pq-linux-amd64](https://github.com/tonivade/pq/releases/download/0.4.1/pq-linux-amd64.zip): native image for linux x86_64.
+- [pq-darwin-amd64](https://github.com/tonivade/pq/releases/download/0.4.1/pq-darwin-amd64.zip): native image for mac x86_64.
+- [pq-windows-amd64.exe](https://github.com/tonivade/pq/releases/download/0.4.1/pq-windows-amd64.exe.zip): native image for windows x86_64.
+- [pq.jar](https://github.com/tonivade/pq/releases/download/0.4.1/pq.jar): fat jar with all the needed classes
 
 Native images has been generated using graalvm-ce 21.0.2.
 
-Current version is 0.4.
+Current version is 0.4.1.
 
 # Usage
 
-You will see all the available subcomands using help subcommand:
+You will see all the available subcommands using help subcommand:
 
 ```sh
 $ ./pq help
@@ -104,7 +104,7 @@ message spark_schema {
 
 ### Select columns
 
-You can select the columns you want to include in the schema using the `--select` option
+You can select the columns you want to include in the schema using the `--select` option.
 
 ```sh
 $ ./pq schema --select id,first_name,email example.parquet
@@ -148,7 +148,7 @@ $ ./pq read example.parquet
 
 ### Select columns
 
-You can select the columns you want to include in the output using the `--select` option
+You can select the columns you want to include in the output using the `--select` option:
 
 ```sh
 $ ./pq read --select id,first_name,email example.parquet
@@ -189,9 +189,9 @@ $ ./pq metadata example.parquet
 
 ## write
 
-Creates a parquet file from a jsonl/csv file and a shema
+Creates a parquet file from a jsonl/csv file and a shema.
 
-```
+```sh
 $ ./pq help write
 Usage: pq write [-v] [--format=JSON|CSV] [--schema=FILE] FILE
 create a parquet file from a jsonl stream and a schema
