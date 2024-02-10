@@ -32,4 +32,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pq.jar
-        path: build/libs/pq-0.3.0-SNAPSHOT-all.jar
+        path: build/libs/pq-*-all.jar
