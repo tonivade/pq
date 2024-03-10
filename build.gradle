@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.download)
   alias(libs.plugins.graalvmNativeImage)
   alias(libs.plugins.versions)
+  alias(libs.plugins.errorprone)
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
@@ -72,7 +73,24 @@ compileTestJava {
   options.release = 21
 }
 
+tasks.withType(JavaCompile) {
+  if (!name.toLowerCase().contains("test")) {
+    options.errorprone {
+      check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+      option("NullAway:AnnotatedPackages", "pq")
+      option("NullAway:SuggestSuppressions", "true")
+    }
+  } else {
+    options.errorprone {
+      option("NullAway:AnnotatedPackages", "pq")
+      option("ExcludedPaths", ".*/src/test/java/.*")
+    }
+  }
+}
+
 dependencies {
+  errorprone(libs.nullaway)
+  errorprone(libs.errorprone)
   implementation(libs.picocli)
   implementation(libs.parquetColumn)
   implementation(libs.parquetHadoop)
