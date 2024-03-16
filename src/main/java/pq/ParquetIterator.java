@@ -13,12 +13,15 @@ import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.hadoop.ParquetReader;
 
 final class ParquetIterator implements Iterator<Tuple> {
 
   private final ParquetReader<JsonValue> reader;
 
+  @Nullable
   private JsonValue current = null;
 
   public ParquetIterator(ParquetReader<JsonValue> reader) {

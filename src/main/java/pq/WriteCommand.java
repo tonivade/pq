@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
@@ -29,12 +30,15 @@ import picocli.CommandLine.Parameters;
 @Command(name = "write", description = "create a parquet file from a jsonl stream and a schema")
 final class WriteCommand implements Runnable {
 
+  @SuppressWarnings("NullAway.Init")
   @Parameters(paramLabel = "FILE", description = "destination parquet file")
   private File file;
 
+  @SuppressWarnings("NullAway.Init")
   @Option(names = "--schema", description = "file with schema definition", paramLabel = "FILE")
   private File schemaFile;
 
+  @SuppressWarnings("NullAway.Init")
   @Option(names = "--format", description = "input format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class)
   private Format format;
 
@@ -44,7 +48,7 @@ final class WriteCommand implements Runnable {
       var schema = parseSchema();
       var input = createInput(schema);
       try (var output = createJsonWriter(file, schema)) {
-        try (var lines = new BufferedReader(new InputStreamReader(System.in)).lines()) {
+        try (var lines = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8)).lines()) {
           lines.map(input::parse).forEach(value -> write(output, value));
         }
       }
@@ -73,8 +77,6 @@ final class WriteCommand implements Runnable {
 
   static final class CsvInput implements Parser {
 
-    private static final String EMPTY = "";
-
     final MessageType schema;
 
     CsvInput(MessageType schema) {
@@ -84,7 +86,7 @@ final class WriteCommand implements Runnable {
     @Override
     public JsonValue parse(String line) {
       var value = Json.object();
-      var values = line.split(",");
+      var values = line.split(",", -1);
       for (int i = 0; i < values.length; i++) {
         var type = schema.getFields().get(i);
         value.add(type.getName(), convert(values[i], type.asPrimitiveType().getPrimitiveTypeName()));
@@ -93,7 +95,7 @@ final class WriteCommand implements Runnable {
     }
 
     private JsonValue convert(String value, PrimitiveTypeName primitiveTypeName) {
-      if (value.equals(EMPTY)) {
+      if (value.isEmpty()) {
         return Json.NULL;
       }
       return switch (primitiveTypeName) {

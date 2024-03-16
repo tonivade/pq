@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.download)
   alias(libs.plugins.graalvmNativeImage)
   alias(libs.plugins.versions)
+  alias(libs.plugins.errorprone)
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
@@ -72,7 +73,23 @@ compileTestJava {
   options.release = 21
 }
 
+tasks.withType(JavaCompile) {
+  if (!name.toLowerCase().contains("test")) {
+    options.errorprone {
+      check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+      option("NullAway:AnnotatedPackages", "pq")
+      option("NullAway:SuggestSuppressions", "true")
+      option("NullAway:KnownInitializers", "pq.internal.JsonArrayHolder.create,pq.internal.JsonObjectHolder.create,org.apache.parquet.hadoop.api.WriteSupport.prepareForWrite")
+    }
+  } else {
+    options.errorprone.enabled = false
+  }
+}
+
 dependencies {
+  errorprone(libs.nullaway)
+  errorprone(libs.errorprone)
+  compileOnly(libs.jsr305)
   implementation(libs.picocli)
   implementation(libs.parquetColumn)
   implementation(libs.parquetHadoop)

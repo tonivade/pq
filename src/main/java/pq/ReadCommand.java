@@ -18,6 +18,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.schema.MessageType;
 
 import picocli.CommandLine.Command;
@@ -39,18 +41,22 @@ final class ReadCommand implements Runnable {
   @Option(names = "--skip", description = "skip a number N of rows", paramLabel = "ROWS", defaultValue = "0")
   private int skip;
 
+  @Nullable
   @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
   private String filter;
 
+  @Nullable
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;
 
   @Option(names = "--index", description = "print row index", defaultValue = "false")
   private boolean index;
 
+  @SuppressWarnings("NullAway.Init")
   @Option(names = "--format", description = "output format, json or csv", defaultValue = "json", paramLabel = "JSON|CSV", converter = FormatConverter.class)
   private Format format;
 
+  @SuppressWarnings("NullAway.Init")
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;
 
@@ -115,8 +121,6 @@ final class ReadCommand implements Runnable {
 
   static final class CsvOutput implements Output {
 
-    private static final String EMPTY = "";
-
     private final List<String> columns;
 
     CsvOutput(MessageType schema) {
@@ -133,7 +137,7 @@ final class ReadCommand implements Runnable {
       for (String column : columns) {
         var value = tuple.value().asObject().get(column);
         if (value.isNull()) {
-          values.add(EMPTY);
+          values.add("");
         } else {
           values.add(value.toString());
         }

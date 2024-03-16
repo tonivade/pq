@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.schema.MessageType;
 
 import picocli.CommandLine.Command;
@@ -23,9 +25,11 @@ import picocli.CommandLine.Parameters;
 @Command(name = "count", description = "print total number of rows in parquet file")
 final class CountCommand implements Runnable {
 
+  @SuppressWarnings("NullAway.Init")
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;
 
+  @Nullable
   @Option(names = "--filter",
       description = "predicate to apply to the rows",
       paramLabel = "PREDICATE")
