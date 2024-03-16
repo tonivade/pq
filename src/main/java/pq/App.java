@@ -14,6 +14,8 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
@@ -59,7 +61,7 @@ public final class App {
     }
   }
 
-  static Filter parseFilter(String filter, MessageType schema) {
+  static Filter parseFilter(@Nullable String filter, MessageType schema) {
     if (filter == null) {
       return FilterCompat.NOOP;
     }
@@ -67,12 +69,12 @@ public final class App {
     return FilterCompat.get(predicate);
   }
 
-  static Optional<MessageType> createProjection(MessageType schema, String filter) {
+  static Optional<MessageType> createProjection(MessageType schema, @Nullable String filter) {
     String[] select = new FilterParser().parse(filter).columns().toArray(String[]::new);
     return createProjection(schema, select);
   }
 
-  static Optional<MessageType> createProjection(MessageType schema, String[] select) {
+  static Optional<MessageType> createProjection(MessageType schema, @Nullable String[] select) {
     if (select != null && select.length > 0) {
       Set<String> fields = Set.of(select);
       return Optional.of(new MessageType(
@@ -93,14 +95,13 @@ public final class App {
   }
 
   static ParquetWriter<JsonValue> createJsonWriter(File file, MessageType schema) throws IOException {
-    return JsonParquetWriter.builder(new ParquetOutputFile(file))
+    return JsonParquetWriter.builder(new ParquetOutputFile(file), schema)
         .withWriteMode(Mode.OVERWRITE)
         .withCompressionCodec(CompressionCodecName.SNAPPY)
-        .withSchema(schema)
         .build();
   }
 
-  static ParquetReader<JsonValue> createJsonReader(File file, Filter filter, MessageType projection) throws IOException {
+  static ParquetReader<JsonValue> createJsonReader(File file, Filter filter, @Nullable MessageType projection) throws IOException {
     return JsonParquetReader.builder(new ParquetInputFile(file))
         .withProjection(projection)
         .withFilter(filter)

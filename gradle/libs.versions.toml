@@ -18,6 +18,7 @@ snappyVersion = "1.1.10.5"
 errorproneVersion = "2.26.1"
 errorpronePluginVersion = "3.1.0"
 nullawayVersion = "0.10.24"
+jsr305Version = "3.0.2"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
@@ -38,6 +39,7 @@ systemStubs = { group = "uk.org.webcompere", name = "system-stubs-jupiter", vers
 snappy = { group = "org.xerial.snappy", name = "snappy-java", version.ref = "snappyVersion" }
 nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullawayVersion" }
 errorprone = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorproneVersion" }
+jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "jsr305Version"}
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsVersion" }

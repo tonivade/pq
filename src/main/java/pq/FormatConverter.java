@@ -4,12 +4,14 @@
  */
 package pq;
 
+import java.util.Locale;
+
 import picocli.CommandLine.ITypeConverter;
 
 final class FormatConverter implements ITypeConverter<Format> {
 
   @Override
   public Format convert(String value) {
-    return Format.valueOf(value.toUpperCase());
+    return Format.valueOf(value.toUpperCase(Locale.ROOT));
   }
 }

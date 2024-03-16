@@ -19,22 +19,18 @@ public final class JsonParquetWriter {
 
   private JsonParquetWriter() { }
 
-  public static Builder builder(OutputFile file) {
-    return new Builder(file);
+  public static Builder builder(OutputFile file, MessageType schema) {
+    return new Builder(file, schema);
   }
 
   public static final class Builder extends ParquetWriter.Builder<JsonValue, Builder> {
 
     private MessageType schema;
-    private Map<String, String> metadata;
+    private Map<String, String> metadata = new LinkedHashMap<>();
 
-    Builder(OutputFile path) {
+    Builder(OutputFile path, MessageType schema) {
       super(path);
-    }
-
-    public Builder withSchema(MessageType schema) {
       this.schema = schema;
-      return self();
     }
 
     public Builder withExtraMetadata(Map<String, String> metadata) {
@@ -49,7 +45,7 @@ public final class JsonParquetWriter {
 
     @Override
     protected WriteSupport<JsonValue> getWriteSupport(Configuration conf) {
-      return new JsonWriteSupport(schema, metadata != null ? metadata : new LinkedHashMap<>());
+      return new JsonWriteSupport(schema, metadata);
     }
   }
 }

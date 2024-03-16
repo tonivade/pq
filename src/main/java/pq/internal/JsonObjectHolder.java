@@ -28,7 +28,6 @@ final class JsonObjectHolder {
 
   void accept(Consumer<JsonValue> consumer) {
     consumer.accept(value);
-    value = null;
   }
 
   Consumer<Integer> setInt(String field) {

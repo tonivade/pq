@@ -6,6 +6,8 @@ package pq.internal;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
@@ -112,6 +114,7 @@ final class JsonPrimitiveConverterFactory {
   static final class StringConverter extends PrimitiveConverter {
 
     private final Consumer<String> consumer;
+    @Nullable
     private Dictionary dictionary;
 
     public StringConverter(Consumer<String> consumer) {
@@ -125,6 +128,9 @@ final class JsonPrimitiveConverterFactory {
 
     @Override
     public void addValueFromDictionary(int dictionaryId) {
+      if (dictionary == null) {
+        throw new IllegalStateException();
+      }
       addBinary(dictionary.decodeToBinary(dictionaryId));
     }
 

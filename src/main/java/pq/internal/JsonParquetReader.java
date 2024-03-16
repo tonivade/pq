@@ -6,6 +6,8 @@ package pq.internal;
 
 import com.eclipsesource.json.JsonValue;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.InputFile;
@@ -21,13 +23,14 @@ public final class JsonParquetReader {
 
   public static final class Builder extends ParquetReader.Builder<JsonValue> {
 
+    @Nullable
     private MessageType projection;
 
     public Builder(InputFile file) {
       super(file);
     }
 
-    public Builder withProjection(MessageType projection) {
+    public Builder withProjection(@Nullable MessageType projection) {
       this.projection = projection;
       return this;
     }

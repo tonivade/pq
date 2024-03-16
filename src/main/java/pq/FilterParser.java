@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.parquet.filter2.predicate.FilterApi;
 import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.io.api.Binary;
@@ -60,7 +62,7 @@ final class FilterParser extends GrammarDefinition {
   private static final String SINGLE_EXPRESSION = "singleExpression";
   private static final String BOOLEAN_EXPRESSION = "booleanExpression";
   private static final String VALUE = "value";
-  
+
   private static final CharacterParser NOT = CharacterParser.of('!');
   private static final CharacterParser LEFTPARENT = CharacterParser.of('(');
   private static final CharacterParser RIGHTPARENT = CharacterParser.of(')');
@@ -200,18 +202,19 @@ final class FilterParser extends GrammarDefinition {
 
   sealed interface TypedExpr {
 
-    record IntCondition(String column, Operator operator, Integer value) implements TypedExpr { }
-    record LongCondition(String column, Operator operator, Long value) implements TypedExpr { }
-    record FloatCondition(String column, Operator operator, Float value) implements TypedExpr { }
-    record DoubleCondition(String column, Operator operator, Double value) implements TypedExpr { }
-    record StringCondition(String column, Operator operator, String value) implements TypedExpr { }
-    record BooleanCondition(String column, Operator operator, Boolean value) implements TypedExpr { }
+    record IntCondition(String column, Operator operator, @Nullable Integer value) implements TypedExpr { }
+    record LongCondition(String column, Operator operator, @Nullable Long value) implements TypedExpr { }
+    record FloatCondition(String column, Operator operator, @Nullable Float value) implements TypedExpr { }
+    record DoubleCondition(String column, Operator operator, @Nullable Double value) implements TypedExpr { }
+    record StringCondition(String column, Operator operator, @Nullable String value) implements TypedExpr { }
+    record BooleanCondition(String column, Operator operator, @Nullable Boolean value) implements TypedExpr { }
     record TypedExpression(TypedExpr left, Logic operator, TypedExpr right) implements TypedExpr { }
     record TypedNotExpression(TypedExpr inner) implements TypedExpr { }
     record TypedNullExpression() implements TypedExpr { }
 
+    @Nullable
     default FilterPredicate convert() {
-      return switch(this) {
+      return switch (this) {
         case IntCondition(var column, var operator, var value) ->
           switch (operator) {
             case EQUAL -> eq(intColumn(column), value);
@@ -271,7 +274,7 @@ final class FilterParser extends GrammarDefinition {
     }
   }
 
-  Expr parse(String filter) {
+  Expr parse(@Nullable String filter) {
     if (filter != null) {
       Result parse = new GrammarParser(new FilterParser()).parse(filter);
       return parse.get();
@@ -313,7 +316,8 @@ final class FilterParser extends GrammarDefinition {
     return value.substring(1, value.length() - 1);
   }
 
-  private static String asString(Object value) {
+  @Nullable
+  private static String asString(@Nullable Object value) {
     return switch (value) {
       case null -> null;
       case String s -> s;
@@ -321,7 +325,8 @@ final class FilterParser extends GrammarDefinition {
     };
   }
 
-  private static Boolean asBoolean(Object value) {
+  @Nullable
+  private static Boolean asBoolean(@Nullable Object value) {
     return switch (value) {
       case null -> null;
       case Boolean b -> b;
@@ -329,7 +334,8 @@ final class FilterParser extends GrammarDefinition {
     };
   }
 
-  private static Float asFloat(Object value) {
+  @Nullable
+  private static Float asFloat(@Nullable Object value) {
     return switch (value) {
       case null -> null;
       case Double d -> d.floatValue();
@@ -337,7 +343,8 @@ final class FilterParser extends GrammarDefinition {
     };
   }
 
-  private static Double asDouble(Object value) {
+  @Nullable
+  private static Double asDouble(@Nullable Object value) {
     return switch (value) {
       case null -> null;
       case Double d -> d;
@@ -345,7 +352,8 @@ final class FilterParser extends GrammarDefinition {
     };
   }
 
-  private static Long asLong(Object value) {
+  @Nullable
+  private static Long asLong(@Nullable Object value) {
     return switch (value) {
       case null -> null;
       case Long l -> l;
@@ -353,7 +361,8 @@ final class FilterParser extends GrammarDefinition {
     };
   }
 
-  private static Integer asInt(Object value) {
+  @Nullable
+  private static Integer asInt(@Nullable Object value) {
     return switch (value) {
       case null -> null;
       case Long l -> l.intValue();
@@ -361,7 +370,8 @@ final class FilterParser extends GrammarDefinition {
     };
   }
 
-  private static Binary asBinary(String value) {
+  @Nullable
+  private static Binary asBinary(@Nullable String value) {
     return switch (value) {
       case null -> null;
       default -> Binary.fromString(value);

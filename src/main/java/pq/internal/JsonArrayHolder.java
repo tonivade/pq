@@ -13,13 +13,12 @@ final class JsonArrayHolder {
 
   private JsonArray array;
 
-  void create() {
+  public void create() {
     array = new JsonArray();
   }
 
   void accept(Consumer<JsonValue> consumer) {
     consumer.accept(array);
-    array = null;
   }
 
   Consumer<Integer> addInt() {

@@ -79,6 +79,7 @@ tasks.withType(JavaCompile) {
       check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
       option("NullAway:AnnotatedPackages", "pq")
       option("NullAway:SuggestSuppressions", "true")
+      option("NullAway:KnownInitializers", "pq.internal.JsonArrayHolder.create,pq.internal.JsonObjectHolder.create,org.apache.parquet.hadoop.api.WriteSupport.prepareForWrite")
     }
   } else {
     options.errorprone.enabled = false
@@ -88,6 +89,7 @@ tasks.withType(JavaCompile) {
 dependencies {
   errorprone(libs.nullaway)
   errorprone(libs.errorprone)
+  compileOnly(libs.jsr305)
   implementation(libs.picocli)
   implementation(libs.parquetColumn)
   implementation(libs.parquetHadoop)
