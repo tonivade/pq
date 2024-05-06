@@ -17,7 +17,7 @@ graalvmNativeImageVersion = "1.4.1"
 snappyVersion = "1.1.10.5"
 errorproneVersion = "2.27.1"
 errorpronePluginVersion = "3.1.0"
-nullawayVersion = "0.10.25"
+nullawayVersion = "0.10.26"
 jsr305Version = "3.0.2"
 
 [libraries]
