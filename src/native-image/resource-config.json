@@ -23,7 +23,7 @@
       "pattern":"\\Qorg/xerial/snappy/native/Windows/x86_64/snappyjava.dll\\E"
     },
     {
-      "pattern":"\\Qorg/xerial/snappy/native/Mac/x86_64/libsnappyjava.dylib\\E"
+      "pattern":"\\Qorg/xerial/snappy/native/Mac/aarch64/libsnappyjava.dylib\\E"
     }
   ]},
   "bundles":[]
