@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest-large, ubuntu-latest, windows-latest]
         include:
           - os: macos-latest
             uploaded_filename: pq-darwin-amd64
@@ -37,7 +37,7 @@ jobs:
       - name: Native Image Macos
         run: ./gradlew nativeImage
         shell: bash
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ matrix.os == 'macos-latest-large' }}
       - name: Native Image Windows
         shell: cmd
         if: ${{ matrix.os == 'windows-latest' }}
