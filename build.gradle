@@ -5,6 +5,7 @@ plugins {
   alias(libs.plugins.graalvmNativeImage)
   alias(libs.plugins.versions)
   alias(libs.plugins.errorprone)
+  id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
@@ -104,7 +105,7 @@ dependencies {
     exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-common'
     exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs-client'
     exclude group: 'com.google.inject.extensions', module: 'guice-servlet'
-    exclude group: 'io.netty', module: 'netty'
+    exclude group: 'io.netty', module: 'netty-all'
     exclude group: 'com.google.protobuf', module: 'protobuf-java'
     exclude group: 'javax.ws.rs', module: 'javax.ws.rs-api'
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
@@ -156,8 +157,11 @@ dependencies {
     exclude group: 'net.minidev', module: 'json-smart'
     exclude group: 'org.apache.curator', module: 'curator-framework'
     exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
+    exclude group: 'io.netty', module: 'netty-handler'
+    exclude group: 'io.netty', module: 'netty-transport-native-epoll'
   }
-  runtimeOnly(libs.logbackClassic)
+  implementation(libs.logbackClassic)
+  implementation(libs.slf4j)
 
   testImplementation(libs.junitJupiter)
   testRuntimeOnly(libs.junitRunner)
@@ -171,17 +175,10 @@ application {
   mainClass = 'pq.App'
 }
 
-task fatJar(type: Jar) {
+shadowJar {
   manifest {
     attributes "Main-Class": "pq.App"
   }
-  archiveClassifier = "all"
-  duplicatesStrategy = "warn"
-  from {
-    configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-  }
-  with jar
 }
 
 task downloadGraalvm(type: Download) {

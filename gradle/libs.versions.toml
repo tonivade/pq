@@ -19,6 +19,7 @@ errorproneVersion = "2.27.1"
 errorpronePluginVersion = "3.1.0"
 nullawayVersion = "0.10.26"
 jsr305Version = "3.0.2"
+slf4jVersion = "2.0.13"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
@@ -40,6 +41,7 @@ snappy = { group = "org.xerial.snappy", name = "snappy-java", version.ref = "sna
 nullaway = { group = "com.uber.nullaway", name = "nullaway", version.ref = "nullawayVersion" }
 errorprone = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorproneVersion" }
 jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "jsr305Version"}
+slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4jVersion" }
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsVersion" }

@@ -4,6 +4,8 @@
  */
 package pq;
 
+import com.eclipsesource.json.JsonValue;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -25,9 +27,10 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.schema.MessageType;
+import org.slf4j.LoggerFactory;
 
-import com.eclipsesource.json.JsonValue;
-
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -40,9 +43,10 @@ import pq.internal.JsonParquetWriter;
   subcommands = { CountCommand.class, SchemaCommand.class, ReadCommand.class, MetadataCommand.class, WriteCommand.class, HelpCommand.class })
 public final class App {
 
-  @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT)
+  @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT, defaultValue = "false")
   void setVerbose(boolean verbose) {
-    System.setProperty("root-level", verbose ? "DEBUG" : "ERROR");
+    var root = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    root.setLevel(verbose ? Level.INFO : Level.ERROR);
   }
 
   public static void main(String... args) {
