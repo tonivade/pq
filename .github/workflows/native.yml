@@ -12,7 +12,7 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
         include:
           - os: macos-latest
-            uploaded_filename: pq-darwin-amd64
+            uploaded_filename: pq-darwin-arm64
             local_path: build/native-image/pq
           - os: ubuntu-latest
             uploaded_filename: pq-linux-amd64
