@@ -17,11 +17,11 @@ if (system.isLinux()) {
   project.ext.upxArch = "amd64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX()) {
-  project.ext.osArch = "x64"
+  project.ext.osArch = "aarch64"
   project.ext.opSystem = "macos"
   project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm/Contents/Home"
-  project.ext.upxArch = "amd64_darwin" // not supported :(
+  project.ext.upxArch = "arm64_darwin" // not supported :(
   project.ext.upxExt = "tar.xz"
 } else if (system.isWindows()) {
   project.ext.osArch = "x64"
