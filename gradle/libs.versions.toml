@@ -20,6 +20,7 @@ errorpronePluginVersion = "3.1.0"
 nullawayVersion = "0.10.26"
 jsr305Version = "3.0.2"
 slf4jVersion = "2.0.13"
+shadowJarVersion = "8.1.1"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
@@ -48,3 +49,4 @@ versions = { id = "com.github.ben-manes.versions", version.ref = "versionsVersio
 graalvmNativeImage = { id = "org.mikeneck.graalvm-native-image", version.ref = "graalvmNativeImageVersion" }
 download = {  id = "de.undercouch.download", version.ref = "downloadVersion" }
 errorprone = { id = "net.ltgt.errorprone", version.ref = "errorpronePluginVersion"}
+shadowJar = { id = "com.github.johnrengelman.shadow", version.ref = "shadowJarVersion"}
