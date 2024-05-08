@@ -211,7 +211,7 @@ nativeImage {
           '--no-fallback',
           '--allow-incomplete-classpath',
           '--initialize-at-build-time=ch.qos.logback',
-          '--initialize-at-run-time=com.oracle.truffle.js.scriptengine.GraalJSEngineFactory',
+          '--initialize-at-build-time=org.slf4j.LoggerFactory',
           '-H:IncludeResources=logback.xml',
           '-H:ReflectionConfigurationFiles=src/native-image/reflect-config.json',
           '-H:JNIConfigurationFiles=src/native-image/jni-config.json',
