@@ -1,7 +1,7 @@
 [versions]
 junitEngineVersion = "5.10.2"
 junitPlatformVersion = "1.10.2"
-mockitoVersion = "5.11.0"
+mockitoVersion = "5.12.0"
 versionsVersion = "0.51.0"
 nexusVersion = "1.3.0"
 picocliVersion = "4.7.6"
