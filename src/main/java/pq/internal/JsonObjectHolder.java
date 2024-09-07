@@ -54,6 +54,10 @@ final class JsonObjectHolder {
     return s -> value.set(field, s);
   }
 
+  Consumer<byte[]> setByteArray(String field) {
+    return a -> value.set(field, toArray(a));
+  }
+
   Consumer<JsonValue> setValue(String field) {
     return v -> value.set(field, v);
   }
@@ -82,6 +86,10 @@ final class JsonObjectHolder {
     return s -> asArray(field).add(s);
   }
 
+  Consumer<byte[]> addByteArray(String field) {
+    return a -> asArray(field).add(toArray(a));
+  }
+
   Consumer<JsonValue> addValue(String field) {
     return v -> asArray(field).add(v);
   }
@@ -101,5 +109,13 @@ final class JsonObjectHolder {
       value.set(field, new JsonArray());
     }
     return value.get(field).asArray();
+  }
+
+  private JsonArray toArray(byte[] byteArray) {
+    var jsonArray = new JsonArray();
+    for (var b : byteArray) {
+      jsonArray.add(b);
+    }
+    return jsonArray;
   }
 }

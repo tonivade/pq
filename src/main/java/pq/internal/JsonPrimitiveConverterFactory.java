@@ -41,6 +41,10 @@ final class JsonPrimitiveConverterFactory {
     return new StringConverter(consumer);
   }
 
+  static Converter byteArrayConverter(Consumer<byte[]> consumer) {
+    return new ByteArrayConverter(consumer);
+  }
+
   static final class IntegerConverter extends PrimitiveConverter {
 
     private final Consumer<Integer> consumer;
@@ -142,6 +146,20 @@ final class JsonPrimitiveConverterFactory {
     @Override
     public boolean hasDictionarySupport() {
       return true;
+    }
+  }
+
+  static final class ByteArrayConverter extends PrimitiveConverter {
+
+    private final Consumer<byte[]> consumer;
+
+    public ByteArrayConverter(Consumer<byte[]> consumer) {
+      this.consumer = consumer;
+    }
+
+    @Override
+    public void addBinary(Binary value) {
+      consumer.accept(value.getBytes());
     }
   }
 }

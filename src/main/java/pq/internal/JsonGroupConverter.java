@@ -6,13 +6,12 @@ package pq.internal;
 
 import static java.util.Objects.requireNonNull;
 import static pq.internal.JsonPrimitiveConverterFactory.booleanConverter;
+import static pq.internal.JsonPrimitiveConverterFactory.byteArrayConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.doubleConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.floatConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.intConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.longConverter;
 import static pq.internal.JsonPrimitiveConverterFactory.stringConverter;
-
-import com.eclipsesource.json.JsonValue;
 
 import java.util.function.Consumer;
 
@@ -23,6 +22,8 @@ import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
+
+import com.eclipsesource.json.JsonValue;
 
 final class JsonGroupConverter extends GroupConverter {
 
@@ -57,7 +58,7 @@ final class JsonGroupConverter extends GroupConverter {
   public void end() {
     value.accept(consumer);
   }
-  
+
   private Converter buildConverter(Type fieldType) {
     var fieldName = fieldType.getName();
     if (fieldType.isRepetition(Repetition.REPEATED)) {
@@ -71,7 +72,7 @@ final class JsonGroupConverter extends GroupConverter {
     }
     // group type
     var groupType = fieldType.asGroupType();
-    if (groupType.getLogicalTypeAnnotation() != null 
+    if (groupType.getLogicalTypeAnnotation() != null
         && groupType.getLogicalTypeAnnotation().equals(LogicalTypeAnnotation.listType())) {
       return new JsonListConverter(groupType, value.setValue(fieldName));
     }
@@ -86,7 +87,8 @@ final class JsonGroupConverter extends GroupConverter {
       case DOUBLE -> doubleConverter(value.setDouble(fieldName));
       case BOOLEAN -> booleanConverter(value.setBoolean(fieldName));
       case BINARY -> stringConverter(value.setString(fieldName));
-      default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
+      case FIXED_LEN_BYTE_ARRAY -> byteArrayConverter(value.setByteArray(fieldName));
+      case INT96 -> throw new UnsupportedOperationException("not supported type INT96");
     };
   }
 
@@ -98,7 +100,8 @@ final class JsonGroupConverter extends GroupConverter {
       case DOUBLE -> doubleConverter(value.addDouble(fieldName));
       case BOOLEAN -> booleanConverter(value.addBoolean(fieldName));
       case BINARY -> stringConverter(value.addString(fieldName));
-      default -> throw new UnsupportedOperationException("not supported type: " + fieldType);
+      case FIXED_LEN_BYTE_ARRAY -> byteArrayConverter(value.addByteArray(fieldName));
+      case INT96 -> throw new UnsupportedOperationException("not supported type INT96");
     };
   }
 }
