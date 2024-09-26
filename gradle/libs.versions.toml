@@ -1,5 +1,5 @@
 [versions]
-junitEngineVersion = "5.11.0"
+junitEngineVersion = "5.11.1"
 junitPlatformVersion = "1.11.0"
 mockitoVersion = "5.13.0"
 versionsVersion = "0.51.0"
