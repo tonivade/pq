@@ -32,6 +32,8 @@ if (system.isLinux()) {
   project.ext.upxExt = "zip"
 }
 
+group = 'com.github.tonivade'
+
 base {
   archivesName = 'pq'
 }
@@ -46,7 +48,7 @@ repositories {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
+    languageVersion = JavaLanguageVersion.of(23)
   }
 }
 
@@ -59,19 +61,19 @@ test {
 }
 
 javadoc.options {
-  addStringOption('-release', '21')
+  addStringOption('-release', '23')
 }
 
 compileJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
-  options.release = 21
+  options.release = 23
 }
 
 compileTestJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
-  options.release = 21
+  options.release = 23
 }
 
 tasks.withType(JavaCompile) {
@@ -209,10 +211,11 @@ nativeImage {
           '--allow-incomplete-classpath',
           '--initialize-at-build-time=ch.qos.logback',
           '--initialize-at-build-time=org.slf4j.LoggerFactory',
-          '-H:IncludeResources=logback.xml',
-          '-H:ReflectionConfigurationFiles=src/native-image/reflect-config.json',
-          '-H:JNIConfigurationFiles=src/native-image/jni-config.json',
-          '-H:ResourceConfigurationFiles=src/native-image/resource-config.json'
+          '--initialize-at-build-time=org.slf4j.helpers.SubstituteServiceProvider',
+          '--initialize-at-build-time=org.slf4j.helpers.NOP_FallbackServiceProvider',
+          '--initialize-at-build-time=org.slf4j.helpers.SubstituteLoggerFactory',
+          '--initialize-at-build-time=org.slf4j.helpers.NOPLoggerFactory',
+          '-H:IncludeResources=logback.xml'
   )
 }
 
