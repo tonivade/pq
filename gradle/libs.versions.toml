@@ -1,6 +1,6 @@
 [versions]
 junitEngineVersion = "5.11.2"
-junitPlatformVersion = "1.11.1"
+junitPlatformVersion = "1.11.2"
 mockitoVersion = "5.14.1"
 versionsVersion = "0.51.0"
 nexusVersion = "1.3.0"
