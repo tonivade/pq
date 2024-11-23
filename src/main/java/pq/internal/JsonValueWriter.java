@@ -28,9 +28,6 @@ final class JsonValueWriter {
       // nothing to do
     } else if (value.isObject()) {
       writeObject(value.asObject());
-    } else if (value.isArray()) {
-      // TODO
-      throw new UnsupportedOperationException();
     } else {
       throw new UnsupportedOperationException();
     }
