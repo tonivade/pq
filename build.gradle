@@ -167,6 +167,7 @@ dependencies {
     exclude group: 'org.codehaus.jettison', module: 'jettison'
     exclude group: 'com.google.re2j', module: 're2j'
     exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
+    exclude group: 'org.bouncycastle', module: 'bcprov-jdk18on'
   }
   implementation(libs.logbackClassic)
   implementation(libs.slf4j)
