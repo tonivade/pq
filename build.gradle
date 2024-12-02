@@ -112,6 +112,8 @@ dependencies {
     exclude group: 'javax.ws.rs', module: 'javax.ws.rs-api'
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+    exclude group: 'com.sun.jersey', module: 'jersey-json'
+    exclude group: 'com.github.pjfanning', module: 'jersey-json'
   }
   implementation(libs.hadoopCommon) {
     exclude group: 'org.apache.avro', module: 'avro'
@@ -161,6 +163,10 @@ dependencies {
     exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
     exclude group: 'io.netty', module: 'netty-handler'
     exclude group: 'io.netty', module: 'netty-transport-native-epoll'
+    exclude group: 'com.github.pjfanning', module: 'jersey-json'
+    exclude group: 'org.codehaus.jettison', module: 'jettison'
+    exclude group: 'com.google.re2j', module: 're2j'
+    exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
   }
   implementation(libs.logbackClassic)
   implementation(libs.slf4j)
