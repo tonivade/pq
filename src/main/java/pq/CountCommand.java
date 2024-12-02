@@ -4,19 +4,13 @@
  */
 package pq;
 
-import static pq.App.createJsonReader;
-import static pq.App.createProjection;
 import static pq.App.parseFilter;
 import static pq.App.schema;
-import static pq.App.stream;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import javax.annotation.Nullable;
-
-import org.apache.parquet.schema.MessageType;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -39,16 +33,11 @@ final class CountCommand implements Runnable {
   public void run() {
     var schema = schema(file);
     var parseFilter = parseFilter(filter, schema);
-    var projection = createProjection(schema, filter).orElseGet(() -> justOneColumn(schema));
-    try (var reader = createJsonReader(file, parseFilter, projection)) {
-      var count = stream(reader).count();
+    try (var reader = App.createFileReader(file, parseFilter)) {
+      var count = reader.getFilteredRecordCount();
       System.out.println(count);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-  }
-
-  private MessageType justOneColumn(MessageType schema) {
-    return new MessageType(schema.getName(), schema.getFields().get(0));
   }
 }
