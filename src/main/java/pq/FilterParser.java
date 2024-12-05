@@ -78,7 +78,7 @@ final class FilterParser extends GrammarDefinition {
 
   private static final Parser FALSE = StringParser.of("false");
   private static final Parser TRUE = StringParser.of("true");
-  private static final Parser NULL = StringParser.of("null").map(x -> null);
+  private static final Parser NULL = StringParser.of("null").map(_ -> null);
 
   private static final Parser ID = letter().seq(word().or(UNDERSCORE).or(DOT).star()).flatten();
 
@@ -180,16 +180,16 @@ final class FilterParser extends GrammarDefinition {
         case Expression(var left, var operator, var right) ->
           new TypedExpression(left.apply(schema), operator, right.apply(schema));
         case NotExpression(var inner) -> new TypedNotExpression(inner.apply(schema));
-        case NullExpression ignore -> new TypedNullExpression();
+        case NullExpression _ -> new TypedNullExpression();
       };
     }
 
     default Set<String> columns() {
       return switch(this) {
-        case Condition(var column, var operator, var value) -> Set.of(column);
-        case Expression(var left, var operator, var right) -> merge(left.columns(), right.columns());
+        case Condition(var column, var _, var _) -> Set.of(column);
+        case Expression(var left, var _, var right) -> merge(left.columns(), right.columns());
         case NotExpression(var inner) -> inner.columns();
-        case NullExpression ignore -> Set.of();
+        case NullExpression _ -> Set.of();
       };
     }
 
@@ -269,7 +269,7 @@ final class FilterParser extends GrammarDefinition {
             case OR -> or(left.convert(), right.convert());
           };
         case TypedNotExpression(var inner) -> FilterApi.not(inner.convert());
-        case TypedNullExpression ignore -> null;
+        case TypedNullExpression _ -> null;
       };
     }
   }
