@@ -48,13 +48,17 @@ final class WriteCommand implements Runnable {
       var schema = parseSchema();
       var input = createInput(schema);
       try (var output = createJsonWriter(file, schema)) {
-        try (var lines = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8)).lines()) {
+        try (var lines = reader().lines()) {
           lines.map(input::parse).forEach(value -> write(output, value));
         }
       }
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  private BufferedReader reader() {
+    return new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
   }
 
   private Parser createInput(MessageType schema) {
