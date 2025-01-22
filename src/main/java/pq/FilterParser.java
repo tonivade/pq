@@ -4,6 +4,7 @@
  */
 package pq;
 
+import static java.util.Map.entry;
 import static org.apache.parquet.filter2.predicate.FilterApi.and;
 import static org.apache.parquet.filter2.predicate.FilterApi.binaryColumn;
 import static org.apache.parquet.filter2.predicate.FilterApi.booleanColumn;
@@ -18,12 +19,15 @@ import static org.apache.parquet.filter2.predicate.FilterApi.lt;
 import static org.apache.parquet.filter2.predicate.FilterApi.ltEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.notEq;
 import static org.apache.parquet.filter2.predicate.FilterApi.or;
+import static org.petitparser.parser.primitive.CharacterParser.anyOf;
 import static org.petitparser.parser.primitive.CharacterParser.digit;
 import static org.petitparser.parser.primitive.CharacterParser.letter;
 import static org.petitparser.parser.primitive.CharacterParser.word;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -55,6 +59,17 @@ import pq.FilterParser.TypedExpr.TypedNullExpression;
 
 final class FilterParser extends GrammarDefinition {
 
+  private static final Map<Character, Character> ESCAPE_TABLE = Map.ofEntries(
+      entry('\\', '\\'),
+      entry('/', '/'),
+      entry('"', '"'),
+      entry('b', '\b'),
+      entry('f', '\f'),
+      entry('n', '\n'),
+      entry('r', '\r'),
+      entry('t', '\t')
+  );
+
   private static final String START = "start";
   private static final String EXPRESSION = "expression";
   private static final String PAREN_EXPRESSION = "parenExpression";
@@ -75,6 +90,7 @@ final class FilterParser extends GrammarDefinition {
   private static final CharacterParser MINUS = CharacterParser.of('-');
   private static final CharacterParser DOT = CharacterParser.of('.');
   private static final CharacterParser UNDERSCORE = CharacterParser.of('_');
+  private static final CharacterParser BACKSLASH = CharacterParser.of('\\');
 
   private static final Parser FALSE = StringParser.of("false");
   private static final Parser TRUE = StringParser.of("true");
@@ -91,7 +107,13 @@ final class FilterParser extends GrammarDefinition {
   private static final Parser DECIMAL = MINUS.optional().seq(digit().plus()).seq(DOT).seq(digit().star()).flatten()
     .<String, Double>map(Double::parseDouble);
 
-  private static final Parser STRING = QUOTE.seq(word().star()).seq(QUOTE).flatten()
+  private static final Parser CHARACTER_NORMAL = anyOf("\"\\").neg();
+
+  private static final Parser CHARACTER_ESCAPE = BACKSLASH.seq(anyOf(listToString(ESCAPE_TABLE.keySet()))).map(ESCAPE_TABLE::get);
+
+  private static final Parser CHARACTER = CHARACTER_NORMAL.or(CHARACTER_ESCAPE);
+
+  private static final Parser STRING = QUOTE.seq(CHARACTER.star()).seq(QUOTE).flatten()
     .<String, String>map(FilterParser::unquote);
 
   private static final Parser OPERATOR = EQ.seq(EQ).or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
@@ -376,5 +398,11 @@ final class FilterParser extends GrammarDefinition {
       case null -> null;
       default -> Binary.fromString(value);
     };
+  }
+
+  private static String listToString(Collection<Character> characters) {
+    StringBuilder builder = new StringBuilder(characters.size());
+    characters.forEach(builder::append);
+    return builder.toString();
   }
 }
