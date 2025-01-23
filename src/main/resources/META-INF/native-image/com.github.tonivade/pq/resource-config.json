@@ -15,7 +15,11 @@
     }, 
     {
       "pattern":"\\Qorg/xerial/snappy/VERSION\\E"
-    }
+    },
+    {"pattern":".*libsnappyjava.dylib"},
+    {"pattern":".*libsnappyjava.so"},
+    {"pattern":".*snappyjava.dll"},
+    {"pattern":".*libsnappyjava.a"}
   ]},
   "bundles":[]
 }
