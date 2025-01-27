@@ -401,7 +401,7 @@ final class FilterParser extends GrammarDefinition {
   }
 
   private static String listToString(Collection<Character> characters) {
-    StringBuilder builder = new StringBuilder(characters.size());
+    var builder = new StringBuilder(characters.size());
     characters.forEach(builder::append);
     return builder.toString();
   }
