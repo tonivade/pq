@@ -78,7 +78,7 @@ final class FilterParser extends GrammarDefinition {
   private static final String BOOLEAN_EXPRESSION = "booleanExpression";
   private static final String VALUE = "value";
 
-  private static final CharacterParser NOT = CharacterParser.of('!');
+  private static final CharacterParser BANG = CharacterParser.of('!');
   private static final CharacterParser LEFTPARENT = CharacterParser.of('(');
   private static final CharacterParser RIGHTPARENT = CharacterParser.of(')');
   private static final CharacterParser PIPE = CharacterParser.of('|');
@@ -116,7 +116,7 @@ final class FilterParser extends GrammarDefinition {
   private static final Parser STRING = QUOTE.seq(CHARACTER.star()).seq(QUOTE).flatten()
     .<String, String>map(FilterParser::unquote);
 
-  private static final Parser OPERATOR = EQ.seq(EQ).or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(NOT.seq(EQ)).flatten().trim()
+  private static final Parser OPERATOR = EQ.seq(EQ).or(GT.seq(EQ.optional())).or(LT.seq(EQ.optional())).or(BANG.seq(EQ)).flatten().trim()
     .<String, Operator>map(FilterParser::toOperator);
 
   private static final Parser LOGIC = AMPERSAND.seq(AMPERSAND).or(PIPE.seq(PIPE)).flatten().trim()
@@ -125,18 +125,19 @@ final class FilterParser extends GrammarDefinition {
   @SuppressWarnings("unchecked")
   public FilterParser() {
     def(VALUE, STRING.or(DECIMAL).or(BOOLEAN).or(INTEGER).or(NULL));
-    def(BOOLEAN_EXPRESSION, NOT.optional().seq(ID));
+    def(BOOLEAN_EXPRESSION, BANG.optional().seq(ID));
     def(SINGLE_EXPRESSION, ID.seq(OPERATOR).seq(ref(VALUE)));
-    def(NOT_EXPRESSION, NOT.seq(LEFTPARENT).seq(ref(START)).seq(RIGHTPARENT));
+    def(NOT_EXPRESSION, BANG.seq(LEFTPARENT).seq(ref(START)).seq(RIGHTPARENT));
     def(PAREN_EXPRESSION, LEFTPARENT.seq(ref(START)).seq(RIGHTPARENT));
     def(EXPRESSION, ref(NOT_EXPRESSION).or(ref(PAREN_EXPRESSION)).or(ref(SINGLE_EXPRESSION)).or(ref(BOOLEAN_EXPRESSION)));
     def(START, ref(EXPRESSION).seq(LOGIC.seq(ref(EXPRESSION)).star()));
 
     action(BOOLEAN_EXPRESSION, (List<Object> result) -> {
+      var column = (String) result.get(1);
       if (result.get(0) == null) {
-        return new Condition((String) result.get(1), Operator.EQUAL, true);
+        return new Condition(column, Operator.EQUAL, true);
       }
-      return new Condition((String) result.get(1), Operator.NOT_EQUAL, true);
+      return new Condition(column, Operator.NOT_EQUAL, true);
     });
     action(SINGLE_EXPRESSION, (List<Object> result) -> {
         var column = (String) result.get(0);
@@ -145,7 +146,7 @@ final class FilterParser extends GrammarDefinition {
         return new Condition(column, operator, value);
       });
     action(NOT_EXPRESSION, (List<Object> result) -> {
-        Expr inner = (Expr) result.get(2);
+        var inner = (Expr) result.get(2);
         return new NotExpression(inner);
       });
     action(PAREN_EXPRESSION, (List<Object> result) -> {
@@ -179,7 +180,8 @@ final class FilterParser extends GrammarDefinition {
     record NotExpression(Expr inner) implements Expr { }
     record NullExpression() implements Expr { }
 
-    default TypedExpr apply(MessageType schema) {
+    @SuppressWarnings("unchecked")
+    default <T> TypedExpr<T> apply(MessageType schema) {
       return switch(this) {
         case Condition(var column, var operator, var value) -> {
           String[] path = column.split("\\.");
@@ -189,7 +191,7 @@ final class FilterParser extends GrammarDefinition {
 
           var columnDescription = schema.getColumnDescription(path);
 
-          yield switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
+          yield (TypedExpr<T>) switch (columnDescription.getPrimitiveType().getPrimitiveTypeName()) {
             case INT32 -> new IntCondition(column, operator, asInt(value));
             case INT64 -> new LongCondition(column, operator, asLong(value));
             case FLOAT -> new FloatCondition(column, operator, asFloat(value));
@@ -200,9 +202,9 @@ final class FilterParser extends GrammarDefinition {
           };
         }
         case Expression(var left, var operator, var right) ->
-          new TypedExpression(left.apply(schema), operator, right.apply(schema));
-        case NotExpression(var inner) -> new TypedNotExpression(inner.apply(schema));
-        case NullExpression _ -> new TypedNullExpression();
+          new TypedExpression<T>(left.apply(schema), operator, right.apply(schema));
+        case NotExpression(var inner) -> new TypedNotExpression<>(inner.apply(schema));
+        case NullExpression _ -> new TypedNullExpression<>();
       };
     }
 
@@ -222,17 +224,17 @@ final class FilterParser extends GrammarDefinition {
     }
   }
 
-  sealed interface TypedExpr {
+  sealed interface TypedExpr<T> {
 
-    record IntCondition(String column, Operator operator, @Nullable Integer value) implements TypedExpr { }
-    record LongCondition(String column, Operator operator, @Nullable Long value) implements TypedExpr { }
-    record FloatCondition(String column, Operator operator, @Nullable Float value) implements TypedExpr { }
-    record DoubleCondition(String column, Operator operator, @Nullable Double value) implements TypedExpr { }
-    record StringCondition(String column, Operator operator, @Nullable String value) implements TypedExpr { }
-    record BooleanCondition(String column, Operator operator, @Nullable Boolean value) implements TypedExpr { }
-    record TypedExpression(TypedExpr left, Logic operator, TypedExpr right) implements TypedExpr { }
-    record TypedNotExpression(TypedExpr inner) implements TypedExpr { }
-    record TypedNullExpression() implements TypedExpr { }
+    record IntCondition(String column, Operator operator, @Nullable Integer value) implements TypedExpr<String> { }
+    record LongCondition(String column, Operator operator, @Nullable Long value) implements TypedExpr<Long> { }
+    record FloatCondition(String column, Operator operator, @Nullable Float value) implements TypedExpr<Float> { }
+    record DoubleCondition(String column, Operator operator, @Nullable Double value) implements TypedExpr<Double> { }
+    record StringCondition(String column, Operator operator, @Nullable String value) implements TypedExpr<String> { }
+    record BooleanCondition(String column, Operator operator, @Nullable Boolean value) implements TypedExpr<Boolean> { }
+    record TypedExpression<T>(TypedExpr<T> left, Logic operator, TypedExpr<T> right) implements TypedExpr<T> { }
+    record TypedNotExpression<T>(TypedExpr<T> inner) implements TypedExpr<T> { }
+    record TypedNullExpression<T>() implements TypedExpr<T> { }
 
     @Nullable
     default FilterPredicate convert() {
@@ -285,13 +287,13 @@ final class FilterParser extends GrammarDefinition {
             case NOT_EQUAL -> notEq(binaryColumn(column), asBinary(value));
             default -> throw new IllegalArgumentException();
           };
-        case TypedExpression(var left, var operator, var right) ->
+        case TypedExpression<T>(var left, var operator, var right) ->
           switch (operator) {
             case AND -> and(left.convert(), right.convert());
             case OR -> or(left.convert(), right.convert());
           };
-        case TypedNotExpression(var inner) -> FilterApi.not(inner.convert());
-        case TypedNullExpression _ -> null;
+        case TypedNotExpression<T>(var inner) -> FilterApi.not(inner.convert());
+        case TypedNullExpression<T> _ -> null;
       };
     }
   }
