@@ -1,6 +1,5 @@
 [versions]
-junitEngineVersion = "5.11.4"
-junitPlatformVersion = "1.11.4"
+junitVersion = "5.11.4"
 mockitoVersion = "5.15.2"
 versionsVersion = "0.52.0"
 nexusVersion = "1.3.0"
@@ -23,8 +22,9 @@ slf4jVersion = "2.0.16"
 shadowJarVersion = "8.1.1"
 
 [libraries]
-junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitEngineVersion" }
-junitRunner = { group = "org.junit.platform", name = "junit-platform-runner", version.ref = "junitPlatformVersion" }
+junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junitVersion" }
+junitJupiter = { module = "org.junit.jupiter:junit-jupiter-engine" }
+junitLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoVersion" }
 mockitoJunit = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockitoVersion" }
 picocli = { group = "info.picocli", name = "picocli", version.ref = "picocliVersion" }

@@ -172,8 +172,9 @@ dependencies {
   implementation(libs.logbackClassic)
   implementation(libs.slf4j)
 
+  testImplementation(platform(libs.junitBom))
   testImplementation(libs.junitJupiter)
-  testRuntimeOnly(libs.junitRunner)
+  testRuntimeOnly(libs.junitLauncher)
   testImplementation(libs.mockitoCore)
   testImplementation(libs.mockitoJunit)
   testImplementation(libs.assertj)
