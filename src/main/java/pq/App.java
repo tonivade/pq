@@ -39,8 +39,10 @@ import picocli.CommandLine.ScopeType;
 import pq.internal.JsonParquetReader;
 import pq.internal.JsonParquetWriter;
 
-@Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023 by @tonivade",
-  subcommands = { CountCommand.class, SchemaCommand.class, ReadCommand.class, MetadataCommand.class, WriteCommand.class, HelpCommand.class })
+@Command(name = "pq", description = "parquet query tool", footer = "Copyright(c) 2023-2025 by @tonivade@jvm.social",
+  subcommands = {
+      CountCommand.class, SchemaCommand.class, ReadCommand.class,
+      MetadataCommand.class, WriteCommand.class, HelpCommand.class })
 public final class App {
 
   @Option(names = { "-v", "--verbose" }, description = "enable debug logs", scope = ScopeType.INHERIT, defaultValue = "false")
