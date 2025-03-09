@@ -24,7 +24,7 @@ if (system.isLinux() && arch == "amd64") {
   project.ext.graalHome = "graalvm"
   project.ext.upxArch = "arm64_linux"
   project.ext.upxExt = "tar.xz"
-} else if (system.isMacOsX() && arch == "amd64") {
+} else if (system.isMacOsX() && arch == "x86_64") {
   project.ext.osArch = "x64"
   project.ext.opSystem = "macos"
   project.ext.graalExt = "tar.gz"
@@ -238,6 +238,8 @@ nativeImage {
           '--initialize-at-build-time=org.slf4j.helpers.NOP_FallbackServiceProvider',
           '--initialize-at-build-time=org.slf4j.helpers.SubstituteLoggerFactory',
           '--initialize-at-build-time=org.slf4j.helpers.NOPLoggerFactory',
+          '--initialize-at-build-time=org.slf4j.helpers.BasicMDCAdapter',
+          '--initialize-at-build-time=org.slf4j.helpers.NOPMDCAdapter',
           '-H:IncludeResources=logback.xml'
   )
 }
