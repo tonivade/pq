@@ -14,8 +14,14 @@ jobs:
           - os: macos-latest
             uploaded_filename: pq-darwin-arm64
             local_path: build/native-image/pq
+          - os: macos-13
+            uploaded_filename: pq-darwin-amd64
+            local_path: build/native-image/pq
           - os: ubuntu-latest
             uploaded_filename: pq-linux-amd64
+            local_path: build/native-image/pq
+          - os: ubuntu-24.04-arm
+            uploaded_filename: pq-linux-arm64
             local_path: build/native-image/pq
           - os: windows-latest
             uploaded_filename: pq-windows-amd64.exe
@@ -30,14 +36,22 @@ jobs:
           cache: gradle
 
       # build
-      - name: Native Image Linux
+      - name: Native Image Linux amd64
         run: ./gradlew nativeImage && ./gradlew compressExecutable
         shell: bash
         if: ${{ matrix.os == 'ubuntu-latest' }}
-      - name: Native Image Macos
+      - name: Native Image Linux arm64
+        run: ./gradlew nativeImage && ./gradlew compressExecutable
+        shell: bash
+        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+      - name: Native Image Macos amd64
         run: ./gradlew nativeImage
         shell: bash
         if: ${{ matrix.os == 'macos-latest' }}
+      - name: Native Image Macos arm64
+        run: ./gradlew nativeImage
+        shell: bash
+        if: ${{ matrix.os == 'macos-13' }}
       - name: Native Image Windows
         shell: cmd
         if: ${{ matrix.os == 'windows-latest' }}

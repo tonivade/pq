@@ -9,14 +9,29 @@ plugins {
 }
 
 def system = org.gradle.internal.os.OperatingSystem.current()
-if (system.isLinux()) {
+def arch = System.getProperty("os.arch")
+if (system.isLinux() && arch == "amd64") {
   project.ext.osArch = "x64"
   project.ext.opSystem = "linux"
   project.ext.graalExt = "tar.gz"
   project.ext.graalHome = "graalvm"
   project.ext.upxArch = "amd64_linux"
   project.ext.upxExt = "tar.xz"
-} else if (system.isMacOsX()) {
+} else if (system.isLinux() && arch == "aarch64") {
+  project.ext.osArch = "aarch64"
+  project.ext.opSystem = "linux"
+  project.ext.graalExt = "tar.gz"
+  project.ext.graalHome = "graalvm"
+  project.ext.upxArch = "arm64_linux"
+  project.ext.upxExt = "tar.xz"
+} else if (system.isMacOsX() && arch == "amd64") {
+  project.ext.osArch = "x64"
+  project.ext.opSystem = "macos"
+  project.ext.graalExt = "tar.gz"
+  project.ext.graalHome = "graalvm/Contents/Home"
+  project.ext.upxArch = "amd64_darwin" // not supported :(
+  project.ext.upxExt = "tar.xz"
+} else if (system.isMacOsX() && arch == "aarch64") {
   project.ext.osArch = "aarch64"
   project.ext.opSystem = "macos"
   project.ext.graalExt = "tar.gz"
