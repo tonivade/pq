@@ -59,14 +59,22 @@ jobs:
           "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat extractGraalvm && gradlew.bat nativeImage
 
       # test
-      - name: Test Native Image Linux
+      - name: Test Native Image Linux amd64
         run: ./gradlew testNativeImage
         shell: bash
         if: ${{ matrix.os == 'ubuntu-latest' }}
-      - name: Test Native Image Macos
+      - name: Test Native Image Linux arm64
+        run: ./gradlew testNativeImage
+        shell: bash
+        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+      - name: Test Native Image Macos arm64
         run: ./gradlew testNativeImage
         shell: bash
         if: ${{ matrix.os == 'macos-latest' }}
+      - name: Test Native Image Macos amd64
+        run: ./gradlew testNativeImage
+        shell: bash
+        if: ${{ matrix.os == 'macos-13' }}
       - name: Test Native Image Windows
         shell: cmd
         if: ${{ matrix.os == 'windows-latest' }}
