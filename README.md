@@ -12,7 +12,7 @@ Create a tool similar to jq but for parquet files.
 The preferred instalation process is download one of the precompiled binary files that can be downloaded from releases page in github. You will find these different files:
 
 - [pq-linux-amd64](https://github.com/tonivade/pq/releases/download/0.7.0/pq-linux-amd64): native image for linux x86_64. Compressed using upx.
-- [pq-linux-arm64](https://github.com/tonivade/pq/releases/download/0.7.0/pq-linux-arm4): native image for linux aarch64. Compressed using upx.
+- [pq-linux-arm64](https://github.com/tonivade/pq/releases/download/0.7.0/pq-linux-arm64): native image for linux aarch64. Compressed using upx.
 - [pq-darwin-arm64](https://github.com/tonivade/pq/releases/download/0.7.0/pq-darwin-arm64): native image for macos aarch64.
 - [pq-darwin-amd64](https://github.com/tonivade/pq/releases/download/0.7.0/pq-darwin-amd64): native image for macos x86_64.
 - [pq-windows-amd64.exe](https://github.com/tonivade/pq/releases/download/0.7.0/pq-windows-amd64.exe): native image for windows x86_64.
