@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, macos-13, ubuntu-latest, ubuntu-24.04-arm, windows-latest]
         include:
           - os: macos-latest
             uploaded_filename: pq-darwin-arm64
