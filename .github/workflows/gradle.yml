@@ -21,7 +21,9 @@ jobs:
     - name: Set up JDK 24
       uses: actions/setup-java@v4
       with:
-        java-version: 24
+        java-version: |
+          24
+          23
         distribution: oracle
         cache: gradle
     - name: Grant execute permission for gradlew
