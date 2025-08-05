@@ -19,7 +19,7 @@ errorpronePluginVersion = "4.3.0"
 nullawayVersion = "0.12.7"
 jsr305Version = "3.0.2"
 slf4jVersion = "2.0.17"
-shadowJarVersion = "8.1.1"
+shadowJarVersion = "8.3.7"
 
 [libraries]
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junitVersion" }
@@ -49,4 +49,4 @@ versions = { id = "com.github.ben-manes.versions", version.ref = "versionsVersio
 graalvmNativeImage = { id = "org.mikeneck.graalvm-native-image", version.ref = "graalvmNativeImageVersion" }
 download = {  id = "de.undercouch.download", version.ref = "downloadVersion" }
 errorprone = { id = "net.ltgt.errorprone", version.ref = "errorpronePluginVersion"}
-shadowJar = { id = "com.github.johnrengelman.shadow", version.ref = "shadowJarVersion"}
+shadowJar = { id = "com.gradleup.shadow", version.ref = "shadowJarVersion"}
