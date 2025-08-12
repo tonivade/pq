@@ -27,7 +27,7 @@ jobs:
             uploaded_filename: pq-windows-amd64.exe
             local_path: build\native-image\pq.exe
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK 24
         uses: actions/setup-java@v4
         with:
