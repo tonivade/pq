@@ -23,11 +23,14 @@ jobs:
       with:
         java-version: '24'
         distribution: temurin
-        cache: gradle
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build shadowJar
+      run: ./gradlew --configuration-cache build shadowJar
     - name: Upload fatJar
       uses: actions/upload-artifact@v4
       with:
