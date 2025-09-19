@@ -63,7 +63,7 @@ repositories {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(24)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }
 
@@ -76,19 +76,19 @@ test {
 }
 
 javadoc.options {
-  addStringOption('-release', '24')
+  addStringOption('-release', '25')
 }
 
 compileJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
-  options.release = 24
+  options.release = 25
 }
 
 compileTestJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
-  options.release = 24
+  options.release = 25
 }
 
 tasks.withType(JavaCompile) {
