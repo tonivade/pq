@@ -28,35 +28,35 @@ jobs:
             local_path: build\native-image\pq.exe
     steps:
       - uses: actions/checkout@v5
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5
+
+      - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: 25
-          distribution: oracle
-          cache: gradle
+          java-version: '25'
+          distribution: 'graalvm'
+          native-image-job-reports: 'true'
 
       # build
       - name: Native Image Linux amd64
-        run: ./gradlew nativeImage && ./gradlew compressExecutable
+        run: ./gradlew nativeCompile && ./gradlew compressExecutable
         shell: bash
         if: ${{ matrix.os == 'ubuntu-latest' }}
       - name: Native Image Linux arm64
-        run: ./gradlew nativeImage && ./gradlew compressExecutable
+        run: ./gradlew nativeCompile && ./gradlew compressExecutable
         shell: bash
         if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
       - name: Native Image Macos amd64
-        run: ./gradlew nativeImage
+        run: ./gradlew nativeCompile
         shell: bash
         if: ${{ matrix.os == 'macos-latest' }}
       - name: Native Image Macos arm64
-        run: ./gradlew nativeImage
+        run: ./gradlew nativeCompile
         shell: bash
         if: ${{ matrix.os == 'macos-13' }}
       - name: Native Image Windows
         shell: cmd
         if: ${{ matrix.os == 'windows-latest' }}
         run: >-
-          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat extractGraalvm && gradlew.bat nativeImage
+          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && gradlew.bat nativeCompile
 
       # test
       - name: Test Native Image Linux amd64

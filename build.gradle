@@ -11,38 +11,18 @@ plugins {
 def system = org.gradle.internal.os.OperatingSystem.current()
 def arch = System.getProperty("os.arch")
 if (system.isLinux() && arch == "amd64") {
-  project.ext.osArch = "x64"
-  project.ext.opSystem = "linux"
-  project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm"
   project.ext.upxArch = "amd64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.isLinux() && arch == "aarch64") {
-  project.ext.osArch = "aarch64"
-  project.ext.opSystem = "linux"
-  project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm"
   project.ext.upxArch = "arm64_linux"
   project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX() && arch == "x86_64") {
-  project.ext.osArch = "x64"
-  project.ext.opSystem = "macos"
-  project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm/Contents/Home"
   project.ext.upxArch = "amd64_darwin" // not supported :(
   project.ext.upxExt = "tar.xz"
 } else if (system.isMacOsX() && arch == "aarch64") {
-  project.ext.osArch = "aarch64"
-  project.ext.opSystem = "macos"
-  project.ext.graalExt = "tar.gz"
-  project.ext.graalHome = "graalvm/Contents/Home"
   project.ext.upxArch = "arm64_darwin" // not supported :(
   project.ext.upxExt = "tar.xz"
 } else if (system.isWindows()) {
-  project.ext.osArch = "x64"
-  project.ext.opSystem = "windows"
-  project.ext.graalExt = "zip"
-  project.ext.graalHome = "graalvm"
   project.ext.upxArch = "win64"
   project.ext.upxExt = "zip"
 }
@@ -206,42 +186,35 @@ shadowJar {
   }
 }
 
-task downloadGraalvm(type: Download) {
-  src "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${graalvm_version}/graalvm-community-jdk-${graalvm_version}_${opSystem}-${osArch}_bin.${graalExt}"
-  dest new java.io.File(buildDir, "graalvm.tar.gz")
-  onlyIfModified true
-}
-
-task extractGraalvm(dependsOn: downloadGraalvm, type: Exec) {
-  workingDir "$buildDir"
-  if (system.isWindows()) {
-    commandLine 'cmd', '/c', 'if not exist graalvm (mkdir graalvm) else (cd.) && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
-  } else {
-    commandLine 'bash', '-c', 'mkdir -p graalvm && tar -xvf graalvm.tar.gz -C graalvm --strip-components 1'
+graalvmNative {
+  toolchainDetection = true
+  binaries {
+    main {
+      imageName = "pq"
+      mainClass = "pq.App"
+      sharedLibrary = false
+      fallback = false
+      buildArgs.add("-O2")
+      buildArgs.add('--verbose')
+      buildArgs.add('--report-unsupported-elements-at-runtime')
+      buildArgs.add('--no-fallback')
+      buildArgs.add('--allow-incomplete-classpath')
+      buildArgs.add('--initialize-at-build-time=ch.qos.logback')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.LoggerFactory')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.SubstituteServiceProvider')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.NOP_FallbackServiceProvider')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.SubstituteLoggerFactory')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.NOPLoggerFactory')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.BasicMDCAdapter')
+      buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.NOPMDCAdapter')
+      buildArgs.add('-H:IncludeResources=logback.xml')
+      buildArgs.add('-J-Xms2G')
+      buildArgs.add('-J-Xmx2G')
+    }
+    test {
+      buildArgs.add("-O0")
+    }
   }
-}
-
-nativeImage {
-  graalVmHome = "${buildDir}/${graalHome}"
-  mainClass = "pq.App"
-  executableName = "pq"
-  arguments(
-          '-J-Xms2G',
-          '-J-Xmx2G',
-          '--verbose',
-          '--report-unsupported-elements-at-runtime',
-          '--no-fallback',
-          '--allow-incomplete-classpath',
-          '--initialize-at-build-time=ch.qos.logback',
-          '--initialize-at-build-time=org.slf4j.LoggerFactory',
-          '--initialize-at-build-time=org.slf4j.helpers.SubstituteServiceProvider',
-          '--initialize-at-build-time=org.slf4j.helpers.NOP_FallbackServiceProvider',
-          '--initialize-at-build-time=org.slf4j.helpers.SubstituteLoggerFactory',
-          '--initialize-at-build-time=org.slf4j.helpers.NOPLoggerFactory',
-          '--initialize-at-build-time=org.slf4j.helpers.BasicMDCAdapter',
-          '--initialize-at-build-time=org.slf4j.helpers.NOPMDCAdapter',
-          '-H:IncludeResources=logback.xml'
-  )
 }
 
 task downloadUpx(type: Download) {
@@ -262,21 +235,17 @@ task extractUpx(dependsOn: downloadUpx, type: Exec) {
 task compressExecutable(dependsOn: extractUpx, type: Exec) {
   workingDir "$buildDir/upx"
   if (system.isWindows()) {
-    commandLine 'cmd', '/c', 'upx --best ..\\native-image\\pq.exe'
+    commandLine 'cmd', '/c', 'upx --best ..\\native\\nativeCompile\\pq.exe'
   } else {
-    commandLine 'bash', '-c', './upx --best ../native-image/pq'
+    commandLine 'bash', '-c', './upx --best ../native/nativeCompile/pq'
   }
 }
 
 task testNativeImage(type: Exec) {
-  workingDir "$buildDir/native-image"
+  workingDir "$buildDir/native/nativeCompile"
   if (system.isWindows()) {
-    commandLine 'cmd', '/c', 'pq.exe count ..\\..\\src\\test\\resources\\example.parquet'
+    commandLine 'cmd', '/c', 'pq.exe count ..\\..\\..\\src\\test\\resources\\example.parquet'
   } else {
-    commandLine 'bash', '-c', './pq count ../../src/test/resources/example.parquet'
+    commandLine 'bash', '-c', './pq count ../../../src/test/resources/example.parquet'
   }
-}
-
-installNativeImage {
-  dependsOn extractGraalvm
 }
