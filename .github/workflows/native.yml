@@ -13,19 +13,19 @@ jobs:
         include:
           - os: macos-latest
             uploaded_filename: pq-darwin-arm64
-            local_path: build/native-image/pq
+            local_path: build/native/nativeCompile/pq
           - os: macos-13
             uploaded_filename: pq-darwin-amd64
-            local_path: build/native-image/pq
+            local_path: build/native/nativeCompile/pq
           - os: ubuntu-latest
             uploaded_filename: pq-linux-amd64
-            local_path: build/native-image/pq
+            local_path: build/native/nativeCompile/pq
           - os: ubuntu-24.04-arm
             uploaded_filename: pq-linux-arm64
-            local_path: build/native-image/pq
+            local_path: build/native/nativeCompile/pq
           - os: windows-latest
             uploaded_filename: pq-windows-amd64.exe
-            local_path: build\native-image\pq.exe
+            local_path: build\native\nativeCompile\pq.exe
     steps:
       - uses: actions/checkout@v5
 
