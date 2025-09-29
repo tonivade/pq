@@ -1,7 +1,7 @@
 [versions]
 junitVersion = "5.13.4"
 mockitoVersion = "5.20.0"
-versionsVersion = "0.52.0"
+versionsVersion = "0.53.0"
 nexusVersion = "1.3.0"
 picocliVersion = "4.7.7"
 parquetVersion = "1.16.0"
