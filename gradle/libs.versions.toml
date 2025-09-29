@@ -19,7 +19,7 @@ errorpronePluginVersion = "4.3.0"
 nullawayVersion = "0.12.10"
 jsr305Version = "3.0.2"
 slf4jVersion = "2.0.17"
-shadowJarVersion = "9.1.0"
+shadowJarVersion = "9.2.2"
 
 [libraries]
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junitVersion" }
