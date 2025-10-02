@@ -18,9 +18,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.schema.MessageType;
+import org.jspecify.annotations.Nullable;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

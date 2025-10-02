@@ -6,12 +6,11 @@ package pq.internal;
 
 import com.eclipsesource.json.JsonValue;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.schema.MessageType;
+import org.jspecify.annotations.Nullable;
 
 public final class JsonParquetReader {
 
