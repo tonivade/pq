@@ -44,6 +44,7 @@ final class ReadCommand implements Runnable {
   @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
   private String filter;
 
+  @SuppressWarnings("NullAway.Init")
   @Nullable
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;

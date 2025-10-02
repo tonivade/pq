@@ -26,6 +26,7 @@ final class SchemaCommand implements Runnable {
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;
 
+  @SuppressWarnings("NullAway.Init")
   @Nullable
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;
