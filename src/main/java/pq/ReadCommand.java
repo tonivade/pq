@@ -45,7 +45,6 @@ final class ReadCommand implements Runnable {
   private String filter;
 
   @SuppressWarnings("NullAway.Init")
-  @Nullable
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;
 

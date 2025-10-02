@@ -13,8 +13,6 @@ import java.io.UncheckedIOException;
 
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.schema.MessageType;
-import org.jspecify.annotations.Nullable;
-
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -27,7 +25,6 @@ final class SchemaCommand implements Runnable {
   private File file;
 
   @SuppressWarnings("NullAway.Init")
-  @Nullable
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;
 
