@@ -11,11 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.schema.MessageType;
-
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -27,7 +24,7 @@ final class SchemaCommand implements Runnable {
   @Parameters(paramLabel = "FILE", description = "parquet file")
   private File file;
 
-  @Nullable
+  @SuppressWarnings("NullAway.Init")
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;
 

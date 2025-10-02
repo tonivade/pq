@@ -6,12 +6,11 @@ package pq.internal;
 
 import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.PrimitiveConverter;
+import org.jspecify.annotations.Nullable;
 
 final class JsonPrimitiveConverterFactory {
 

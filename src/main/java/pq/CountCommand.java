@@ -14,9 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.schema.MessageType;
+import org.jspecify.annotations.Nullable;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

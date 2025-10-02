@@ -18,9 +18,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.schema.MessageType;
+import org.jspecify.annotations.Nullable;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -45,7 +44,7 @@ final class ReadCommand implements Runnable {
   @Option(names = "--filter", description = "predicate to apply to the rows", paramLabel = "PREDICATE")
   private String filter;
 
-  @Nullable
+  @SuppressWarnings("NullAway.Init")
   @Option(names = "--select", description = "list of columns to select", paramLabel = "COLUMN", split = ",")
   private String[] select;
 

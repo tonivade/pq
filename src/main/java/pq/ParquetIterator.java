@@ -13,9 +13,8 @@ import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import javax.annotation.Nullable;
-
 import org.apache.parquet.hadoop.ParquetReader;
+import org.jspecify.annotations.Nullable;
 
 final class ParquetIterator implements Iterator<Tuple> {
 
