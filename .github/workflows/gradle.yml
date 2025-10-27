@@ -32,7 +32,7 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew --configuration-cache build shadowJar
     - name: Upload fatJar
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: pq.jar
         path: build/libs/pq-*-all.jar
