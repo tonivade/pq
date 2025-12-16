@@ -81,7 +81,7 @@ jobs:
         run: >-
           gradlew.bat testNativeImage
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           path: ${{ matrix.local_path }}
           name: ${{ matrix.uploaded_filename }}
