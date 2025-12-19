@@ -517,52 +517,6 @@
   "queryAllDeclaredMethods":true
 },
 {
-  "name":"picocli.CommandLine$HelpCommand",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"pq.App",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"setVerbose","parameterTypes":["boolean"] }]
-},
-{
-  "name":"pq.CountCommand",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"pq.FormatConverter",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"pq.MetadataCommand",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"pq.ReadCommand",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"pq.SchemaCommand",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"pq.WriteCommand",
-  "allDeclaredFields":true,
-  "queryAllDeclaredMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
   "name":"shaded.parquet.com.fasterxml.jackson.databind.ext.Java7SupportImpl",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },

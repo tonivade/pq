@@ -29,6 +29,7 @@ junitLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoVersion" }
 mockitoJunit = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockitoVersion" }
 picocli = { group = "info.picocli", name = "picocli", version.ref = "picocliVersion" }
+picocliCodegen = { group = "info.picocli", name = "picocli-codegen", version.ref = "picocliVersion" }
 parquetCommon = { group = "org.apache.parquet", name = "parquet-common", version.ref = "parquetVersion" }
 parquetColumn = { group = "org.apache.parquet", name = "parquet-column", version.ref = "parquetVersion" }
 parquetHadoop = { group = "org.apache.parquet", name = "parquet-hadoop", version.ref = "parquetVersion" }

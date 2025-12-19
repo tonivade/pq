@@ -62,6 +62,7 @@ javadoc.options {
 compileJava {
   options.compilerArgs << '-Xlint:unchecked'
   options.compilerArgs << '-Xlint:rawtypes'
+  options.compilerArgs << "-Aproject=${project.group}/${project.name}"
   options.release = 25
 }
 
@@ -85,6 +86,7 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
+  annotationProcessor(libs.picocliCodegen)
   errorprone(libs.nullaway)
   errorprone(libs.errorprone)
   compileOnly(libs.jspecify)
