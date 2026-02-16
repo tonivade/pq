@@ -1,5 +1,5 @@
 [versions]
-junitVersion = "6.0.2"
+junitVersion = "6.0.3"
 mockitoVersion = "5.21.0"
 versionsVersion = "0.53.0"
 nexusVersion = "1.3.0"
