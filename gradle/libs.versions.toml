@@ -19,7 +19,7 @@ errorpronePluginVersion = "5.1.0"
 nullawayVersion = "0.13.1"
 jspecifyVersion = "1.0.0"
 slf4jVersion = "2.0.17"
-shadowJarVersion = "9.3.2"
+shadowJarVersion = "9.4.0"
 
 [libraries]
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecifyVersion" }
