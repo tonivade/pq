@@ -48,6 +48,10 @@ java {
   }
 }
 
+jacoco {
+  toolVersion = '0.8.14'
+}
+
 test {
   useJUnitPlatform()
 
@@ -83,6 +87,14 @@ tasks.withType(JavaCompile) {
     }
   } else {
     options.errorprone.enabled = false
+  }
+}
+
+jacocoTestReport {
+  reports {
+    xml.required = true
+    html.required = true
+    xml.outputLocation = file("${buildDir}/reports/jacoco/report.xml")
   }
 }
 
