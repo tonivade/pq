@@ -17,7 +17,7 @@ snappyVersion = "1.1.10.8"
 errorproneVersion = "2.50.0"
 errorpronePluginVersion = "5.1.0"
 nullawayVersion = "0.13.8"
-jspecifyVersion = "1.0.0"
+jspecifyVersion = "1.0.1"
 slf4jVersion = "2.0.18"
 shadowJarVersion = "9.6.1"
 
