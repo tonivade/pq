@@ -55,7 +55,7 @@ class AppTest {
           optional binary cc (STRING);
           optional binary country (STRING);
           optional binary birthdate (STRING);
-          optional double salary;
+          optional double salary columnorder(TYPE_DEFINED_ORDER);
           optional binary title (STRING);
           optional binary comments (STRING);
         }
