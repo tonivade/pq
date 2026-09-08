@@ -18,7 +18,7 @@ errorproneVersion = "2.50.0"
 errorpronePluginVersion = "5.1.1"
 nullawayVersion = "0.14.1"
 jspecifyVersion = "1.0.1"
-slf4jVersion = "2.0.18"
+slf4jVersion = "2.0.19"
 shadowJarVersion = "9.6.1"
 
 [libraries]
