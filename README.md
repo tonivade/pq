@@ -5,7 +5,7 @@ Parquet query tool
 
 # Objetive
 
-Create a tool similar to jq but for parquet files.
+Create a tool similar to [jq](https://jqlang.org/) but for parquet files.
 
 # Installation
 
