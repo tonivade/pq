@@ -197,13 +197,26 @@ application {
 
 shadowJar {
   manifest {
-    attributes "Main-Class": "pq.App"
+    attributes(
+      "Main-Class": "pq.App",
+      'Enable-Native-Access': 'ALL-UNNAMED')
   }
 }
 
 graalvmNative {
   toolchainDetection = true
   binaries {
+    all {
+      // native-image comes from a graalvm jdk found by gradle, not from GRAALVM_HOME
+      javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(25)
+        nativeImageCapable = true
+      })
+      // parquet calls restricted methods, the jar enables it in the manifest
+      // but native-image builds from the classpath and ignores it
+      buildArgs.add('--enable-native-access=ALL-UNNAMED')
+      buildArgs.add('--sun-misc-unsafe-memory-access=allow')
+    }
     main {
       imageName = "pq"
       mainClass = "pq.App"
@@ -211,9 +224,7 @@ graalvmNative {
       fallback = false
       buildArgs.add("-O2")
       buildArgs.add('--verbose')
-      buildArgs.add('--report-unsupported-elements-at-runtime')
       buildArgs.add('--no-fallback')
-      buildArgs.add('--allow-incomplete-classpath')
       buildArgs.add('--initialize-at-run-time=ch.qos.logback')
       buildArgs.add('--initialize-at-build-time=org.slf4j.LoggerFactory')
       buildArgs.add('--initialize-at-build-time=org.slf4j.helpers.SubstituteServiceProvider')
